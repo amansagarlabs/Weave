@@ -1,0 +1,2 @@
+import { SurfacePage, StandardEmpty, Tabs } from "../../../components/surface";
+export default function BrandMessages() { return <SurfacePage role="brand" title="Messages." action="Discover creators" actionHref="/brand/discover"><Tabs labels={["All", "Unread", "Active briefs"]} /><div className="mt-6"><StandardEmpty title="Start the right conversation." copy="Discover a creator, share the context behind your brief, and keep the work conversation in one place." href="/brand/discover" action="Discover creators" /></div></SurfacePage>; }

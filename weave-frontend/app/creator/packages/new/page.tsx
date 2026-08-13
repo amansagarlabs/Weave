@@ -1,0 +1,2 @@
+import { FormCard, SurfacePage } from "../../../../components/surface";
+export default function NewCreatorPackage() { return <SurfacePage role="creator" title="Add a package." eyebrow="Package menu" description="Set a clear price and delivery promise for the work you want to attract."><FormCard title="Package details" fields={["Content type", "Price in INR", "Delivery days", "Revisions included", "What’s included"]} /></SurfacePage>; }

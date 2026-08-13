@@ -1,0 +1,15 @@
+# Frontend
+weave-frontend/node_modules/
+weave-frontend/.next/
+weave-frontend/out/
+
+# Backend
+weave-backend/target/
+weave-backend/.env
+
+# Local environment and editor files
+.env
+.env.local
+.idea/
+.vscode/
+*.log

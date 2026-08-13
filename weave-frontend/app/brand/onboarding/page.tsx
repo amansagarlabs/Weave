@@ -1,0 +1,2 @@
+import { FormCard, SurfacePage } from "../../../components/surface";
+export default function BrandOnboarding() { return <SurfacePage role="brand" title="Set up your brand profile." eyebrow="Brand onboarding" description="Give creators enough context to see the people behind the brief."><FormCard title="Company details" fields={["Company name", "Industry", "GSTIN (optional)", "Contact name", "Campaign categories"]} /></SurfacePage>; }

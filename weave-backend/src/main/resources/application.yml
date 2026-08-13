@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: weave-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/weave}
+    username: ${DATABASE_USERNAME:weave}
+    password: ${DATABASE_PASSWORD:weave}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  port: ${PORT:8080}
+weave:
+  jwt:
+    secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
+    expiration: ${JWT_EXPIRATION:PT24H}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

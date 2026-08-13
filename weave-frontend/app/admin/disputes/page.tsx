@@ -1,0 +1,2 @@
+import { SurfacePage, StandardEmpty, Tabs } from "../../../components/surface";
+export default function AdminDisputes() { return <SurfacePage role="brand" title="Disputes and flags." eyebrow="Admin"><Tabs labels={["Open", "Reviewing", "Resolved"]} /><div className="mt-6"><StandardEmpty title="No open disputes." copy="Flagged cases will show their evidence timeline, internal notes, and resolution action here." href="/admin/users" action="View users" /></div></SurfacePage>; }

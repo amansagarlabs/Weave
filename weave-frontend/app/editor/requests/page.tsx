@@ -1,0 +1,2 @@
+import { SurfacePage, StandardEmpty, Tabs } from "../../../components/surface";
+export default function EditorRequests() { return <SurfacePage role="editor" title="Incoming requests." action="Manage gigs" actionHref="/editor/gigs"><Tabs labels={["All", "New", "In progress", "Delivered"]} /><div className="mt-6"><StandardEmpty title="Your queue is clear." copy="New creator requests will show the brief, deadline, revision cap, and payment-link state here." href="/editor/gigs" action="Manage your gigs" /></div></SurfacePage>; }

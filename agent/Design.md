@@ -1,4 +1,6 @@
-# DESIGN — Creator Operations Platform (India MVP)
+# DESIGN — Weave Connector Platform
+
+> This document supersedes the old “Creator Operations Platform” framing. Weave is a creator-brand-editor discovery and booking platform. `Development paper.md` controls product direction; `TRD.md` controls implementation; `Sitemap.md` controls routes. The visual direction in this document is locked to the current Weave landing page.
 
 ---
 
@@ -59,3 +61,151 @@ Use consistent color-coding for status across Deal Tracker, Deal Detail, and Inv
 - Editor collaboration screens (revision workflow, watermarked preview UI) — design when Phase 1.5 is greenlit
 - Brand-side DM/filter UI — design when Phase 1.5 is greenlit
 - Public leaderboard UI — design in Phase 2
+
+---
+
+## 9. Weave visual direction — locked
+
+The current landing page is the reference surface for every authenticated and public page. Extend its visual language; do not introduce a second product style.
+
+- **Mood:** editorial, optimistic, human, confident, lightly playful.
+- **Canvas:** warm paper background with generous whitespace.
+- **Primary ink:** near-black green for text, navigation, outlines, and high-contrast actions.
+- **Primary accent:** acid lime for invitations, highlights, selected states, and creator energy.
+- **Secondary accent:** coral orange for action shadows, warnings, and small moments of emphasis.
+- **Support color:** forest green for primary actions and positive states.
+- **Type:** heavy rounded display face for headings; readable humanist sans-serif for body and controls; compact mono/uppercase labels for metadata.
+- **Shape:** rounded cards and pills, with concentric radii for nested surfaces.
+- **Depth:** offset hard shadows used sparingly; use the forest/ink/orange stack from the landing hero instead of generic gradients.
+- **Composition:** asymmetric editorial layouts are encouraged on hero and discovery pages; forms and operational screens should become calmer and more structured.
+
+Do not use purple-blue gradients, glassmorphism, generic stock illustrations, dense enterprise tables, or fake AI match percentages.
+
+## 10. Shared application shell
+
+### Public shell
+
+The public shell contains the Weave wordmark, `How it works`, `Explore`, login, and lime `Join Weave` CTA. On mobile, collapse secondary links into a menu button with a visible focus state.
+
+### Authenticated shell
+
+Use a responsive two-part shell:
+
+1. Desktop: compact forest sidebar with wordmark, role navigation, current workspace indicator, notifications, and profile menu.
+2. Mobile: top bar with wordmark, page title, notification button, and a bottom navigation bar with no more than five primary destinations.
+
+The active route is indicated with an icon plus text and a lime surface; never use color alone. Keep the main content column between 720px and 1180px depending on page type.
+
+### Shared page anatomy
+
+Every authenticated page should have:
+
+- breadcrumb or role context when the page is nested;
+- one clear page title and one-sentence purpose statement;
+- one primary action, placed consistently in the title row;
+- status and error feedback near the action that caused it;
+- an intentional loading state and an intentional empty state;
+- mobile layout tested at 360px width.
+
+## 11. Page-by-page UI specification
+
+### Public pages
+
+| Route | UI direction |
+|---|---|
+| `/` | Current reference landing page. Keep the editorial hero, rotated lime message card, coral offset label, category strip, and three-step explanation. |
+| `/login` | Calm centered auth card on paper background. Wordmark, “Welcome back.” heading, email/password fields, lime or forest submit button, forgot-password link, signup link, and inline error state. |
+| `/signup` | Role-first signup. Show three large selectable cards: Creator, Brand, Editor. Each card has a short benefit line and arrow. Continue only after a role is selected. |
+| `/onboarding/role` | Full-page role decision with the three cards, a short “You can change this later” note, and a progress marker. This is the pre-auth version of role selection. |
+| `/creator/:slug` | Public creator storefront: profile header, availability pill, category tags, stats chips, portfolio tabs, package cards, credibility area, and message/request CTA. Hide empty credibility metrics and show “Building a track record” where needed. |
+| `/help` | Search-first help page with grouped cards for account, profiles, bookings, payments, safety, and contact support. Use accordion rows with keyboard support. |
+
+### Creator pages
+
+| Route | UI direction |
+|---|---|
+| `/creator/onboarding` | Four-step progress flow: identity, categories/platforms, audience, availability. Use one focused form per step, visible labels, autosave indicator, and a preview card on desktop. |
+| `/creator/dashboard` | Warm operational home: greeting, “complete your profile” progress, active booking status cards, earnings summary, quick actions, and a strong first-booking empty state. |
+| `/creator/profile/edit` | Profile editor with sticky preview panel on desktop and preview toggle on mobile. Sections: identity, bio, categories, platforms, location, availability, and public slug. |
+| `/creator/packages` | Package menu editor. Use editable cards for content type, price, delivery days, revisions, and description. Provide add, duplicate, reorder, and archive actions. |
+| `/creator/portfolio` | Upload/manage grid with drag-and-drop on desktop and file picker on mobile. Each asset has type, caption, visibility, and delete controls. Show upload progress and failure recovery. |
+| `/creator/bookings` | Filterable booking list grouped by status. Cards on mobile, compact rows on desktop. Status order: Pending, Negotiating, Accepted, Delivered, Paid. |
+| `/creator/bookings/:id` | Booking detail with a horizontal status timeline, brief summary, package/rate card, brand details, message CTA, deliverables, and next-action panel. |
+| `/creator/messages` | Inbox with unread indicators, search, role/avatar labels, and empty state explaining how brands can start a conversation. |
+| `/creator/messages/:threadId` | Thread view with message bubbles, brief attachment area, booking context rail, and composer with clear sending/error states. |
+| `/creator/hire-editor` | Editor discovery cards inspired by Fiverr: thumbnail, editor identity, rating, starting price, delivery time, revisions, and “View profile” CTA. No fake ranking score. |
+| `/creator/editor-requests` | Request list with revision count, preview/payment state, and next action. Make the 3–4 revision cap visible. |
+| `/creator/editor-requests/:id` | Detail workspace with brief, watermarked/low-resolution preview, revision timeline, request-change action, payment status, and gated final-download action. Explain that watermarking is best-effort and cannot prevent screenshots. |
+| `/creator/earnings` | Earnings overview with paid/pending totals, invoice list, filters, invoice status badges, and payment-link actions. Use INR formatting but keep currency in data. |
+| `/creator/settings` | Settings sections for account, security, GSTIN/tax details, notifications, language, and delete-account request. Use progressive disclosure for advanced tax fields. |
+
+### Brand pages
+
+| Route | UI direction |
+|---|---|
+| `/brand/onboarding` | Company setup flow: company identity, industry, GSTIN, team contact, and campaign preferences. Keep one decision per screen. |
+| `/brand/dashboard` | Campaign-oriented home with active bookings, pending actions, recent conversations, and a discovery CTA. Avoid finance-heavy creator dashboard patterns. |
+| `/brand/discover` | Search and discovery workspace with category chips exactly `All, Tech, Fashion, Lifestyle, Gaming, Fitness, Travel, Beauty`, follower/engagement filters, and creator cards. Influencing score is displayed only as “Coming soon” or omitted until founder sign-off. |
+| `/brand/creator/:slug` | Brand view of public creator profile with package comparison, portfolio, credibility chips, availability, message, and request-booking actions. Never display an “AI fit” percentage. |
+| `/brand/messages` | Conversation inbox with campaign/creator context and quick filters for unread, active brief, and awaiting reply. |
+| `/brand/messages/:threadId` | Thread plus brief panel. Allow attaching requirements, selecting a package, and moving to booking proposal without leaving the conversation. |
+| `/brand/bookings` | Booking pipeline with status tabs and compact cards showing creator, package, amount, delivery date, and next action. |
+| `/brand/bookings/:id` | Booking workspace with creator header, approved brief, deliverables checklist, review/accept actions, payment-link status, and event timeline. No escrow language. |
+| `/brand/settings` | Company profile, billing/tax details, team preferences, notifications, language, and account controls. |
+
+### Editor pages
+
+| Route | UI direction |
+|---|---|
+| `/editor/onboarding` | Portfolio-first setup: identity, editing specialties, portfolio links, packages, pricing, delivery, and revisions included. |
+| `/editor/dashboard` | Work queue with incoming requests, active deliveries, revision alerts, and earnings snapshot. The next task should be obvious within three seconds. |
+| `/editor/gigs` | Gig/package management using tier cards: Basic, Standard, Premium. Each card supports price, delivery, revisions, included services, cover media, and archive. |
+| `/editor/requests` | Request queue with creator, request date, deadline, revision count, payment state, and preview status. |
+| `/editor/requests/:id` | Delivery workspace with brief, asset upload, watermarked preview, revision controls, and final-asset gate. Suspension behavior remains a placeholder pending founder sign-off. |
+| `/editor/earnings` | Paid/pending earnings, request-linked invoices/payment links, and simple monthly totals. |
+| `/editor/settings` | Profile, payout/payment-link preferences, notifications, language, and account controls. |
+
+### Shared and admin pages
+
+| Route | UI direction |
+|---|---|
+| `/notifications` | Notification center with unread/read tabs, grouped dates, icon + text status, and “mark all read”. |
+| `/admin/users` | Dense but readable internal table with search, role filter, status, profile completion, and safe action menus. Confirm destructive actions. |
+| `/admin/disputes` | Dispute queue with severity/status filters, two-column case detail, evidence timeline, internal notes, and resolution actions. |
+| `/admin/content` | CMS-style editor for compliance/payment copy, disclosure content where retained, category taxonomy, and system labels. Changes need preview and publish confirmation. |
+
+## 12. Shared component inventory
+
+Build these before page-specific components:
+
+- `WeaveLogo`, `PublicNav`, `AppShell`, `MobileBottomNav`;
+- `Button`, `IconButton`, `LinkButton`, `Badge`, `StatusBadge`;
+- `Card`, `StatChip`, `EmptyState`, `Skeleton`, `Toast`;
+- `TextField`, `Select`, `CurrencyField`, `TagInput`, `FileDropzone`;
+- `PackageCard`, `CreatorCard`, `EditorGigCard`, `BookingCard`;
+- `Timeline`, `FilterBar`, `Tabs`, `DataTable`, `Pagination`;
+- `Dialog`, `Drawer`, `ConfirmDialog`, `Accordion`;
+- `Avatar`, `PortfolioGrid`, `MessageComposer`, `PaymentState`.
+
+Components must support loading, disabled, error, and keyboard-focus states before being reused across routes.
+
+## 13. State and copy rules
+
+- Use the exact status labels defined in the product documents.
+- Always pair status color with text and, where useful, an icon.
+- Empty states should explain what happened and offer one action.
+- Never show `0%` credibility metrics when no history exists.
+- Never promise screenshot-proof content, guaranteed payment, escrow, or AI matching.
+- Use “payment link” or “payment status”; do not use “funds held”, “released from escrow”, or equivalent language.
+- All visible copy must come from an i18n-ready message map, even for English-only v1.
+
+## 14. Responsive and accessibility acceptance criteria
+
+- All primary flows work at 360px, 768px, and 1440px widths.
+- Interactive controls have at least 44px touch targets.
+- Keyboard focus is visible and never removed without a replacement.
+- Dialogs trap focus, close with Escape, and restore focus to the trigger.
+- Forms use visible labels, linked descriptions, and inline `aria-live="polite"` errors.
+- Motion respects `prefers-reduced-motion`.
+- Normal text meets WCAG AA contrast; color is never the only status signal.
+- Test public profile pages, discovery cards, booking timelines, and upload states with keyboard navigation before release.
