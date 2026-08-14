@@ -1,2 +1,3 @@
-import { FormCard, SurfacePage } from "../../../components/surface";
-export default function BrandSettings() { return <SurfacePage role="brand" title="Brand settings." description="Keep your company, billing, and communication preferences up to date."><FormCard title="Company and account" fields={["Company name", "Industry", "GSTIN", "Notification email", "Language"]} /></SurfacePage>; }
+import { SurfacePage } from "../../../components/surface";
+import { BrandProfileForm } from "../../../components/brand-profile-form";
+export default function BrandSettings() { return <SurfacePage role="brand" title="Brand settings." description="Keep your company and billing details up to date."><BrandProfileForm mode="settings" /></SurfacePage>; }

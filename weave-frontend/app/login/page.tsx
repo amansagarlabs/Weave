@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthForm } from "../../components/auth-form";
 import { PublicNav } from "../../components/public-nav";
+import { authCopy } from "../../lib/copy";
 
 export default function LoginPage() {
   return (
@@ -10,8 +11,8 @@ export default function LoginPage() {
         <Link href="/" className="text-xl font-black tracking-[-.08em]">
           weave<span className="text-[var(--orange)]">.</span>
         </Link>
-        <h1 className="mt-12 text-4xl font-black tracking-[-.06em]">Welcome back.</h1>
-        <p className="mt-3 text-[var(--muted)]">Your next collaboration is waiting.</p>
+        <h1 className="mt-12 text-4xl font-black tracking-[-.06em]">{authCopy.login.title}</h1>
+        <p className="mt-3 text-[var(--muted)]">{authCopy.login.body}</p>
         <AuthForm mode="login" />
       </section>
     </main>

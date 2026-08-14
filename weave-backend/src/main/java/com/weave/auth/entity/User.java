@@ -13,6 +13,8 @@ public class User {
     @Column(nullable = false) private String passwordHash;
     @Enumerated(EnumType.STRING) @Column(nullable = false) private Role role;
     @Column(nullable = false) private String locale = "en-IN";
+    @Column(nullable = false) private String notificationPreference = "EMAIL";
+    @Column(nullable = false) private boolean suspended = false;
     @Column(nullable = false, updatable = false) private Instant createdAt = Instant.now();
 
     protected User() { }
@@ -32,4 +34,10 @@ public class User {
     public Role getRole() { return role; }
     public String getPhone() { return phone; }
     public String getLocale() { return locale; }
+    public void setLocale(String locale) { this.locale = locale; }
+    public String getNotificationPreference() { return notificationPreference; }
+    public void setNotificationPreference(String notificationPreference) { this.notificationPreference = notificationPreference; }
+    public boolean isSuspended() { return suspended; }
+    public void suspend() { this.suspended = true; }
+    public void restore() { this.suspended = false; }
 }

@@ -1,41 +1,6 @@
 import Link from "next/link";
 import { ButtonLink } from "./ui";
-
-const navLinks = [
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "Pricing", href: "/#pricing" },
-] as const;
-
-const exploreGroups = [
-  {
-    label: "Creators",
-    links: [
-      { label: "Creator dashboard", href: "/creator/dashboard", description: "Manage bookings, earnings, and next steps." },
-      { label: "Creator profile", href: "/creator/aarav-creates", description: "See the public storefront a brand sees." },
-    ],
-  },
-  {
-    label: "Brands",
-    links: [
-      { label: "Discover creators", href: "/brand/discover", description: "Browse the marketplace by category." },
-      { label: "Brand dashboard", href: "/brand/dashboard", description: "Track campaigns, bookings, and messages." },
-    ],
-  },
-  {
-    label: "Editors",
-    links: [
-      { label: "Editor dashboard", href: "/editor/dashboard", description: "See the active request queue and work state." },
-      { label: "Editor gigs", href: "/editor/gigs", description: "Manage services, pricing, and revisions." },
-    ],
-  },
-  {
-    label: "Get started",
-    links: [
-      { label: "Role selection", href: "/onboarding/role", description: "Choose the workspace that fits you." },
-      { label: "Sign up", href: "/signup", description: "Create a new Weave account." },
-    ],
-  },
-] as const;
+import { publicNavCopy } from "../lib/copy";
 
 export function PublicNav() {
   return (
@@ -46,7 +11,7 @@ export function PublicNav() {
         </Link>
 
         <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-bold md:flex">
-          {navLinks.map((link) => (
+          {publicNavCopy.links.map((link) => (
             <Link key={link.href} href={link.href} className="transition-colors hover:text-[var(--forest)]">
               {link.label}
             </Link>
@@ -61,13 +26,13 @@ export function PublicNav() {
             </summary>
             <div className="absolute left-1/2 top-[calc(100%+0.8rem)] w-[34rem] -translate-x-1/2 rounded-[24px] border border-[var(--line)] bg-white p-4 shadow-[0_16px_40px_rgba(23,34,31,.12)]">
               <div className="mb-4 flex items-center justify-between px-2">
-                <p className="text-xs font-bold uppercase tracking-[.16em] text-[var(--muted)]">Explore Weave</p>
+                <p className="text-xs font-bold uppercase tracking-[.16em] text-[var(--muted)]">{publicNavCopy.exploreLabel}</p>
                 <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[10px] font-black uppercase tracking-[.16em] text-[var(--ink)]">
-                  Flyout
+                  {publicNavCopy.flyoutTag}
                 </span>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                {exploreGroups.map((group) => (
+                {publicNavCopy.exploreGroups.map((group) => (
                   <div key={group.label} className="rounded-2xl bg-[var(--paper)]/70 p-3">
                     <p className="px-1 text-[11px] font-black uppercase tracking-[.18em] text-[var(--muted)]">{group.label}</p>
                     <div className="mt-2 grid gap-2">
@@ -93,10 +58,10 @@ export function PublicNav() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link href="/login" className="rounded-full px-5 py-3 text-sm font-bold">
-            Log in
+            {publicNavCopy.login}
           </Link>
           <ButtonLink href="/onboarding/role" variant="accent">
-            Join Weave
+            {publicNavCopy.join}
           </ButtonLink>
         </div>
 
@@ -106,19 +71,19 @@ export function PublicNav() {
           </summary>
           <div className="absolute right-0 top-[calc(100%+0.75rem)] w-[min(18rem,calc(100vw-3rem))] rounded-[24px] border border-[var(--line)] bg-white p-3 shadow-[0_16px_40px_rgba(23,34,31,.12)]">
             <nav aria-label="Mobile navigation" className="grid gap-1 text-sm font-bold">
-              <Link href="/brand/discover" className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
-                Explore creators
+              <Link href={publicNavCopy.mobileDiscover.href} className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
+                {publicNavCopy.mobileDiscover.label}
               </Link>
-              {navLinks.map((link) => (
+              {publicNavCopy.links.map((link) => (
                 <Link key={link.href} href={link.href} className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
                   {link.label}
                 </Link>
               ))}
               <Link href="/login" className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
-                Log in
+                {publicNavCopy.login}
               </Link>
               <ButtonLink href="/onboarding/role" variant="accent">
-                Join Weave
+                {publicNavCopy.join}
               </ButtonLink>
             </nav>
           </div>

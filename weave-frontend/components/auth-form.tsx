@@ -2,21 +2,17 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authCopy } from "../lib/copy";
 
 type Role = "creator" | "brand" | "editor";
 type AuthMode = "login" | "signup";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
-const roleOptions: Array<{ value: Role; label: string; copy: string }> = [
-  { value: "creator", label: "Creator", copy: "Show your work and manage bookings." },
-  { value: "brand", label: "Brand", copy: "Discover talent and move with context." },
-  { value: "editor", label: "Editor", copy: "Offer packages and manage delivery." },
-];
-
 export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Role }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<Role>(role);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,7 +37,14 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
       }
 
       localStorage.setItem("weave_access_token", payload.accessToken);
-      const destination = mode === "login" ? `/${String(payload.user.role).toLowerCase()}/dashboard` : `/${selectedRole}/onboarding`;
+      localStorage.setItem("weave_role", String(payload.user.role).toLowerCase());
+      const requestedPath = searchParams.get("next");
+      const destination =
+        mode === "login" && requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+          ? requestedPath
+          : mode === "login"
+            ? `/${String(payload.user.role).toLowerCase()}/dashboard`
+            : `/${selectedRole}/onboarding`;
       router.push(destination);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong. Please try again.");
@@ -56,7 +59,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         <fieldset className="space-y-3">
           <legend className="text-sm font-bold text-[var(--muted)]">I am joining as</legend>
           <div className="grid gap-3 sm:grid-cols-3">
-            {roleOptions.map((option) => {
+            {authCopy.roleOptions.map((option) => {
               const active = selectedRole === option.value;
               return (
                 <button
@@ -114,11 +117,19 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         disabled={busy}
         className="flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white shadow-[4px_4px_0_var(--orange)] transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {busy ? "One moment..." : mode === "login" ? "Log in ->" : "Create account ->"}
+        {busy ? "One moment..." : mode === "login" ? authCopy.login.submit : authCopy.signup.submit}
       </button>
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-bold">
-        {mode === "login" ? <Link href="/signup" className="text-[var(--forest)] underline">Create an account</Link> : <Link href="/login" className="text-[var(--forest)] underline">Already have an account?</Link>}
+        {mode === "login" ? (
+          <Link href="/signup" className="text-[var(--forest)] underline">
+            {authCopy.login.switchLink}
+          </Link>
+        ) : (
+          <Link href="/login" className="text-[var(--forest)] underline">
+            {authCopy.signup.switchLink}
+          </Link>
+        )}
         <Link href="/help" className="text-[var(--muted)] underline">
           Need help?
         </Link>

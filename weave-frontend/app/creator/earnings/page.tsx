@@ -1,3 +1,6 @@
-import { Metric } from "../../../components/ui";
-import { ListCard, SurfacePage, Tabs, StandardEmpty } from "../../../components/surface";
-export default function CreatorEarnings() { return <SurfacePage role="creator" title="Earnings and invoices." description="Track payment links and invoice status without holding funds on Weave."><div className="grid gap-4 md:grid-cols-3"><Metric label="Paid" value="₹0" detail="This month" /><Metric label="Pending" value="₹0" detail="Awaiting payment" /><Metric label="Invoices" value="0" detail="All time" /></div><div className="mt-10"><Tabs labels={["All invoices", "Draft", "Sent", "Paid", "Overdue"]} /><div className="mt-6"><StandardEmpty title="No invoices yet." copy="Invoices created from your bookings will show their payment-link status here." href="/creator/bookings" action="View bookings" /></div></div></SurfacePage>; }
+import { InvoiceList } from "../../../components/invoice-list";
+import { SurfacePage } from "../../../components/surface";
+
+export default function CreatorEarnings() {
+  return <SurfacePage role="creator" title="Earnings and invoices." description="Track payment links and invoice status without holding funds on Weave."><InvoiceList /></SurfacePage>;
+}

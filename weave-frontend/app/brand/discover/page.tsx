@@ -1,5 +1,5 @@
 import { SurfacePage } from "../../../components/surface";
-import { DiscoveryBrowser } from "../../../components/marketplace";
+import { CreatorDiscovery } from "../../../components/creator-discovery";
 
 export default function BrandDiscover() {
   return (
@@ -10,7 +10,7 @@ export default function BrandDiscover() {
       actionHref="/brand/messages"
       description="Find people whose work and audience fit your brief. Weave does not use fake AI match percentages."
     >
-      <DiscoveryBrowser />
+      <CreatorDiscovery />
     </SurfacePage>
   );
 }

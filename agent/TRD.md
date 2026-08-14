@@ -39,12 +39,12 @@ Each domain package is internally layered (Controller → Service → Repository
 | Build tool | Maven | Broader enterprise JD match than Gradle |
 | Testing | JUnit5 + Mockito | Interview-relevant, standard |
 | File storage | AWS S3 (or Cloudflare R2, S3-compatible) | Media kit images, editor-delivered content (watermarked previews) |
-| Payments | Razorpay Java SDK | UPI/RTGS/IMPS/NEFT reconciliation, payment links, invoicing primitives |
+| Payments/Payouts/Escrow | **Cashfree** — Payment Gateway (0% MDR up to ₹20L GMV/month till 31 Mar 2027), Payouts API (creator/editor disbursal), One Escrow (marketplace escrow-as-a-service), Aadhaar eSign | RBI-licensed PA (CoA 266/2025); Java SDK available; chosen over Razorpay/PhonePe PG for multi-party payout + escrow fit |
 | Containerization | Docker | Backend containerized, strong SDE1 signal |
 | CI/CD | GitHub Actions | Free, standard |
 | Backend hosting | Render/Railway (fast/free tier) or AWS EC2 (resume weight) | Pick based on time budget |
 | Frontend hosting | Vercel | Native Next.js host |
-| E-signature (deferred) | Digio or Leegality | Aadhaar OTP-based eSign, usage-based pricing |
+| E-signature (deferred) | FreeSign (freesign.io) — open-source, self-hostable, no subscription | AGPL license (copyleft — self-hosted modifications must stay open-source); no native Aadhaar-linked eSign like Digio/Leegality, but standard e-signature is generally valid for most contracts. Fallback: Digio/Leegality if Aadhaar-linked signing becomes a requirement. |
 | Messaging (deferred) | WhatsApp Business API via BSP | For deal-inbox forwarding, payment reminders |
 
 ## 2A. Backend Architecture Convention (Spring Boot)
@@ -166,6 +166,6 @@ GET    /collab-matches?creator_id=
 - Payment escrow (holding funds) — requires payment aggregator licensing in India; confirm with founders before any implementation work begins
 
 ## 10. Open Technical Decisions (Flag to Founders, Do Not Assume)
-- Escrow vs. simple invoicing+tracking model
+- Escrow vs. pass-through payment — regulatory blocker resolved: **Cashfree One Escrow** is a licensed escrow-as-a-service product, so this is technically buildable now. Still needs founder sign-off on cost/business terms before implementing.
 - "Influencing score" composite metric definition (Phase 1.5 Brand↔Creator module)
 - Editor suspension trigger definition (under-delivery vs. rejecting change requests)

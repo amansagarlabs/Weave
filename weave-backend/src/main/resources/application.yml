@@ -17,6 +17,9 @@ weave:
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
     expiration: ${JWT_EXPIRATION:PT24H}
+  payments:
+    razorpay:
+      webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
 management:
   endpoints:
     web:

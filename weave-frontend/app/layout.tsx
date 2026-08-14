@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en-IN">
-      <body>{children}</body>
+      <body>
+        <Script id="weave-theme-bootstrap" strategy="beforeInteractive">{`
+          try {
+            const theme = window.localStorage.getItem('weave_theme');
+            const next = theme === 'dark' ? 'dark' : 'light';
+            document.documentElement.dataset.theme = next;
+          } catch (error) {}
+        `}</Script>
+        {children}
+      </body>
     </html>
   );
 }

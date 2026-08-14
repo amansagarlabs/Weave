@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { ButtonLink, Card, Pill, StatusBadge } from "./ui";
 import { PublicNav } from "./public-nav";
+import { PublicCreatorStorefront } from "./public-creator-storefront";
 
 type CreatorProfile = {
   userId: number;
@@ -294,7 +295,7 @@ export function DiscoveryBrowser() {
   );
 }
 
-export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
+function LegacyPublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
   const [creator, setCreator] = useState<
     (CreatorProfile & { followers: string; bio: string; packages: Array<{ title: string; price: string; note: string }> }) | null
   >(null);
@@ -450,6 +451,10 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
       </div>
     </div>
   );
+}
+
+export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
+  return <PublicCreatorStorefront slug={slug} variant={variant} />;
 }
 
 function MetricTile({ label, value, detail }: { label: string; value: string; detail: string }) {

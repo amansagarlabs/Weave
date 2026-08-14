@@ -13,5 +13,39 @@ public class Package {
     @Column(nullable = false, precision = 12, scale = 2) private BigDecimal price;
     private Integer deliveryDays;
     private Integer revisionsIncluded;
+    @Column(nullable = false) private boolean active = true;
     protected Package() { }
+
+    public static Package create(Long ownerId, String contentType, BigDecimal price, Integer deliveryDays, Integer revisionsIncluded) {
+        return create(ownerId, "CREATOR", contentType, price, deliveryDays, revisionsIncluded);
+    }
+
+    public static Package create(Long ownerId, String ownerType, String contentType, BigDecimal price, Integer deliveryDays, Integer revisionsIncluded) {
+        Package item = new Package();
+        item.ownerId = ownerId;
+        item.ownerType = ownerType;
+        item.contentType = contentType;
+        item.price = price;
+        item.deliveryDays = deliveryDays;
+        item.revisionsIncluded = revisionsIncluded;
+        item.active = true;
+        return item;
+    }
+
+    public void update(String contentType, BigDecimal price, Integer deliveryDays, Integer revisionsIncluded) {
+        this.contentType = contentType;
+        this.price = price;
+        this.deliveryDays = deliveryDays;
+        this.revisionsIncluded = revisionsIncluded;
+    }
+
+    public void archive() { this.active = false; }
+    public Long getId() { return id; }
+    public Long getOwnerId() { return ownerId; }
+    public String getOwnerType() { return ownerType; }
+    public String getContentType() { return contentType; }
+    public BigDecimal getPrice() { return price; }
+    public Integer getDeliveryDays() { return deliveryDays; }
+    public Integer getRevisionsIncluded() { return revisionsIncluded; }
+    public boolean isActive() { return active; }
 }

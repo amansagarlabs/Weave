@@ -67,7 +67,7 @@ Message (thread_id, sender_id, recipient_id, body, created_at)
 - DB: PostgreSQL, Flyway migrations
 - Auth: Spring Security + JWT (stateless), RBAC (Creator/Brand/Editor/Admin)
 - Build: Maven | Testing: JUnit5 + Mockito
-- Payments: Razorpay Java SDK (UPI, payment links)
+- Payments/Payouts/Escrow: **Cashfree** — Payment Gateway (0% MDR to ₹20L GMV/month), Payouts API (creator/editor disbursal), One Escrow, Aadhaar eSign (RBI-licensed, chosen over Razorpay/PhonePe PG for multi-party marketplace fit)
 - File storage: AWS S3 or Cloudflare R2 (watermarked previews, portfolio assets)
 - Containerization: Docker | CI/CD: GitHub Actions
 - Hosting: backend on Render/Railway or AWS EC2, frontend on Vercel
@@ -77,6 +77,9 @@ See `SITEMAP.md` — 32 routes across Creator/Brand/Editor/Public/Admin.
 
 ## 7. UI/UX Reference
 See `UI_UX_RESEARCH.md` — patterns borrowed from CollabMarket (profile layout), GetCollab (discovery/filter), Fiverr (package tiers, gig cards, revision flow).
+
+## 7A. E-signature (deferred)
+FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft applies if self-hosted and modified. No Aadhaar-linked eSign; fallback to Digio/Leegality if that becomes a legal requirement.
 
 ## 8. Non-Functional Requirements
 - i18n-ready (English v1, Hindi/regional planned)
@@ -99,7 +102,7 @@ See `UI_UX_RESEARCH.md` — patterns borrowed from CollabMarket (profile layout)
 ## 11. Open Decisions (need founder sign-off before build)
 1. "Influencing score" — exact formula
 2. Editor-suspension trigger — under-delivery vs. rejecting requested changes
-3. Escrow vs. pass-through payment — regulatory implications
+3. Escrow vs. pass-through payment — technical blocker resolved via Cashfree One Escrow; founder cost/business sign-off still needed
 4. Whether GST/TDS invoicing stays in scope given ASCI/legal-protection framing dropped (recommend: keep — payments still need correct invoicing regardless of positioning)
 
 ## 12. Doc Sync Status

@@ -1,2 +1,9 @@
-import { DiscoveryCard, SurfacePage } from "../../../components/surface";
-export default function HireEditor() { return <SurfacePage role="creator" title="Find an editor." description="Browse editing partners by craft, price, delivery time, and revision policy."><div className="mb-6 flex flex-wrap gap-3"><button className="rounded-full bg-[var(--ink)] px-4 py-3 text-sm font-bold text-white">All specialties</button><button className="rounded-full bg-white px-4 py-3 text-sm font-bold">Reels</button><button className="rounded-full bg-white px-4 py-3 text-sm font-bold">Photo</button></div><div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"><DiscoveryCard name="Maya edits" category="Reels" price="₹800" /><DiscoveryCard name="Frame by Arjun" category="Photo" price="₹1,200" /><DiscoveryCard name="Cut club" category="Reels" price="₹1,500" /></div></SurfacePage>; }
+import { EditorDiscovery } from "../../../components/editor-discovery";
+import { SurfacePage } from "../../../components/surface";
+
+export default function HireEditor() {
+  return <SurfacePage role="creator" title="Find an editor." description="Browse editing partners by craft, price, delivery time, and revision policy.">
+    <div className="mb-6 flex flex-wrap gap-3"><button className="rounded-full bg-[var(--ink)] px-4 py-3 text-sm font-bold text-white">All specialties</button><button className="rounded-full bg-white px-4 py-3 text-sm font-bold">Reels</button><button className="rounded-full bg-white px-4 py-3 text-sm font-bold">Photo</button></div>
+    <EditorDiscovery />
+  </SurfacePage>;
+}

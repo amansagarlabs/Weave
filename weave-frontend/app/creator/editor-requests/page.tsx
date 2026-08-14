@@ -1,2 +1,3 @@
-import { SurfacePage, StandardEmpty, Tabs } from "../../../components/surface";
-export default function EditorRequests() { return <SurfacePage role="creator" title="Editor requests." action="Hire an editor" actionHref="/creator/hire-editor"><Tabs labels={["All", "Awaiting response", "In progress", "Complete"]} /><div className="mt-6"><StandardEmpty title="No editor requests yet." copy="Choose an editor and send a clear brief. Your revision count, preview, and payment status will stay together here." href="/creator/hire-editor" action="Browse editors" /></div></SurfacePage>; }
+import { SurfacePage, Tabs } from "../../../components/surface";
+import { EditRequestList } from "../../../components/edit-request-list";
+export default function CreatorEditorRequests() { return <SurfacePage role="creator" title="Editor requests." action="Hire an editor" actionHref="/creator/hire-editor"><Tabs labels={["All", "Awaiting response", "In progress", "Complete"]} /><div className="mt-6"><EditRequestList role="creator" /></div></SurfacePage>; }
