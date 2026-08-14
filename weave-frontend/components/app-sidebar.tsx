@@ -6,7 +6,6 @@ import { ActiveNavLink } from "./active-nav-link";
 import { LogoutButton } from "./auth-gate";
 import { SearchForm } from "./search-form";
 import { SidebarExpandHandle, SidebarTrigger, useSidebar } from "./sidebar";
-import { VersionSwitcher } from "./version-switcher";
 import { Logo, nav, navIcons, roleMeta, WeaveMark, type Role } from "./workspace-nav";
 
 export function AppSidebar({ role }: { role: Role }) {
@@ -34,7 +33,7 @@ export function AppSidebar({ role }: { role: Role }) {
               <SidebarTrigger className="border-white/10 bg-white/10 text-white shadow-none hover:bg-white/15" />
             </div>
           ) : (
-            <div className="group/logo relative flex item-rs-center justify-center">
+            <div className="group/logo relative flex items-center justify-center">
               <WeaveMark className="h-10 w-10 rounded-xl" />
               <div className="absolute inset-0 opacity-0 transition-all duration-200 group-hover/logo:opacity-100 group-focus-within/logo:opacity-100">
                 <SidebarExpandHandle className="!h-10 !w-10 rounded-xl" />
@@ -42,8 +41,6 @@ export function AppSidebar({ role }: { role: Role }) {
             </div>
           )}
         </div>
-
-        {!collapsed ? <VersionSwitcher role={role} /> : null}
 
         {!collapsed ? (
           <div className="space-y-2">

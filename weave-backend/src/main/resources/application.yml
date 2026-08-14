@@ -13,6 +13,12 @@ spring:
     enabled: true
 server:
   port: ${PORT:8080}
+logging:
+  level:
+    root: INFO
+    com.weave: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [cid=%X{correlationId:-na}] %logger{36} - %msg%n"
 weave:
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}

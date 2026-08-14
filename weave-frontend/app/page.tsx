@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ButtonLink, Pill } from "../components/ui";
 import { PublicNav } from "../components/public-nav";
 import { Footer } from "../components/footer";
+import { HomeHeroActions } from "../components/home-hero-actions";
 import { homeCopy, categories } from "../lib/copy";
 
 export default function HomePage() {
@@ -19,12 +20,7 @@ export default function HomePage() {
             {homeCopy.hero.body}
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-4">
-            <ButtonLink href="/onboarding/role">{homeCopy.hero.primaryAction}</ButtonLink>
-            <ButtonLink href="/brand/discover" variant="outline">
-              {homeCopy.hero.secondaryAction}
-            </ButtonLink>
-          </div>
+          <HomeHeroActions />
 
           <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-[var(--muted)]">
             {homeCopy.hero.chips.map((chip) => <span key={chip}>{chip}</span>)}

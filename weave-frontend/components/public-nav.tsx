@@ -1,14 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { ChevronDown, LogOut, PanelLeftClose } from "lucide-react";
 import { ButtonLink } from "./ui";
 import { publicNavCopy } from "../lib/copy";
+import { Logo } from "./workspace-nav";
+import { clearPublicSession, dashboardHrefForRole, usePublicSession } from "./public-session";
 
 export function PublicNav() {
+  const session = usePublicSession();
+  const isLoggedIn = session.ready && Boolean(session.token);
+  const dashboardHref = dashboardHrefForRole(session.role);
+
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--paper)]/92 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-        <Link href="/" className="text-2xl font-black tracking-[-0.08em]">
-          weave<span className="text-[var(--orange)]">.</span>
-        </Link>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
+        <Logo />
 
         <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-bold md:flex">
           {publicNavCopy.links.map((link) => (
@@ -18,11 +25,9 @@ export function PublicNav() {
           ))}
 
           <details className="group relative">
-            <summary className="flex list-none items-center gap-2 rounded-full px-3 py-2 transition-colors hover:bg-white focus-visible:bg-white">
+            <summary className="inline-flex list-none items-center gap-1.5 rounded-full px-3 py-2 leading-none transition-colors hover:bg-white focus-visible:bg-white">
               <span>Explore</span>
-              <span aria-hidden="true" className="text-xs transition-transform group-open:rotate-180">
-                ▾
-              </span>
+              <ChevronDown size={14} aria-hidden="true" className="mt-0.5 shrink-0 transition-transform group-open:rotate-180" />
             </summary>
             <div className="absolute left-1/2 top-[calc(100%+0.8rem)] w-[34rem] -translate-x-1/2 rounded-[24px] border border-[var(--line)] bg-white p-4 shadow-[0_16px_40px_rgba(23,34,31,.12)]">
               <div className="mb-4 flex items-center justify-between px-2">
@@ -37,15 +42,9 @@ export function PublicNav() {
                     <p className="px-1 text-[11px] font-black uppercase tracking-[.18em] text-[var(--muted)]">{group.label}</p>
                     <div className="mt-2 grid gap-2">
                       {group.links.map((link) => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          className="rounded-xl bg-white px-4 py-3 transition-colors hover:bg-[var(--paper)]"
-                        >
+                        <Link key={link.href} href={link.href} className="rounded-xl bg-white px-4 py-3 transition-colors hover:bg-[var(--paper)]">
                           <span className="block text-sm font-black text-[var(--ink)]">{link.label}</span>
-                          <span className="mt-1 block text-sm font-normal leading-6 text-[var(--muted)]">
-                            {link.description}
-                          </span>
+                          <span className="mt-1 block text-sm font-normal leading-6 text-[var(--muted)]">{link.description}</span>
                         </Link>
                       ))}
                     </div>
@@ -57,11 +56,30 @@ export function PublicNav() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/login" className="rounded-full px-5 py-3 text-sm font-bold">
-            {publicNavCopy.login}
-          </Link>
-          <ButtonLink href="/onboarding/role" variant="accent">
-            {publicNavCopy.join}
+          {isLoggedIn ? (
+            <>
+              <Link href={dashboardHref} className="rounded-full px-5 py-3 text-sm font-bold text-[var(--forest)]">
+                Workspace
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  clearPublicSession();
+                  window.location.assign("/login");
+                }}
+                className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-[var(--ink)] transition-colors hover:bg-white"
+              >
+                <LogOut size={16} aria-hidden="true" />
+                Log out
+              </button>
+            </>
+          ) : (
+            <Link href="/login" className="rounded-full px-5 py-3 text-sm font-bold">
+              {publicNavCopy.login}
+            </Link>
+          )}
+          <ButtonLink href={isLoggedIn ? dashboardHref : "/onboarding/role"} variant="accent">
+            {isLoggedIn ? "Open workspace" : publicNavCopy.join}
           </ButtonLink>
         </div>
 
@@ -79,11 +97,30 @@ export function PublicNav() {
                   {link.label}
                 </Link>
               ))}
-              <Link href="/login" className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
-                {publicNavCopy.login}
-              </Link>
-              <ButtonLink href="/onboarding/role" variant="accent">
-                {publicNavCopy.join}
+              {isLoggedIn ? (
+                <>
+                  <Link href={dashboardHref} className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
+                    Workspace
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearPublicSession();
+                      window.location.assign("/login");
+                    }}
+                    className="flex items-center gap-2 rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--paper)]"
+                  >
+                    <LogOut size={16} aria-hidden="true" />
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" className="rounded-xl px-4 py-3 transition-colors hover:bg-[var(--paper)]">
+                  {publicNavCopy.login}
+                </Link>
+              )}
+              <ButtonLink href={isLoggedIn ? dashboardHref : "/onboarding/role"} variant="accent">
+                {isLoggedIn ? "Open workspace" : publicNavCopy.join}
               </ButtonLink>
             </nav>
           </div>

@@ -1,5 +1,5 @@
-import { Card } from "../../../components/ui";
-import { StandardEmpty, SurfacePage, Tabs } from "../../../components/surface";
+import { AdminDisputesPanel } from "../../../components/admin-disputes-panel";
+import { SurfacePage } from "../../../components/surface";
 
 export default function AdminDisputes() {
   return (
@@ -9,16 +9,7 @@ export default function AdminDisputes() {
       eyebrow="Admin"
       description="Review escalations, evidence, and manual moderation notes here."
     >
-      <Tabs labels={["Open", "Reviewing", "Resolved"]} />
-
-      <Card className="mt-6">
-        <StandardEmpty
-          title="No open disputes."
-          copy="Flagged cases will show their evidence timeline, internal notes, and resolution action here."
-          href="/admin/users"
-          action="View users"
-        />
-      </Card>
+      <AdminDisputesPanel />
     </SurfacePage>
   );
 }

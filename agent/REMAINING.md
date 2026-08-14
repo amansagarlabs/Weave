@@ -105,11 +105,11 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 ### 7. Complete admin and support surfaces
 
-- [ ] Add admin-only backend endpoints for users, disputes, flags, taxonomy, and editable content. Admin user suspend/restore endpoints now exist; disputes/flags/taxonomy/content remain open.
+- [x] Add admin-only backend endpoints for users, disputes, flags, taxonomy, and editable content. Admin user suspend/restore endpoints now exist; disputes/flags/taxonomy/content are now wired end to end.
 - [x] Enforce `ADMIN` role server-side and use a dedicated admin shell/navigation boundary.
 - [x] Replace placeholder admin user rows with an admin-only API, loading, and error states. Pagination/filtering remain open.
 - [x] Add confirmation dialogs for destructive admin actions.
-- [ ] Add content preview and publish confirmation for compliance copy and category labels.
+- [x] Add content preview and publish confirmation for compliance copy and category labels.
 - [x] Connect notifications to persisted events instead of sample in-memory notifications.
 
 ## Frontend quality work remaining
@@ -134,11 +134,11 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [ ] Add Testcontainers PostgreSQL integration tests for Flyway migrations and repositories.
 - [x] Add database indexes for public slug, creator category discovery, booking participants, and message threads.
 - [x] Add request validation and consistent API error envelopes for current domain requests.
-- [ ] Add structured logging, correlation IDs, and safe production error messages.
+- [x] Add structured logging, correlation IDs, and safe production error messages.
 - [x] Add Docker Compose development wiring and PostgreSQL health check for the backend stack; runtime smoke test passes with Flyway v5 and `/actuator/health` returning `UP`.
-- [ ] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
+- [x] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
 - [ ] Configure free opensource cloudflare S3/R2, payment gateway, JWT secret, database credentials, and CORS through environment variables only.
-- [ ] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
+- [x] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
 - [ ] Add real time conversations web socket an if anyone typign show typign animated resposne make dynamic and add + icons for uplaod anyhting content like in usual conversation opensorce emojis gifs stickers etc 
 
 
