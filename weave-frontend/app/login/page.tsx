@@ -3,6 +3,7 @@ import { AuthForm } from "../../components/auth-form";
 import { PublicNav } from "../../components/public-nav";
 import { PublicSessionGate } from "../../components/public-session-gate";
 import { authCopy } from "../../lib/copy";
+import { Footer } from "../../components/footer";
 
 export default function LoginPage() {
   return (
@@ -17,7 +18,7 @@ export default function LoginPage() {
           <p className="mt-3 text-[var(--muted)]">{authCopy.login.body}</p>
           <AuthForm mode="login" />
         </section>
-      </main>
+      </main><Footer compact />
     </PublicSessionGate>
   );
 }

@@ -3,6 +3,7 @@ import { AuthForm } from "../../components/auth-form";
 import { PublicNav } from "../../components/public-nav";
 import { PublicSessionGate } from "../../components/public-session-gate";
 import { authCopy } from "../../lib/copy";
+import { Footer } from "../../components/footer";
 
 export default async function SignupPage({
   searchParams,
@@ -24,7 +25,7 @@ export default async function SignupPage({
           <p className="mt-3 text-[var(--muted)]">{authCopy.signup.body}</p>
           <AuthForm mode="signup" role={initialRole} />
         </section>
-      </main>
+      </main><Footer compact />
     </PublicSessionGate>
   );
 }

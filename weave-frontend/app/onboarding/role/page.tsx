@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Logo, Pill } from "../../../components/ui";
 import { authCopy } from "../../../lib/copy";
+import { Footer } from "../../../components/footer";
 
 export default function RoleSelectionPage() {
   return (
-    <main className="min-h-screen px-6 py-8">
+    <><main className="min-h-screen px-6 py-8">
       <div className="mx-auto max-w-5xl">
         <Logo />
         <div className="mx-auto max-w-2xl py-20 text-center">
@@ -29,6 +30,6 @@ export default function RoleSelectionPage() {
           ))}
         </div>
       </div>
-    </main>
+    </main><Footer compact /></>
   );
 }
