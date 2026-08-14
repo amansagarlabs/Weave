@@ -31,6 +31,9 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Development-only demo accounts documented in `agent/DEMO_CREDENTIALS.md`; seeded only with the explicit Spring `demo` profile.
 - [x] Demo profile includes representative booking, message, editor-request, package, and draft-invoice records for page-flow testing.
 - [x] Map JSONB-backed entity fields explicitly with Hibernate `@JdbcTypeCode(SqlTypes.JSON)`; creator profile save verified end to end.
+- [x] Added the reusable footer to all public-facing surfaces: homepage, help, login, signup, role selection, and public creator profiles.
+- [x] Public footer includes full and compact variants, role links, workspace/login state, responsive utility navigation, and the animated crowd illustration.
+- [x] Removed the crowd pause control and tightened footer utility-link hover spacing.
 
 ### Important verification note
 
@@ -126,6 +129,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [ ] Test keyboard navigation, 360px layout, 768px layout, 1440px layout, and 200% zoom.
 - [ ] Add automated accessibility checks and component examples for primary, hover, focus, disabled, loading, and error states.
 - [x] Replace sample creator metrics and copy with backend-backed values; never display invented influence scores.
+- [x] Add the reusable footer to public pages without adding it to authenticated workspace shells.
 
 ## Backend and infrastructure remaining
 
@@ -139,19 +143,19 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
 - [ ] Configure free opensource cloudflare S3/R2, payment gateway, JWT secret, database credentials, and CORS through environment variables only.
 - [x] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
-- [ ] Add real time conversations web socket an if anyone typign show typign animated resposne make dynamic and add + icons for uplaod anyhting content like in usual conversation opensorce emojis gifs stickers etc 
+- [ ] Add real-time conversations with WebSocket/STOMP groundwork.
+- [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
+- [ ] Add a conversation composer attachment menu: upload files, emoji picker, GIFs, and stickers. Keep file validation, size limits, and storage integration explicit.
 
 
-## Suggested build order
+## Next-day build plan
 
-1. Authentication guards, current-user endpoint, logout, and backend tests.
-2. Creator package CRUD and brand profile persistence.
-3. Booking detail/status transitions and live timelines.
-4. Inbox/thread participant model and live inboxes.
-5. Editor profiles, gigs, and edit requests.
-6. Invoice/payment-link integration and webhook handling.
-7. Portfolio storage and preview upload states.
-8. Admin APIs, notifications, accessibility audit, and deployment CI.
+1. Add Testcontainers PostgreSQL integration tests for Flyway migrations, repositories, and the most important ownership queries.
+2. Build WebSocket/STOMP messaging groundwork: authenticated connection, thread subscription, message delivery, reconnect behavior, and server-side participant checks.
+3. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
+4. Add the message composer attachment menu for emoji, GIF/sticker placeholders, and validated file uploads. Do not connect external media providers until credentials and moderation rules are defined.
+5. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
+6. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, Razorpay, JWT, and CORS.
 
 ## Release acceptance checklist
 

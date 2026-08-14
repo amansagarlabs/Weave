@@ -196,9 +196,9 @@ export const authCopy = {
     switchLink: "Already have an account?",
   },
   roleOptions: [
-    { value: "creator", label: "Creator", copy: "Show your work and manage bookings." },
-    { value: "brand", label: "Brand", copy: "Discover talent and move with context." },
-    { value: "editor", label: "Editor", copy: "Offer packages and manage delivery." },
+    { value: "creator", label: "Creator", copy: "" },
+    { value: "brand", label: "Brand", copy: "" },
+    { value: "editor", label: "Editor", copy: "" },
   ] as const,
   roleSelection: {
     eyebrow: "Step 01 / 02",
