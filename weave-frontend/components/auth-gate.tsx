@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Role } from "./ui";
 import { api, csrfHeaders } from "../lib/api";
+import { AppleLoader } from "./apple-loader";
 
 type SessionUser = { role: string };
 let cachedSessionUser: SessionUser | null = null;
@@ -26,7 +27,7 @@ export function AuthGate({ role, children }: { role: Role; children: React.React
       .catch(() => router.replace(`/login?next=${encodeURIComponent(pathname)}`));
   }, [pathname, role, router]);
 
-  if (!ready) return <div className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6"><p className="text-sm font-bold text-[var(--muted)]">Checking your workspace...</p></div>;
+  if (!ready) return <div className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6"><div className="text-center"><AppleLoader label="Checking your workspace" /><p className="mt-4 text-sm font-bold text-[var(--muted)]">Checking your workspace...</p></div></div>;
   return <>{children}</>;
 }
 

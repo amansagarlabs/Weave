@@ -85,6 +85,9 @@ label:has(select:focus-visible) {
   border-color: var(--forest);
 }
 [aria-label="Watermarked preview placeholder"] { background: var(--dark-panel); }
+.apple-loader { position: relative; display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; }
+.apple-loader__bar { position: absolute; width: 2.5px; height: 7px; border-radius: 999px; background: var(--forest); transform-origin: center 11px; animation: apple-loader-fade 0.8s linear infinite; }
+@keyframes apple-loader-fade { 0%, 100% { opacity: .22; } 35% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

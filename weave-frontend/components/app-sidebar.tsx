@@ -27,11 +27,11 @@ export function AppSidebar({ role }: { role: Role }) {
       }`}
     >
       <div className="flex h-full w-full flex-col gap-5 p-4">
-        <div className={`relative flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-3`}>
+        <div className={`relative flex w-full items-center ${collapsed ? "justify-center" : "justify-between"} gap-3`}>
           {!collapsed ? (
-            <div className="flex items-center gap-3">
+            <div className="flex w-full items-center justify-between gap-5">
               <Logo />
-              <SidebarTrigger className="border-white/10 bg-white/10 text-white shadow-none hover:bg-white/15" />
+              <SidebarTrigger className="!border-white/20 !bg-white/15 !text-white shadow-none hover:!bg-white/25" />
             </div>
           ) : (
             <div className="group/logo relative flex items-center justify-center">

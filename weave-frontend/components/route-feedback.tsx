@@ -1,7 +1,8 @@
 import { ButtonLink, Card } from "./ui";
+import { AppleLoader } from "./apple-loader";
 
 export function LoadingState({ label = "Loading your workspace…" }: { label?: string }) {
-  return <main className="mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-6 py-16 lg:px-10" aria-busy="true" aria-live="polite"><Card className="w-full max-w-md text-center"><div className="mx-auto h-3 w-24 animate-pulse rounded-full bg-[var(--accent)]" aria-hidden="true" /><p className="mt-5 text-sm font-bold text-[var(--muted)]">{label}</p></Card></main>;
+  return <main className="mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-6 py-16 lg:px-10" aria-busy="true" aria-live="polite"><Card className="w-full max-w-md text-center"><AppleLoader label={label} /><p className="mt-5 text-sm font-bold text-[var(--muted)]">{label}</p></Card></main>;
 }
 
 export function NotFoundState() {
