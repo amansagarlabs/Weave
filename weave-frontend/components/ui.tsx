@@ -147,7 +147,7 @@ export function AppShell({
       <SidebarProvider>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--accent)] focus:px-4 focus:py-3 focus:font-bold focus:text-[var(--on-bright)]"
+          className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:rounded-full focus-visible:bg-[var(--accent)] focus-visible:px-4 focus-visible:py-3 focus-visible:font-bold focus-visible:text-[var(--on-bright)]"
         >
           Skip to content
         </a>
