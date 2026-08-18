@@ -27,21 +27,21 @@ class AuthServiceTest {
     @Mock PasswordEncoder passwordEncoder;
     @Mock AuthenticationManager authenticationManager;
     @Mock JwtService jwtService;
+    @Mock EmailVerificationService emailVerification;
 
-    private AuthService service() { return new AuthService(users, passwordEncoder, authenticationManager, jwtService); }
+    private AuthService service() { return new AuthService(users, passwordEncoder, authenticationManager, jwtService, emailVerification); }
 
     @Test
-    void signupNormalizesEmailEncodesPasswordAndIssuesRoleToken() {
+    void signupNormalizesEmailEncodesPasswordAndStartsVerification() {
         when(users.findByEmail("creator@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("12345678")).thenReturn("encoded");
         when(users.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtService.issue("creator@example.com", "CREATOR")).thenReturn("token");
 
-        AuthResponse response = service().signup(new SignupRequest(" Creator@Example.com ", null, "12345678", "creator"));
+        var response = service().signup(new SignupRequest(" Creator@Example.com ", null, "12345678", "creator"));
 
-        assertEquals("token", response.accessToken());
-        assertEquals("creator@example.com", response.user().email());
-        assertEquals("CREATOR", response.user().role());
+        assertEquals("creator@example.com", response.email());
+        assertTrue(response.verificationRequired());
+        verify(emailVerification).start(any(User.class));
         ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
         verify(users).save(saved.capture());
         assertEquals("encoded", saved.getValue().getPasswordHash());
@@ -57,7 +57,7 @@ class AuthServiceTest {
 
         assertEquals(409, exception.getStatusCode().value());
         verify(users, never()).save(any());
-        verifyNoInteractions(passwordEncoder, jwtService);
+        verifyNoInteractions(passwordEncoder, jwtService, emailVerification);
     }
 
     @Test
@@ -66,6 +66,7 @@ class AuthServiceTest {
         when(authentication.getName()).thenReturn("brand@example.com");
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         User user = User.create("brand@example.com", null, "hash", Role.BRAND);
+        user.markEmailVerified();
         when(users.findByEmail("brand@example.com")).thenReturn(Optional.of(user));
         when(jwtService.issue("brand@example.com", "BRAND")).thenReturn("token");
 

@@ -69,14 +69,14 @@ export function CreatorSettingsForm() {
     }
   }
 
-  if (loading) return <div className="rounded-2xl bg-white p-6 text-sm font-bold text-[var(--muted)]">Loading your settings…</div>;
+  if (loading) return <div className="rounded-2xl bg-[var(--card)] p-6 text-sm font-bold text-[var(--muted)]">Loading your settings…</div>;
 
   const categories = list(profile?.categoriesJson);
   const platforms = list(profile?.platformsJson);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
-      <form onSubmit={submit} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
+      <form onSubmit={submit} className="rounded-2xl bg-[var(--card)] p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
         <h2 className="text-xl font-black tracking-[-.04em]">Account preferences</h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Change the parts of your account that affect how Weave talks to you.</p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">

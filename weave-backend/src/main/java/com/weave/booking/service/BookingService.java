@@ -13,14 +13,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Set;
+import com.weave.notification.service.NotificationService;
 
 @Service
 public class BookingService {
     private final BookingRepository bookings;
     private final UserRepository users;
     private final PackageRepository packages;
+    private final NotificationService notifications;
 
-    public BookingService(BookingRepository bookings, UserRepository users, PackageRepository packages) { this.bookings = bookings; this.users = users; this.packages = packages; }
+    public BookingService(BookingRepository bookings, UserRepository users, PackageRepository packages, NotificationService notifications) { this.bookings = bookings; this.users = users; this.packages = packages; this.notifications = notifications; }
 
     public BookingResponse create(String email, CreateBookingRequest request) {
         User brand = users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -32,7 +34,9 @@ public class BookingService {
             if (!request.creatorId().equals(item.getOwnerId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Package does not belong to the selected creator");
             if (item.getPrice() == null || item.getPrice().compareTo(request.amount()) != 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking amount must match the selected package price");
         }
-        return BookingResponse.from(bookings.save(Booking.create(brand.getId(), request.creatorId(), request.packageId(), request.amount())));
+        Booking saved = bookings.save(Booking.create(brand.getId(), request.creatorId(), request.packageId(), request.amount()));
+        notifications.create(creator.getId(), "New booking request", "A brand sent you a booking request. Review the brief and next step.", "BOOKING");
+        return BookingResponse.from(saved);
     }
 
     public List<BookingResponse> mine(String email) {
@@ -55,7 +59,10 @@ public class BookingService {
         if ("BRAND".equals(user.getRole().name()) && !Set.of("NEGOTIATING", "ACCEPTED").contains(next)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brands can move bookings to negotiating or accepted");
         if ("CREATOR".equals(user.getRole().name()) && !Set.of("CONTENT_DELIVERED").contains(next)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Creators can mark accepted work as content delivered");
         booking.moveTo(next);
-        return BookingResponse.from(bookings.save(booking));
+        Booking saved = bookings.save(booking);
+        Long recipientId = user.getId().equals(booking.getBrandId()) ? booking.getCreatorId() : booking.getBrandId();
+        notifications.create(recipientId, "Booking status updated", "Booking #" + booking.getId() + " moved to " + next.replace('_', ' ').toLowerCase() + ".", "BOOKING");
+        return BookingResponse.from(saved);
     }
 
     private User user(String email) { return users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")); }

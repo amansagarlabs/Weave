@@ -6,7 +6,7 @@ import { homeCopy } from "../lib/copy";
 
 export function HomeHeroActions() {
   const session = usePublicSession();
-  const isLoggedIn = session.ready && Boolean(session.token);
+  const isLoggedIn = session.ready && session.authenticated;
   const dashboardHref = dashboardHrefForRole(session.role);
 
   return (

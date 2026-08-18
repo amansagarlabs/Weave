@@ -29,46 +29,46 @@ export default function HomePage() {
 
         <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
           <div className="aspect-square rotate-3 rounded-[32px] bg-[var(--forest)] p-5 shadow-[14px_14px_0_var(--accent)]">
-            <div className="flex h-full flex-col justify-between rounded-[22px] bg-[var(--accent)] p-7 sm:p-10">
+            <div className="flex h-full flex-col justify-between rounded-[22px] bg-[var(--accent)] p-7 text-[var(--on-bright)] sm:p-10">
               <div className="flex items-start justify-between">
-                <span className="text-5xl" aria-hidden="true">
+                <span className="text-5xl text-[var(--on-bright)]" aria-hidden="true">
                   *
                 </span>
-                <span className="rounded-full bg-white/70 px-3 py-2 text-xs font-bold uppercase tracking-widest">01 / 03</span>
+                <span className="rounded-full bg-white/70 px-3 py-2 text-xs font-bold uppercase tracking-widest text-[var(--on-bright)]">01 / 03</span>
               </div>
 
               <div>
                 <p className="mb-3 font-mono text-xs font-bold uppercase tracking-widest text-[var(--forest)]">{homeCopy.hero.card.eyebrow}</p>
-                <h2 className="max-w-md text-5xl font-black leading-[.92] tracking-[-.07em] sm:text-6xl">
+                <h2 className="max-w-md text-5xl font-black leading-[.92] tracking-[-.07em] text-[var(--on-bright)] sm:text-6xl">
                   {homeCopy.hero.card.title}
                 </h2>
               </div>
 
-              <div className="flex items-center justify-between border-t border-[var(--forest)]/20 pt-4 text-sm font-bold">
+              <div className="flex items-center justify-between border-t border-[var(--forest)]/20 pt-4 text-sm font-bold text-[var(--on-bright)]">
                 <span>{homeCopy.hero.card.footer}</span>
                 <span aria-hidden="true">-&gt;</span>
               </div>
             </div>
           </div>
 
-          <div className="absolute -bottom-8 -left-5 -rotate-6 rounded-2xl bg-[var(--orange)] px-5 py-4 text-sm font-black shadow-[5px_5px_0_var(--ink)]">
+          <div className="absolute -bottom-8 -left-5 -rotate-6 rounded-2xl bg-[var(--orange)] px-5 py-4 text-sm font-black text-[var(--on-bright)] shadow-[5px_5px_0_var(--ink)]">
             {homeCopy.hero.sticker}
           </div>
 
-          <div className="absolute -right-2 -top-6 hidden rounded-full border-2 border-[var(--ink)] bg-white px-4 py-3 text-xs font-bold uppercase tracking-widest lg:block">
+          <div className="absolute -right-2 -top-6 hidden rounded-full border-2 border-[var(--ink)] bg-white px-4 py-3 text-xs font-bold uppercase tracking-widest text-[var(--on-bright)] lg:block">
             {homeCopy.hero.badge}
           </div>
         </div>
       </section>
 
-      <section className="border-y border-[var(--line)] bg-white px-6 py-8 lg:px-10">
+      <section className="border-y border-[var(--line)] bg-[var(--card)] px-6 py-8 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
           <span className="mr-3 text-sm font-bold text-[var(--muted)]">Explore by category</span>
           {categories.map((category) => (
             <Link
               key={category}
               href={category === "All" ? "/brand/discover" : `/brand/discover?category=${encodeURIComponent(category)}`}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold transition-colors hover:border-[var(--ink)] hover:bg-[var(--accent)]"
+              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--ink)] transition-colors hover:border-[var(--ink)] hover:bg-[var(--accent)] hover:text-[var(--on-bright)]"
             >
               {category}
             </Link>
@@ -122,7 +122,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how-it-works" className="bg-[var(--ink)] px-6 py-24 text-white lg:px-10 lg:py-32">
+      <section id="how-it-works" className="bg-[var(--dark-panel)] px-6 py-24 text-[var(--on-dark)] lg:px-10 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]">
             <div>
@@ -260,7 +260,11 @@ function AudienceCard({
   action: string;
 }) {
   const background =
-    tone === "lime" ? "bg-[var(--accent)]" : tone === "paper" ? "bg-white border border-[var(--line)]" : "bg-[var(--orange)]";
+    tone === "lime"
+      ? "bg-[var(--accent)] text-[var(--on-bright)]"
+      : tone === "paper"
+        ? "bg-[var(--card)] border border-[var(--line)] text-[var(--ink)]"
+        : "bg-[var(--orange)] text-[var(--on-bright)]";
   const shadow = tone === "paper" ? "" : "shadow-[6px_6px_0_var(--ink)]";
 
   return (
@@ -315,10 +319,10 @@ function PricingCard({
   featured?: boolean;
 }) {
   return (
-    <article className={`rounded-[24px] p-7 ${featured ? "bg-[var(--ink)] text-white shadow-[7px_7px_0_var(--orange)]" : "bg-white"}`}>
+    <article className={`rounded-[24px] p-7 ${featured ? "bg-[var(--dark-panel)] text-[var(--on-dark)] shadow-[7px_7px_0_var(--orange)]" : "bg-[var(--card)] text-[var(--ink)]"}`}>
       <div className="flex items-center justify-between">
         <p className={`text-xs font-bold uppercase tracking-[.15em] ${featured ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>{title}</p>
-        {featured ? <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-[var(--ink)]">Most useful</span> : null}
+        {featured ? <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-[var(--on-bright)]">Most useful</span> : null}
       </div>
       <p className="mt-10 text-4xl font-black tracking-[-.07em]">{price}</p>
       <p className={`mt-1 text-sm ${featured ? "text-white/60" : "text-[var(--muted)]"}`}>{suffix}</p>
@@ -334,7 +338,7 @@ function PricingCard({
       <Link
         href={href}
         className={`mt-8 flex min-h-12 items-center justify-center rounded-full px-5 py-3 text-sm font-bold ${
-          featured ? "bg-[var(--accent)] text-[var(--ink)]" : "border-2 border-[var(--ink)]"
+          featured ? "bg-[var(--accent)] text-[var(--on-bright)]" : "border-2 border-[var(--ink)]"
         }`}
       >
         {action} -&gt;
@@ -345,7 +349,7 @@ function PricingCard({
 
 function FaqCard({ question, answer }: { question: string; answer: string }) {
   return (
-    <article className="rounded-2xl bg-white p-5">
+    <article className="rounded-2xl bg-[var(--card)] p-5 text-[var(--ink)]">
       <h3 className="font-black">{question}</h3>
       <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{answer}</p>
     </article>
@@ -354,8 +358,8 @@ function FaqCard({ question, answer }: { question: string; answer: string }) {
 
 function MarketplacePreviewCard({ name, category, price }: { name: string; category: string; price: string }) {
   return (
-    <article className="group overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(23,34,31,.06)]">
-      <div className="flex aspect-[4/3] items-center justify-center bg-[var(--accent)] text-5xl transition-transform group-hover:scale-[1.02]">
+    <article className="group overflow-hidden rounded-[24px] bg-[var(--card)] text-[var(--ink)] shadow-[0_8px_24px_rgba(23,34,31,.06)]">
+      <div className="flex aspect-[4/3] items-center justify-center bg-[var(--accent)] text-5xl text-[var(--on-bright)] transition-transform group-hover:scale-[1.02]">
         ✦
       </div>
       <div className="p-5">

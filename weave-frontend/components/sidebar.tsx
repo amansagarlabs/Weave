@@ -61,7 +61,7 @@ export function SidebarTrigger({ className = "" }: { className?: string }) {
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       aria-pressed={collapsed}
       onClick={toggleCollapsed}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)] bg-white text-[var(--ink)] shadow-[2px_2px_0_var(--ink)] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${className}`}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--card)] text-[var(--ink)] shadow-[2px_2px_0_var(--ink)] transition-transform hover:-translate-y-0.5 active:translate-y-0 ${className}`}
     >
       {collapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
     </button>

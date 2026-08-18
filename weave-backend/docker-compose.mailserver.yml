@@ -1,0 +1,28 @@
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    hostname: ${MAILSERVER_HOSTNAME:-mail}
+    domainname: ${MAIL_DOMAIN:?MAIL_DOMAIN must be set for the mailserver profile}
+    profiles: ["mailserver"]
+    env_file:
+      - ./docker-data/dms/mailserver.env
+    environment:
+      PERMIT_DOCKER: connected-networks
+      ENABLE_RSPAMD: "1"
+      ENABLE_CLAMAV: "1"
+      SPOOF_PROTECTION: "1"
+    ports:
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - ./docker-data/dms/mail-data:/var/mail/
+      - ./docker-data/dms/mail-state:/var/mail-state/
+      - ./docker-data/dms/mail-logs:/var/log/mail/
+      - ./docker-data/dms/config:/tmp/docker-mailserver/
+      - /etc/localtime:/etc/localtime:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    restart: unless-stopped

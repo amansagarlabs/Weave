@@ -2,26 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "../../lib/api";
 
 type Role = "creator" | "brand" | "editor" | "admin";
-
-function storedRole(): Role | null {
-  const value = window.localStorage.getItem("weave_role");
-  return value === "creator" || value === "brand" || value === "editor" || value === "admin" ? value : null;
-}
 
 export default function DashboardEntry() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = window.localStorage.getItem("weave_access_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const role = storedRole();
-    router.replace(role ? `/${role}/dashboard` : "/login");
+    api<{ user: { role: string } }>("/auth/session").then(({ user }) => router.replace(`/${user.role.toLowerCase()}/dashboard`)).catch(() => router.replace("/login"));
   }, [router]);
 
   return (

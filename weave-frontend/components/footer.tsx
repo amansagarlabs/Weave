@@ -18,7 +18,7 @@ const audienceLinks = [
 
 export function Footer({ compact = false }: FooterProps) {
   const session = usePublicSession();
-  const isLoggedIn = session.ready && Boolean(session.token);
+  const isLoggedIn = session.ready && session.authenticated;
   const dashboardHref = dashboardHrefForRole(session.role);
 
   return (
@@ -41,6 +41,9 @@ export function Footer({ compact = false }: FooterProps) {
               <Link href="/help" className="rounded-full px-2 py-2 text-white/75 transition-colors hover:text-white">
                 Help
               </Link>
+              <Link href="/status" className="rounded-full px-2 py-2 text-white/75 transition-colors hover:text-white">
+                Status
+              </Link>
               {isLoggedIn ? (
                 <>
                   <Link href={dashboardHref} className="rounded-full bg-white px-5 py-2.5 text-[var(--ink)] transition-transform active:scale-[.97]">
@@ -59,7 +62,7 @@ export function Footer({ compact = false }: FooterProps) {
                   </button>
                 </>
               ) : (
-                <Link href="/signup" className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-[var(--ink)] transition-transform active:scale-[.97]">
+                <Link href="/signup" className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-[var(--on-bright)] transition-transform active:scale-[.97]">
                   Join Weave
                 </Link>
               )}
@@ -116,14 +119,14 @@ export function Footer({ compact = false }: FooterProps) {
         ) : null}
 
         <CrowdCanvas
-          src="https://media.adxy.dev/website/images/open-peeps-sheet.avif"
-          rows={7}
-          cols={15}
+          src="/images/peeps/all-peeps.svg"
+          rows={15}
+          cols={7}
         />
       </div>
 
       {!compact ? (
-        <div className="relative z-30 w-full border-t border-white/10 bg-[var(--ink)] px-6 py-6 text-xs text-white/60 sm:px-10 lg:px-16">
+        <div className="relative z-30 w-full border-t border-white/10 bg-[var(--dark-panel)] px-6 py-6 text-xs text-white/60 sm:px-10 lg:px-16">
           <div className="mx-auto grid w-full max-w-[1600px] items-center gap-5 md:grid-cols-[1fr_auto_1fr]">
             <span className="justify-self-start whitespace-nowrap">© {new Date().getFullYear()} Weave</span>
 
@@ -145,6 +148,9 @@ export function Footer({ compact = false }: FooterProps) {
               </Link>
               <Link href="/help" className="inline-flex min-h-11 items-center rounded-full px-3 leading-none transition-colors hover:text-white">
                 Help
+              </Link>
+              <Link href="/status" className="inline-flex min-h-11 items-center rounded-full px-3 leading-none transition-colors hover:text-white">
+                Status
               </Link>
             </nav>
 

@@ -7,6 +7,7 @@ import { LogoutButton } from "./auth-gate";
 import { SearchForm } from "./search-form";
 import { SidebarExpandHandle, SidebarTrigger, useSidebar } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, WeaveMark, type Role } from "./workspace-nav";
+import { csrfHeaders } from "../lib/api";
 
 export function AppSidebar({ role }: { role: Role }) {
   const { collapsed } = useSidebar();
@@ -74,7 +75,7 @@ export function AppSidebar({ role }: { role: Role }) {
 
         <div className="mt-auto space-y-3">
           {!collapsed ? (
-            <div className="rounded-2xl bg-[var(--accent)] p-4 text-[var(--ink)] shadow-[4px_4px_0_var(--orange)]">
+            <div className="rounded-2xl bg-[var(--accent)] p-4 text-[var(--on-bright)] shadow-[4px_4px_0_var(--orange)]">
               <p className="text-xs font-bold uppercase tracking-widest">Weave note</p>
               <p className="mt-2 text-sm font-bold leading-5">{roleMeta[role].accent}</p>
             </div>
@@ -89,8 +90,7 @@ export function AppSidebar({ role }: { role: Role }) {
                 aria-label="Log out"
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition-colors hover:bg-white/15"
                 onClick={() => {
-                  window.localStorage.removeItem("weave_access_token");
-                  window.localStorage.removeItem("weave_role");
+                  void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
                   window.location.assign("/login");
                 }}
               >

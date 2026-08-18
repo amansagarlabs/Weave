@@ -37,7 +37,7 @@ export default function HelpPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 aria-label="Search help"
-                className="min-h-14 w-full rounded-full border border-[var(--line)] bg-white px-6 outline-none focus:border-[var(--forest)]"
+                className="min-h-14 w-full rounded-full border border-[var(--line)] bg-[var(--card)] px-6 text-[var(--ink)] outline-none focus:border-[var(--forest)]"
                 placeholder="Search account, booking, payment..."
               />
             </label>
@@ -67,7 +67,7 @@ export default function HelpPage() {
                 <button type="button" onClick={() => setQuery("")} className="mt-4 font-bold text-[var(--forest)] underline">Clear search</button>
               </Card>
             ) : null}
-            <Card className="bg-[var(--accent)] md:col-span-2">
+            <Card className="bg-[var(--accent)] text-[var(--on-bright)] md:col-span-2">
               <h2 className="text-xl font-black">Still stuck?</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6">Tell us what happened and we&apos;ll help you find the next step.</p>
               <div className="mt-5"><ButtonLink href="/login" variant="outline">Contact support</ButtonLink></div>

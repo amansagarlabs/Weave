@@ -69,7 +69,7 @@ export function PlatformEntriesField({
                     id={platformId}
                     value={entry.platform}
                     onChange={(event) => update(index, "platform", event.target.value)}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-white px-4 font-normal outline-none focus:border-[var(--forest)]"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 font-normal text-[var(--ink)] outline-none focus:border-[var(--forest)]"
                     placeholder="Instagram"
                   />
                 </label>
@@ -79,7 +79,7 @@ export function PlatformEntriesField({
                     id={handleId}
                     value={entry.handle}
                     onChange={(event) => update(index, "handle", event.target.value)}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-white px-4 font-normal outline-none focus:border-[var(--forest)]"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 font-normal text-[var(--ink)] outline-none focus:border-[var(--forest)]"
                     placeholder="@yourhandle"
                   />
                 </label>
@@ -87,7 +87,7 @@ export function PlatformEntriesField({
                   <button
                     type="button"
                     onClick={() => removeRow(index)}
-                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--line)] bg-white px-4 text-sm font-bold text-[var(--muted)] transition-transform active:scale-[.97]"
+                    className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--muted)] transition-transform active:scale-[.97]"
                     aria-label={`Remove platform row ${index + 1}`}
                   >
                     <Trash2 size={16} aria-hidden="true" />
@@ -102,7 +102,7 @@ export function PlatformEntriesField({
       <button
         type="button"
         onClick={addRow}
-        className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-[var(--ink)] transition-transform active:scale-[.97]"
+        className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-[var(--on-bright)] transition-transform active:scale-[.97]"
       >
         <Plus size={16} aria-hidden="true" />
         Add another platform

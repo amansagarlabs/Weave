@@ -39,13 +39,13 @@ export function EditorProfileForm({ mode = "onboarding" }: { mode?: "onboarding"
     }
   }
 
-  if (loading) return <div className="rounded-2xl bg-white p-6 text-sm font-bold text-[var(--muted)]">Loading your editor profile…</div>;
+  if (loading) return <div className="rounded-2xl bg-[var(--card)] p-6 text-sm font-bold text-[var(--muted)]">Loading your editor profile…</div>;
 
   const visibleLinks = links.filter((link) => link.trim());
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
-      <form onSubmit={submit} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
+      <form onSubmit={submit} className="rounded-2xl bg-[var(--card)] p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
         <h2 className="text-xl font-black tracking-[-.04em]">{mode === "settings" ? "Profile and portfolio" : "Your editing practice"}</h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Add one portfolio URL per row. Ratings are earned from completed work and are not manually entered.</p>
         <RepeatableTextListField
@@ -76,7 +76,7 @@ export function EditorProfileForm({ mode = "onboarding" }: { mode?: "onboarding"
               <p className="text-sm font-bold text-[var(--muted)]">Links visible on save</p>
               <div className="mt-3 space-y-3">
                 {visibleLinks.length ? visibleLinks.map((link, index) => (
-                  <div key={`${link}-${index}`} className="rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+                  <div key={`${link}-${index}`} className="rounded-2xl border border-[var(--line)] bg-[var(--card)] px-4 py-3">
                     <p className="text-sm font-bold">Sample {index + 1}</p>
                     <p className="mt-1 break-all text-sm text-[var(--muted)]">{link}</p>
                   </div>

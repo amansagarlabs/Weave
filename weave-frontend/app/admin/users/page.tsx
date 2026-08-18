@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminConfirmDialog } from "../../../components/admin-confirm-dialog";
 import { Card, Pill } from "../../../components/ui";
 import { SurfacePage, Tabs } from "../../../components/surface";
+import { api } from "../../../lib/api";
 
 type AdminUser = {
   id: number;
@@ -14,15 +15,6 @@ type AdminUser = {
   notificationPreference: string;
   suspended: boolean;
 };
-
-const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-function authHeaders() {
-  return {
-    Authorization: `Bearer ${localStorage.getItem("weave_access_token") ?? ""}`,
-    "Content-Type": "application/json",
-  };
-}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -39,11 +31,7 @@ export default function AdminUsers() {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch(`${apiBase}/admin/users`, { headers: authHeaders() });
-      if (!response.ok) {
-        throw new Error("Could not load users.");
-      }
-      setUsers(await response.json());
+      setUsers(await api<AdminUser[]>("/admin/users"));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not load users.");
     } finally {
@@ -60,14 +48,9 @@ export default function AdminUsers() {
     setBusy(true);
     setMessage("");
     try {
-      const response = await fetch(`${apiBase}/admin/users/${pendingUser.id}/${action}`, {
+      const updated = await api<AdminUser>(`/admin/users/${pendingUser.id}/${action}`, {
         method: "PATCH",
-        headers: authHeaders(),
       });
-      if (!response.ok) {
-        throw new Error("Could not update the user state.");
-      }
-      const updated = (await response.json()) as AdminUser;
       setUsers((current) => current.map((user) => (user.id === updated.id ? updated : user)));
       setPendingUser(null);
       setAction(null);
@@ -105,7 +88,7 @@ export default function AdminUsers() {
       </div>
 
       {message ? (
-        <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-[var(--danger)]/30 bg-white px-4 py-3 text-sm font-bold text-[var(--danger)]">
+        <p role="alert" aria-live="polite" className="mt-4 rounded-2xl border border-[var(--danger)]/30 bg-[var(--card)] px-4 py-3 text-sm font-bold text-[var(--danger)]">
           {message}
         </p>
       ) : null}
@@ -148,7 +131,7 @@ export default function AdminUsers() {
                   }}
                   className={`inline-flex min-h-12 items-center justify-center rounded-full px-4 py-3 text-sm font-bold transition-transform active:scale-[.97] ${
                     user.suspended
-                      ? "bg-[var(--accent)] text-[var(--ink)] shadow-[4px_4px_0_var(--ink)]"
+                      ? "bg-[var(--accent)] text-[var(--on-bright)] shadow-[4px_4px_0_var(--ink)]"
                       : "bg-[var(--danger)] text-white shadow-[4px_4px_0_var(--ink)]"
                   }`}
                 >
@@ -201,7 +184,7 @@ export default function AdminUsers() {
                       }}
                       className={`inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2.5 text-sm font-bold transition-transform active:scale-[.97] ${
                         user.suspended
-                          ? "bg-[var(--accent)] text-[var(--ink)] shadow-[4px_4px_0_var(--ink)]"
+                          ? "bg-[var(--accent)] text-[var(--on-bright)] shadow-[4px_4px_0_var(--ink)]"
                           : "bg-[var(--danger)] text-white shadow-[4px_4px_0_var(--ink)]"
                       }`}
                     >

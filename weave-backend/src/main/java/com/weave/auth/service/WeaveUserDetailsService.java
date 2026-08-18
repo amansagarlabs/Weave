@@ -16,7 +16,7 @@ public class WeaveUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return users.findByEmail(username.toLowerCase())
                 .map(user -> org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
-                        .password(user.getPasswordHash()).roles(user.getRole().name()).build())
+                        .password(user.getPasswordHash()).roles(user.getRole().name()).disabled(user.isSuspended()).build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

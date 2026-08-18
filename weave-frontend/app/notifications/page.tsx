@@ -70,7 +70,7 @@ export default function NotificationsPage() {
             Mark all as read
           </button>
         </div>
-        {message ? <p role="alert" className="mt-4 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold">{message}</p> : null}
+        {message ? <p role="alert" className="mt-4 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--on-bright)]">{message}</p> : null}
         <div className="divide-y divide-[var(--line)]">
           {notifications.length ? notifications.map((item) => (
             <article key={item.id} className="flex gap-4 py-5">

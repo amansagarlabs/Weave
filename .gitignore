@@ -13,3 +13,5 @@ weave-backend/.env
 .idea/
 .vscode/
 *.log
+weave-backend/docker-data/dms/mailserver.env
+weave-backend/.env.production

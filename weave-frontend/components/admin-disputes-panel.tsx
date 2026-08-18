@@ -71,7 +71,7 @@ export function AdminDisputesPanel() {
             aria-selected={activeTab === tab.label}
             onClick={() => setActiveTab(tab.label)}
             className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold ${
-              activeTab === tab.label ? "bg-[var(--ink)] text-white" : "bg-white"
+              activeTab === tab.label ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--ink)]"
             }`}
           >
             {tab.label}

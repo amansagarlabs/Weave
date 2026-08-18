@@ -2,6 +2,7 @@ package com.weave.notification.service;
 
 import com.weave.auth.entity.User;
 import com.weave.auth.repository.UserRepository;
+import com.weave.common.outbox.OutboxService;
 import com.weave.notification.dto.NotificationResponse;
 import com.weave.notification.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,17 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class NotificationService {
     private final UserRepository users;
     private final NotificationRepository notifications;
+    private final OutboxService outbox;
 
-    public NotificationService(UserRepository users, NotificationRepository notifications) {
-        this.users = users;
-        this.notifications = notifications;
+    public NotificationService(UserRepository users, NotificationRepository notifications, OutboxService outbox) {
+        this.users = users; this.notifications = notifications; this.outbox = outbox;
+    }
+
+    @Transactional
+    public void create(Long userId, String title, String detail, String kind) {
+        var notification = notifications.save(com.weave.notification.entity.Notification.create(userId, title, detail, kind));
+        outbox.enqueue("EMAIL_NOTIFICATION", String.valueOf(userId), "notification:" + notification.getId(),
+                java.util.Map.of("userId", userId, "title", title, "detail", detail));
     }
 
     @Transactional(readOnly = true)

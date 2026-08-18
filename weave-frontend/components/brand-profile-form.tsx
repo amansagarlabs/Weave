@@ -38,11 +38,11 @@ export function BrandProfileForm({ mode = "onboarding" }: { mode?: "onboarding" 
     }
   }
 
-  if (loading) return <div className="rounded-2xl bg-white p-6 text-sm font-bold text-[var(--muted)]">Loading your brand profile…</div>;
+  if (loading) return <div className="rounded-2xl bg-[var(--card)] p-6 text-sm font-bold text-[var(--muted)]">Loading your brand profile…</div>;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,.9fr)]">
-      <form onSubmit={submit} className="rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
+      <form onSubmit={submit} className="rounded-2xl bg-[var(--card)] p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)]">
         <h2 className="text-xl font-black tracking-[-.04em]">{mode === "settings" ? "Company and account" : "Company details"}</h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Give creators enough context to see the people behind the brief.</p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">

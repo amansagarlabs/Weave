@@ -12,7 +12,7 @@ export function SearchForm({
   placeholder?: string;
 }) {
   return (
-    <label className="flex items-center gap-2 rounded-2xl border border-[var(--line)] bg-white px-3 py-2.5 text-sm shadow-[2px_2px_0_var(--ink)]">
+    <label className="flex items-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--card)] px-3 py-2.5 text-sm text-[var(--ink)] shadow-[2px_2px_0_var(--ink)]">
       <Search size={16} className="shrink-0 text-[var(--muted)]" aria-hidden="true" />
       <input
         type="search"

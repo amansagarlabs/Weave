@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 class JwtAuthenticationFilterTest {
     @Mock JwtService jwtService;
     @Mock WeaveUserDetailsService users;
+    @Mock AuthCookieService cookies;
     @Mock HttpServletRequest request;
     @Mock HttpServletResponse response;
     @Mock FilterChain chain;
@@ -37,7 +38,7 @@ class JwtAuthenticationFilterTest {
         when(jwtService.subject("valid-token")).thenReturn("creator@example.com");
         when(users.loadUserByUsername("creator@example.com")).thenReturn(details);
 
-        new JwtAuthenticationFilter(jwtService, users).doFilter(request, response, chain);
+        new JwtAuthenticationFilter(jwtService, users, cookies).doFilter(request, response, chain);
 
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals("creator@example.com", SecurityContextHolder.getContext().getAuthentication().getName());
@@ -49,7 +50,7 @@ class JwtAuthenticationFilterTest {
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
         when(jwtService.subject("invalid-token")).thenThrow(new RuntimeException("expired"));
 
-        new JwtAuthenticationFilter(jwtService, users).doFilter(request, response, chain);
+        new JwtAuthenticationFilter(jwtService, users, cookies).doFilter(request, response, chain);
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(chain).doFilter(request, response);

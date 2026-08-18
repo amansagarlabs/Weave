@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/edit-requests")
@@ -23,4 +24,7 @@ public class EditRequestController {
     EditRequestResponse status(@PathVariable Long id, @Valid @RequestBody EditRequestStatus input, Authentication authentication) { return requests.status(authentication.getName(), id, input.status()); }
     @PostMapping("/{id}/revision")
     EditRequestResponse revision(@PathVariable Long id, Authentication authentication) { return requests.revision(authentication.getName(), id); }
+
+    @PostMapping(value = "/{id}/assets", consumes = "multipart/form-data")
+    EditRequestResponse uploadAsset(@PathVariable Long id, @RequestParam String kind, @RequestPart MultipartFile file, Authentication authentication) { return requests.uploadAsset(authentication.getName(), id, kind, file); }
 }

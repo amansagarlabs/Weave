@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.AuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.Map;
@@ -53,6 +54,13 @@ public class ApiExceptionHandler {
         String correlationId = correlationId(request);
         log.error("unhandled exception method={} path={} correlationId={}", request.getMethod(), request.getRequestURI(), correlationId, exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiError(Instant.now(), 500, "Unexpected server error", request.getRequestURI(), correlationId, Map.of()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<ApiError> authentication(AuthenticationException exception, HttpServletRequest request) {
+        String correlationId = correlationId(request);
+        log.warn("authentication failed method={} path={} correlationId={}", request.getMethod(), request.getRequestURI(), correlationId);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiError(Instant.now(), 401, "Invalid email or password", request.getRequestURI(), correlationId, Map.of()));
     }
 
     @ExceptionHandler(ResponseStatusException.class)

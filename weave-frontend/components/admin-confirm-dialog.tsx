@@ -30,7 +30,7 @@ export function AdminConfirmDialog({
           type="button"
           onClick={onClose}
           disabled={busy}
-          className="inline-flex min-h-12 items-center justify-center rounded-full border-2 border-[var(--ink)] bg-white px-5 py-3 text-sm font-bold transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-12 items-center justify-center rounded-full border-2 border-[var(--ink)] bg-[var(--card)] px-5 py-3 text-sm font-bold text-[var(--ink)] transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Cancel
         </button>
@@ -41,7 +41,7 @@ export function AdminConfirmDialog({
           className={`inline-flex min-h-12 items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50 ${
             tone === "danger"
               ? "bg-[var(--danger)] text-white shadow-[4px_4px_0_var(--ink)]"
-              : "bg-[var(--accent)] text-[var(--ink)] shadow-[4px_4px_0_var(--ink)]"
+              : "bg-[var(--accent)] text-[var(--on-bright)] shadow-[4px_4px_0_var(--ink)]"
           }`}
         >
           {busy ? "Working..." : confirmLabel}

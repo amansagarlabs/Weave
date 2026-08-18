@@ -79,7 +79,7 @@ export function Modal({ open, title, description, children, onClose }: ModalProp
         aria-labelledby="weave-modal-title"
         aria-describedby={description ? "weave-modal-description" : undefined}
         tabIndex={-1}
-        className="w-full max-w-lg rounded-3xl bg-white p-5 shadow-[0_24px_80px_rgba(23,34,31,.28)] outline-none"
+        className="w-full max-w-lg rounded-3xl bg-[var(--card)] p-5 text-[var(--ink)] shadow-[0_24px_80px_rgba(23,34,31,.28)] outline-none"
       >
         <h2 id="weave-modal-title" className="text-2xl font-black tracking-[-.04em]">
           {title}

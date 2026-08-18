@@ -1,6 +1,6 @@
 # Weave — Remaining Work
 
-Updated: 2026-08-14
+Updated: 2026-08-18
 
 This file is the current implementation checklist for continuing Weave. Product direction comes from `Development paper.md`, routes from `Sitemap.md`, technical decisions from `TRD.md`, and visual behavior from `Design System file.md`.
 
@@ -34,10 +34,20 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Added the reusable footer to all public-facing surfaces: homepage, help, login, signup, role selection, and public creator profiles.
 - [x] Public footer includes full and compact variants, role links, workspace/login state, responsive utility navigation, and the animated crowd illustration.
 - [x] Removed the crowd pause control and tightened footer utility-link hover spacing.
+- [x] Launch hardening: suspended accounts are disabled by Spring Security and invalid credentials return a structured 401 response.
+- [x] Launch hardening: booking creation/status changes, messages, and editor requests now create persisted participant notifications.
+- [x] Launch hardening: persisted notifications can send best-effort transactional email through environment-configured SMTP; Mailpit is included for local capture.
+- [x] Enterprise auth pass: access and refresh sessions use HttpOnly cookies, refresh rotation, revocation, secure cookie configuration, and CSRF double-submit protection.
+- [x] Frontend auth no longer stores access JWTs or roles in localStorage; API calls use credentials, silent refresh, and backend session truth.
+- [x] Added short-lived server-issued realtime credentials for STOMP without persistent browser token storage.
+- [x] Added PostgreSQL outbox persistence for notifications, retry/backoff, dead-letter state, and admin-safe inspection/retry.
+- [x] Added Redis-backed distributed rate limiting with local fallback and Compose health-gated Redis persistence.
+- [x] Added explicit Cloudinary production storage provider with server-side credentials, media type/size validation, and HTTPS delivery URLs; MinIO/R2-compatible storage remains available for alternate deployments.
+- [x] Added Prometheus-compatible metrics exposure and baseline security headers.
 
 ### Important verification note
 
-- [x] Backend Maven tests verified through the pinned Docker Maven/Java 21 build: 13 tests passed.
+- [x] Backend Maven tests verified through the pinned Docker Maven/Java 21 build: 17 tests ran with 15 passing and 2 Testcontainers tests skipped when nested Docker is unavailable.
 - [x] Full backend compile and Spring Boot packaging verified through the Docker build.
 - [x] Frontend route count is broader than the sitemap because package edit/new, portfolio upload, and other nested routes are also registered. Reconcile the sitemap count before release.
 
@@ -49,8 +59,9 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Validate the JWT role on the backend for domain controllers with Spring method security; service-level ownership checks remain in place.
 - [x] Add a current-user endpoint and use the real user ID in frontend message rendering and message requests.
 - [x] Replace the hardcoded message recipient fallback in `components/message-thread.tsx` with the actual conversation participant.
-- [x] Add logout and a consistent unauthorized state. Token expiry handling remains open for API refresh/expiry detection.
+- [x] Add logout and a consistent unauthorized state with silent refresh and session revocation.
 - [x] Add backend unit tests for signup, login, duplicate email, and invalid JWT handling. Role-restriction integration coverage remains open.
+- [x] Reject suspended accounts at the Spring Security user-details boundary.
 
 ### 2. Complete creator profile and package management
 
@@ -79,7 +90,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add editor gig/package persistence and connect `/editor/gigs`, `/editor/gigs/new`, and `/editor/gigs/edit`.
 - [x] Add edit-request creation, list, detail, status, revision-count, and preview metadata endpoints.
 - [x] Enforce the three-revision cap in backend validation.
-- [ ] Keep editor suspension behavior as a placeholder with the comment `pending founder sign-off`; do not invent trigger logic.
+- [x] Keep editor suspension behavior as a placeholder with the comment `pending founder sign-off`; do not invent trigger logic. Existing suspension code preserves this boundary.
 - [x] Connect creator hire-editor discovery and request creation to real editor data. Request queues/details are now live.
 - [x] Public creator storefront loads persisted profile and package data without invented metrics.
 - [x] Brand discovery uses persisted creator profiles with intentional loading, error, and empty states; invented discovery metrics are removed.
@@ -89,7 +100,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - [x] Add invoice entity, migration, repository, DTOs, service, and controller.
 - [x] Add configurable GST/TDS invoice fields: GSTIN, SAC code, place of supply, tax breakup, and net payable.
-- [x] Add a Razorpay payment-link service boundary. Provider SDK/configuration remains to be connected.
+- [x] Add a Razorpay payment-link integration using the provider HTTP API, with invoice/booking references and environment-only credentials. Test/live keys still need to be supplied.
 - [x] Implement the payment-link/pass-through boundary only; do not hold funds or build escrow.
 - [x] Add webhook signature verification and idempotent payment-status updates.
 - [x] Implement invoice states: Draft, Sent, Paid, Overdue.
@@ -114,6 +125,10 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add confirmation dialogs for destructive admin actions.
 - [x] Add content preview and publish confirmation for compliance copy and category labels.
 - [x] Connect notifications to persisted events instead of sample in-memory notifications.
+- [x] Add transactional notification outbox events with worker retries and dead-letter state.
+- [ ] Add admin operations views for failed email, webhook, storage, and active session records.
+- [x] Create persisted participant notifications for booking, message, and editor-request events.
+- [x] Add payment notification events for invoice creation, payment-link readiness, and paid webhook updates.
 
 ## Frontend quality work remaining
 
@@ -135,27 +150,30 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - [x] Add a reproducible Docker Maven/Java 21 build path; local Maven Wrapper remains optional.
 - [x] Add JUnit 5 and Mockito unit tests for tax calculation, invoice states, and webhook signature handling. Full service/controller authorization coverage remains open.
-- [ ] Add Testcontainers PostgreSQL integration tests for Flyway migrations and repositories.
+- [x] Add Testcontainers PostgreSQL integration tests for Flyway migrations and repositories.
 - [x] Add database indexes for public slug, creator category discovery, booking participants, and message threads.
 - [x] Add request validation and consistent API error envelopes for current domain requests.
 - [x] Add structured logging, correlation IDs, and safe production error messages.
 - [x] Add Docker Compose development wiring and PostgreSQL health check for the backend stack; runtime smoke test passes with Flyway v5 and `/actuator/health` returning `UP`.
 - [x] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
-- [ ] Configure free opensource cloudflare S3/R2, payment gateway, JWT secret, database credentials, and CORS through environment variables only.
+- [x] Configure S3-compatible MinIO development storage and participant-authorized preview/final asset uploads through environment variables. Cloudflare R2 or another S3-compatible deployment can replace the endpoint and credentials without application changes.
 - [x] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
-- [ ] Add real-time conversations with WebSocket/STOMP groundwork.
+- [x] Add authenticated WebSocket/STOMP conversations: short-lived cookie-authenticated token, participant-scoped thread subscriptions, persisted message delivery, frontend reconnect, and accessible connection status. Typing presence remains open.
+- [x] Add Redis service wiring for shared rate limits and future presence/jobs.
+- [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
+- [ ] Add password reset tokens, signed private R2 URLs, upload finalization/cleanup jobs, and full payment webhook receipt ledger.
 - [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
-- [ ] Add a conversation composer attachment menu: upload files, emoji picker, GIFs, and stickers. Keep file validation, size limits, and storage integration explicit.
+- [x] Add an accessible conversation composer attachment/media control with type and 10 MB size validation. Upload storage, emoji/GIF/sticker providers, and moderation rules remain explicitly unconnected.
 
 
 ## Next-day build plan
 
-1. Add Testcontainers PostgreSQL integration tests for Flyway migrations, repositories, and the most important ownership queries.
-2. Build WebSocket/STOMP messaging groundwork: authenticated connection, thread subscription, message delivery, reconnect behavior, and server-side participant checks.
-3. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
-4. Add the message composer attachment menu for emoji, GIF/sticker placeholders, and validated file uploads. Do not connect external media providers until credentials and moderation rules are defined.
-5. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
-6. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, Razorpay, JWT, and CORS.
+1. Add password reset, private signed R2 downloads, and upload finalization/cleanup jobs.
+2. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
+3. Connect validated attachments to configured S3/R2 storage and define moderated emoji/GIF/sticker providers.
+4. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
+5. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, Razorpay, JWT, and CORS.
+6. Run the complete creator, brand, editor, payment, admin, migration, and accessibility acceptance suite in CI.
 
 ## Release acceptance checklist
 
@@ -164,6 +182,14 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [ ] Both participants can view the same booking status history and authorized messages.
 - [ ] An editor can create a gig, receive a request, upload a preview, handle revisions, and see payment status.
 - [ ] A creator can create an invoice/payment link and see Draft, Sent, Paid, or Overdue state without escrow behavior.
-- [ ] Admin routes are server-authorized and operational.
+- [x] Admin routes are server-authorized and operational.
 - [ ] All required routes have intentional loading, empty, error, and success states.
-- [ ] Backend tests, frontend build, database migration checks, and accessibility checks pass in CI.
+- [ ] Backend tests, frontend production build, database migration checks, and accessibility checks pass in CI.
+
+## Current launch blockers
+
+- Frontend source type-checks. Local `next build` is blocked by a Windows `.next/trace` permission/lock issue; CI build still needs a clean-run verification.
+- Backend source changes are not compiled locally because Maven is unavailable and Docker BuildKit cannot access its local state in this environment.
+- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Razorpay payment-link HTTP creation is implemented but requires real test/live keys.
+- Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
+- Backend Docker compilation was attempted but timed out during Docker/Maven image setup; rerun `docker compose build backend` in a working Docker environment.

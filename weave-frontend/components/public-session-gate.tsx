@@ -9,11 +9,11 @@ export function PublicSessionGate({ children }: { children: React.ReactNode }) {
   const session = usePublicSession();
 
   useEffect(() => {
-    if (!session.ready || !session.token) return;
+    if (!session.ready || !session.authenticated) return;
     router.replace(dashboardHrefForRole(session.role));
-  }, [router, session.ready, session.role, session.token]);
+  }, [router, session.ready, session.role, session.authenticated]);
 
-  if (!session.ready || session.token) {
+  if (!session.ready || session.authenticated) {
     return <div className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6"><p className="text-sm font-bold text-[var(--muted)]">Checking your session...</p></div>;
   }
 

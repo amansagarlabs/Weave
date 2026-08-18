@@ -109,7 +109,7 @@ export function TagInput({
               key={tag}
               type="button"
               onClick={() => onRemove(tag)}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--ink)] bg-[var(--accent)] px-4 text-sm font-bold transition-transform active:scale-[.97]"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--ink)] bg-[var(--accent)] px-4 text-sm font-bold text-[var(--on-bright)] transition-transform active:scale-[.97]"
               aria-label={`Remove ${tag}`}
             >
               {tag}
@@ -127,7 +127,7 @@ export function TagInput({
               key={tag}
               type="button"
               onClick={() => onAdd(tag)}
-              className="min-h-11 rounded-full border border-[var(--line)] bg-white px-4 text-sm font-bold transition-transform active:scale-[.97]"
+              className="min-h-11 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--ink)] transition-transform active:scale-[.97]"
             >
               {placeholder ? `${placeholder} ${tag}` : `Add ${tag}`}
             </button>

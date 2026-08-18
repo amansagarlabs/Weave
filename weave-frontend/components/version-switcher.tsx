@@ -8,7 +8,7 @@ export function VersionSwitcher({ role, collapsed = false }: { role: Role; colla
   return (
     <Link
       href={roleMeta[role].dashboard}
-      className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-3 py-3 text-left transition-colors hover:bg-white"
+      className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-3 py-3 text-left transition-colors hover:bg-[var(--card)]"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--forest)] text-sm font-black text-white">
         {role[0].toUpperCase()}

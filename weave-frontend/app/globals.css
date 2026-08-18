@@ -11,6 +11,10 @@
   --color-coral: #ef7047;
   --color-amber: #b7791f;
   --color-danger: #b42318;
+  --color-on-bright: #17221f;
+  --color-dark-panel: #17221f;
+  --color-on-dark: #eff4ef;
+  --color-action: #1e4b3b;
 
   --paper: var(--color-paper);
   --card: var(--color-card);
@@ -20,6 +24,10 @@
   --forest: var(--color-forest);
   --accent: var(--color-lime);
   --orange: var(--color-coral);
+  --on-bright: var(--color-on-bright);
+  --dark-panel: var(--color-dark-panel);
+  --on-dark: var(--color-on-dark);
+  --action: var(--color-action);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -43,6 +51,8 @@
   --color-coral: #ff7a4f;
   --color-amber: #d19a3c;
   --color-danger: #ff7a7a;
+  --color-on-bright: #17221f;
+  --color-action: #70c8a4;
 }
 
 * { box-sizing: border-box; }
@@ -56,9 +66,10 @@ html[data-theme="dark"] { color-scheme: dark; }
 html[data-theme="light"] { color-scheme: light; }
 h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
 p, li, dd { text-wrap: pretty; }
-a { color: inherit; text-decoration: none; }
+a { text-decoration: none; }
 button, a { min-height: 44px; }
 :focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+[aria-label="Watermarked preview placeholder"] { background: var(--dark-panel); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

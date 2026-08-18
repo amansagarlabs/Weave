@@ -99,7 +99,7 @@ export function InvoiceList() {
 
   return (
     <div className="space-y-8">
-      {message ? <p role="status" className="rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold">{message}</p> : null}
+      {message ? <p role="status" className="rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--on-bright)]">{message}</p> : null}
 
       {selectedBooking ? (
         <Card>

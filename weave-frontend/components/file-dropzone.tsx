@@ -74,7 +74,7 @@ export function FileDropzone({
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         className={`group block rounded-2xl border-2 border-dashed p-6 text-center outline-none transition-colors focus-visible:ring-4 focus-visible:ring-[var(--accent)] ${
-          dragging ? "border-[var(--forest)] bg-[var(--accent)]" : "border-[var(--line)] bg-white hover:border-[var(--forest)]"
+          dragging ? "border-[var(--forest)] bg-[var(--accent)] text-[var(--on-bright)]" : "border-[var(--line)] bg-[var(--card)] text-[var(--ink)] hover:border-[var(--forest)]"
         }`}
       >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--paper)] text-[var(--forest)]">
@@ -108,7 +108,7 @@ export function FileDropzone({
       {(file || error) && !busy ? (
         <div className="flex flex-wrap items-center gap-3">
           {file ? (
-            <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-4 text-sm font-bold">
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-4 text-sm font-bold text-[var(--on-bright)]">
               {file.name}
               <button type="button" onClick={onClear} className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--paper)]" aria-label="Clear selected file">
                 <X size={14} aria-hidden="true" />
@@ -123,7 +123,7 @@ export function FileDropzone({
                 onRetry?.();
                 openPicker();
               }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-white px-4 text-sm font-bold"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--ink)]"
             >
               <RotateCcw size={16} aria-hidden="true" />
               Retry

@@ -216,7 +216,7 @@ export function RoleDashboard({ role }: { role: Exclude<Role, "admin"> }) {
             </div>
           </div>
 
-          <Card className="mt-8 flex flex-wrap items-center justify-between gap-4 bg-[var(--ink)] text-white">
+          <Card className="mt-8 flex flex-wrap items-center justify-between gap-4 bg-[var(--dark-panel)] text-[var(--on-dark)]">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Keep it honest</p>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">

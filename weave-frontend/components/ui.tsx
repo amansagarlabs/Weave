@@ -6,6 +6,7 @@ import { AppSidebar } from "./app-sidebar";
 import { ProfileMenu } from "./profile-menu";
 import { SidebarInset, SidebarProvider } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, type Role } from "./workspace-nav";
+import { cn } from "../lib/utils";
 
 export type { Role };
 export { Logo, roleMeta, nav, navIcons };
@@ -18,10 +19,10 @@ export function Pill({
   tone?: "default" | "lime" | "forest" | "coral";
 }) {
   const styles = {
-    default: "border-[var(--line)] bg-white",
-    lime: "border-[var(--accent)] bg-[var(--accent)]",
+    default: "border-[var(--line)] bg-[var(--card)] text-[var(--ink)]",
+    lime: "border-[var(--accent)] bg-[var(--accent)] text-[var(--on-bright)]",
     forest: "border-[var(--forest)] bg-[var(--forest)] text-white",
-    coral: "border-[var(--orange)] bg-[var(--orange)]",
+    coral: "border-[var(--orange)] bg-[var(--orange)] text-[var(--on-bright)]",
   };
 
   return (
@@ -53,19 +54,27 @@ export function ButtonLink({
 }) {
   const styles = {
     primary: "bg-[var(--forest)] text-white shadow-[4px_4px_0_var(--orange)]",
-    accent: "bg-[var(--accent)] text-[var(--ink)] shadow-[4px_4px_0_var(--ink)]",
+    accent: "bg-[var(--accent)] text-[var(--on-bright)] shadow-[4px_4px_0_var(--ink)]",
     outline: "border-2 border-[var(--ink)] bg-transparent",
   };
 
   return (
-    <Link href={href} className={`inline-flex min-h-12 items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-transform active:scale-[.97] ${styles[variant]}`}>
+    <Link
+      href={href}
+      className={`inline-flex min-h-12 items-center justify-center rounded-full px-5 py-3 text-sm font-bold transition-transform active:scale-[.97] ${styles[variant]}`}
+      style={variant === "accent" ? { color: "var(--on-bright)" } : undefined}
+    >
       {children}
     </Link>
   );
 }
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-2xl bg-white p-5 shadow-[0_8px_24px_rgba(23,34,31,.06)] ${className}`}>{children}</div>;
+  const resolvedClassName = className.includes("bg-[var(--ink)] text-white")
+    ? className.replace("bg-[var(--ink)] text-white", "bg-[var(--dark-panel)] text-[var(--on-dark)]")
+    : className;
+
+  return <div className={cn("rounded-2xl bg-[var(--card)] p-5 text-[var(--ink)] shadow-[0_8px_24px_rgba(23,34,31,.06)]", resolvedClassName)}>{children}</div>;
 }
 
 export function EmptyState({
@@ -81,7 +90,7 @@ export function EmptyState({
 }) {
   return (
     <Card className="border border-dashed border-[var(--line)] text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)] text-2xl" aria-hidden="true">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)] text-2xl text-[var(--on-bright)]" aria-hidden="true">
         ✦
       </div>
       <h2 className="mt-5 text-2xl font-black tracking-[-.05em]">{title}</h2>
@@ -99,7 +108,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
   return (
     <nav
       aria-label="Workspace navigation"
-      className="fixed inset-x-0 bottom-0 z-20 grid border-t border-[var(--line)] bg-white/95 px-2 py-2 backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 grid border-t border-[var(--line)] bg-[var(--card)]/95 px-2 py-2 backdrop-blur lg:hidden"
       style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
     >
       {items.map(([label, href]) => {
@@ -110,7 +119,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
             key={href}
             href={href}
             className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-bold text-[var(--muted)] transition-colors hover:bg-[var(--paper)] hover:text-[var(--ink)]"
-            activeClassName="bg-[var(--accent)] text-[var(--ink)]"
+            activeClassName="bg-[var(--accent)] text-[var(--on-bright)]"
           >
             <Icon size={17} strokeWidth={2} aria-hidden="true" />
             <span className="max-w-full truncate">{label}</span>
@@ -137,7 +146,7 @@ export function AppShell({
       <SidebarProvider>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--accent)] focus:px-4 focus:py-3 focus:font-bold"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-[var(--accent)] focus:px-4 focus:py-3 focus:font-bold focus:text-[var(--on-bright)]"
         >
           Skip to content
         </a>

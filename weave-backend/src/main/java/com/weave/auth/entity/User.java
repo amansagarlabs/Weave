@@ -15,6 +15,9 @@ public class User {
     @Column(nullable = false) private String locale = "en-IN";
     @Column(nullable = false) private String notificationPreference = "EMAIL";
     @Column(nullable = false) private boolean suspended = false;
+    @Column(nullable = false) private boolean emailVerified = true;
+    @Column(length = 128) private String emailVerificationTokenHash;
+    private Instant emailVerificationExpiresAt;
     @Column(nullable = false, updatable = false) private Instant createdAt = Instant.now();
 
     protected User() { }
@@ -25,6 +28,7 @@ public class User {
         user.phone = phone;
         user.passwordHash = passwordHash;
         user.role = role;
+        user.emailVerified = false;
         return user;
     }
 
@@ -38,6 +42,19 @@ public class User {
     public String getNotificationPreference() { return notificationPreference; }
     public void setNotificationPreference(String notificationPreference) { this.notificationPreference = notificationPreference; }
     public boolean isSuspended() { return suspended; }
+    public boolean isEmailVerified() { return emailVerified; }
+    public void markEmailVerified() { this.emailVerified = true; this.emailVerificationTokenHash = null; this.emailVerificationExpiresAt = null; }
+    public void beginEmailVerification(String tokenHash, Instant expiresAt) {
+        this.emailVerified = false;
+        this.emailVerificationTokenHash = tokenHash;
+        this.emailVerificationExpiresAt = expiresAt;
+    }
+    public boolean verifyEmail(Instant now, String tokenHash) {
+        if (emailVerified || emailVerificationTokenHash == null || emailVerificationExpiresAt == null
+                || emailVerificationExpiresAt.isBefore(now) || !emailVerificationTokenHash.equals(tokenHash)) return false;
+        markEmailVerified();
+        return true;
+    }
     public void suspend() { this.suspended = true; }
     public void restore() { this.suspended = false; }
 }

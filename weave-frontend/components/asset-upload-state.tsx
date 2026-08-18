@@ -30,7 +30,7 @@ export function AssetUploadState({ kind }: { kind: "preview" | "final" }) {
         />
       </div>
       {message ? (
-        <p role="status" className="mt-4 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold">
+        <p role="status" className="mt-4 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--on-bright)]">
           {message}
         </p>
       ) : null}

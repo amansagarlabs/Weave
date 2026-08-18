@@ -63,7 +63,7 @@ export function BookingInvoiceStatus({ bookingId, role }: { bookingId: number; r
           href={invoice.paymentLink}
           target="_blank"
           rel="noreferrer"
-          className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold shadow-[3px_3px_0_var(--ink)]"
+          className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--on-bright)] shadow-[3px_3px_0_var(--ink)]"
         >
           Pay via payment link
         </a>

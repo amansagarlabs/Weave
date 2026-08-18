@@ -74,5 +74,11 @@ public class DemoDataSeeder implements CommandLineRunner {
         }
     }
 
-    private User account(String email, Role role) { return users.findByEmail(email).orElseGet(() -> users.save(User.create(email, null, passwords.encode(PASSWORD), role))); }
+    private User account(String email, Role role) {
+        return users.findByEmail(email).orElseGet(() -> {
+            User user = User.create(email, null, passwords.encode(PASSWORD), role);
+            user.markEmailVerified();
+            return users.save(user);
+        });
+    }
 }

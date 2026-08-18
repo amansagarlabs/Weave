@@ -15,21 +15,25 @@ import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.weave.message.dto.ConversationSummary;
+import com.weave.notification.service.NotificationService;
 
 @Service
 public class MessageService {
     private final MessageRepository messages;
     private final UserRepository users;
     private final BookingRepository bookings;
+    private final NotificationService notifications;
 
-    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings) { this.messages = messages; this.users = users; this.bookings = bookings; }
+    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings, NotificationService notifications) { this.messages = messages; this.users = users; this.bookings = bookings; this.notifications = notifications; }
 
     public MessageResponse send(String email, CreateMessageRequest request) {
         User sender = users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         User recipient = users.findById(request.recipientId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipient not found"));
         if (sender.getId().equals(recipient.getId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot message yourself");
         if (request.threadId().startsWith("booking-")) bookingParticipant(request.threadId(), sender, recipient);
-        return MessageResponse.from(messages.save(Message.create(request.threadId(), sender.getId(), request.recipientId(), request.body().trim())));
+        Message saved = messages.save(Message.create(request.threadId(), sender.getId(), request.recipientId(), request.body().trim()));
+        notifications.create(recipient.getId(), "New message", "You have a new message in a Weave conversation.", "MESSAGE");
+        return MessageResponse.from(saved);
     }
 
     public List<MessageResponse> thread(String email, String threadId) {
@@ -37,6 +41,14 @@ public class MessageService {
         List<Message> items = messages.findByThreadIdOrderByCreatedAtAsc(threadId);
         if (items.stream().noneMatch(item -> item.getSenderId().equals(user.getId()) || item.getRecipientId().equals(user.getId())) && !bookingParticipant(threadId, user, null)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found");
         return items.stream().map(MessageResponse::from).toList();
+    }
+
+    public void authorizeThread(String email, String threadId) {
+        User user = user(email);
+        List<Message> items = messages.findByThreadIdOrderByCreatedAtAsc(threadId);
+        if (items.stream().noneMatch(item -> item.getSenderId().equals(user.getId()) || item.getRecipientId().equals(user.getId())) && !bookingParticipant(threadId, user, null)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not a conversation participant");
+        }
     }
 
     public List<ConversationSummary> inbox(String email) {

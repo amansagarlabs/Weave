@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, Mail, Moon, Settings2, User } from "lucide-react";
-import { api } from "../lib/api";
+import { api, csrfHeaders } from "../lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { roleMeta, type Role } from "./workspace-nav";
 
@@ -76,8 +76,7 @@ export function ProfileMenu({ role }: { role: Role }) {
   }
 
   function logout() {
-    window.localStorage.removeItem("weave_access_token");
-    window.localStorage.removeItem("weave_role");
+    void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
     setOpen(false);
     router.replace("/login");
   }
@@ -96,7 +95,7 @@ export function ProfileMenu({ role }: { role: Role }) {
         aria-expanded={open}
         aria-label="Open account menu"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-2 pr-2.5 text-left shadow-[0_8px_24px_rgba(23,34,31,.06)] transition-colors hover:bg-white"
+        className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-2 pr-2.5 text-left shadow-[0_8px_24px_rgba(23,34,31,.06)] transition-colors hover:bg-[var(--paper)]"
       >
         <Avatar className="h-10 w-10 border-none bg-[var(--forest)]">
           {avatarUrl ? <AvatarImage alt="" src={avatarUrl} /> : null}
