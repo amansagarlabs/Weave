@@ -31,7 +31,7 @@ export function AppSidebar({ role }: { role: Role }) {
           {!collapsed ? (
             <div className="flex w-full items-center justify-between gap-5">
               <Logo />
-              <SidebarTrigger className="!border-white/20 !bg-white/15 !text-white shadow-none hover:!bg-white/25" />
+              <SidebarTrigger className="border-white/10 bg-white/10 text-white shadow-none hover:bg-white/15" />
             </div>
           ) : (
             <div className="group/logo relative flex items-center justify-center">

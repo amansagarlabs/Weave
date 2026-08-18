@@ -75,7 +75,7 @@ export function SidebarExpandHandle({ className = "" }: { className?: string }) 
       type="button"
       aria-label="Expand sidebar"
       onClick={toggleCollapsed}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 !bg-white/15 text-white shadow-[0_6px_16px_rgba(23,34,31,.22)] transition-all duration-200 hover:!bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${className}`}
+      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white text-[var(--forest)] shadow-[0_6px_16px_rgba(23,34,31,.22)] transition-all duration-200 hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${className}`}
     >
       <PanelLeftOpen size={18} aria-hidden="true" />
     </button>
