@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "../../lib/api";
 import { SurfacePage } from "../../components/surface";
 import { Card, Pill } from "../../components/ui";
 import { Modal } from "../../components/modal";
+import type { Role } from "../../components/workspace-nav";
 
 type Notification = {
   id: number;
@@ -26,14 +28,23 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(created);
 }
 
+function notificationHref(item: Notification, role: Role) {
+  if (item.kind === "MESSAGE") return `/${role}/messages`;
+  if (item.kind === "EDITOR_REQUEST") return role === "editor" ? "/editor/requests" : "/creator/editor-requests";
+  if (item.kind === "PAYMENT") return role === "brand" ? "/brand/bookings" : `/${role}/earnings`;
+  return `/${role}/bookings`;
+}
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [role, setRole] = useState<Role | null>(null);
 
   useEffect(() => {
+    api<{ user: { role: string } }>("/auth/session").then(({ user }) => setRole(user.role.toLowerCase() as Role)).catch(() => undefined);
     api<Notification[]>("/notifications")
       .then(setNotifications)
       .catch((caught) => setMessage(caught instanceof Error ? caught.message : "Could not load notifications."))
@@ -56,8 +67,10 @@ export default function NotificationsPage() {
 
   const unread = notifications.filter((item) => item.unread).length;
 
+  if (!role) return <main className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6 text-sm font-bold text-[var(--muted)]">Loading notifications...</main>;
+
   return (
-    <SurfacePage role="creator" title="Notifications." eyebrow="Shared workspace" description="Updates that need your attention, grouped in one place.">
+    <SurfacePage role={role} title="Notifications." eyebrow="Shared workspace" description="Updates that need your attention, grouped in one place.">
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-4">
           <div>
@@ -73,7 +86,7 @@ export default function NotificationsPage() {
         {message ? <p role="alert" className="mt-4 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--on-bright)]">{message}</p> : null}
         <div className="divide-y divide-[var(--line)]">
           {notifications.length ? notifications.map((item) => (
-            <article key={item.id} className="flex gap-4 py-5">
+            <Link key={item.id} href={notificationHref(item, role)} onClick={() => { if (item.unread) void api(`/notifications/${item.id}/read`, { method: "POST" }); }} className="flex gap-4 py-5 transition-colors hover:bg-[var(--paper)]">
               <div className={`mt-1 h-3 w-3 shrink-0 rounded-full ${item.unread ? "bg-[var(--orange)]" : "bg-[var(--line)]"}`} aria-label={item.unread ? "Unread" : "Read"} />
               <div className="flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -82,7 +95,7 @@ export default function NotificationsPage() {
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.detail}</p>
               </div>
-            </article>
+            </Link>
           )) : !loading ? <div className="py-8 text-sm text-[var(--muted)]">No notifications yet.</div> : null}
         </div>
       </Card>

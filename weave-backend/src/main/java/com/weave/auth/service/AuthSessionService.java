@@ -58,6 +58,9 @@ public class AuthSessionService {
         sessions.findByTokenHash(hash(rawToken)).ifPresent(session -> { session.revoke(); sessions.save(session); });
     }
 
+    @Transactional
+    public void revokeAllForUser(Long userId) { sessions.revokeAllForUser(userId); }
+
     private String randomToken() { byte[] bytes = new byte[32]; random.nextBytes(bytes); return HexFormat.of().formatHex(bytes); }
     private String hash(String token) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8))); }

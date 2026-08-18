@@ -69,6 +69,21 @@ p, li, dd { text-wrap: pretty; }
 a { text-decoration: none; }
 button, a { min-height: 44px; }
 :focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+/* Form controls use the workspace green focus treatment; coral remains reserved for actions and alerts. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: -2px;
+}
+input[type="search"]:focus-visible {
+  outline: none;
+}
+label:has(input:focus-visible),
+label:has(textarea:focus-visible),
+label:has(select:focus-visible) {
+  border-color: var(--forest);
+}
 [aria-label="Watermarked preview placeholder"] { background: var(--dark-panel); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

@@ -5,9 +5,12 @@ import com.weave.auth.dto.LoginRequest;
 import com.weave.auth.dto.SignupRequest;
 import com.weave.auth.dto.SignupResponse;
 import com.weave.auth.dto.EmailRequest;
+import com.weave.auth.dto.PasswordResetConfirmRequest;
+import com.weave.auth.dto.PasswordResetRequest;
 import com.weave.auth.dto.VerificationResponse;
 import com.weave.auth.service.AuthService;
 import com.weave.auth.service.AuthSessionService;
+import com.weave.auth.service.PasswordResetService;
 import com.weave.auth.security.AuthCookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,8 +24,9 @@ public class AuthController {
     private final AuthService authService;
     private final AuthSessionService sessions;
     private final AuthCookieService cookies;
+    private final PasswordResetService passwordResets;
 
-    public AuthController(AuthService authService, AuthSessionService sessions, AuthCookieService cookies) { this.authService = authService; this.sessions = sessions; this.cookies = cookies; }
+    public AuthController(AuthService authService, AuthSessionService sessions, AuthCookieService cookies, PasswordResetService passwordResets) { this.authService = authService; this.sessions = sessions; this.cookies = cookies; this.passwordResets = passwordResets; }
 
     @PostMapping("/signup")
     SignupResponse signup(@Valid @RequestBody SignupRequest request) { return authService.signup(request); }
@@ -66,6 +70,16 @@ public class AuthController {
     VerificationResponse resendVerification(@Valid @RequestBody EmailRequest request) {
         authService.resendVerification(request.email());
         return new VerificationResponse(true, "If the account exists, a new verification email has been sent");
+    }
+
+    @PostMapping("/password-reset/request")
+    VerificationResponse requestPasswordReset(@Valid @RequestBody PasswordResetRequest request, HttpServletRequest servletRequest) {
+        return passwordResets.request(request, servletRequest.getRemoteAddr());
+    }
+
+    @PostMapping("/password-reset/confirm")
+    VerificationResponse confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
+        return passwordResets.confirm(request);
     }
 }
 

@@ -43,4 +43,14 @@ public class NotificationService {
         items.stream().filter(com.weave.notification.entity.Notification::isUnread).forEach(com.weave.notification.entity.Notification::markRead);
         return items.stream().map(NotificationResponse::from).toList();
     }
+
+    @Transactional
+    public NotificationResponse markRead(String email, Long notificationId) {
+        User user = users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "User not found"));
+        var notification = notifications.findById(notificationId)
+                .filter(item -> item.getUserId().equals(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Notification not found"));
+        notification.markRead();
+        return NotificationResponse.from(notification);
+    }
 }

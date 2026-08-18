@@ -35,6 +35,7 @@ public class User {
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }
+    public void changePassword(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public String getPhone() { return phone; }
     public String getLocale() { return locale; }

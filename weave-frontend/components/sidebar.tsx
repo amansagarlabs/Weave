@@ -13,14 +13,9 @@ const SidebarContext = createContext<SidebarContextValue | null>(null);
 const STORAGE_KEY = "weave_sidebar_collapsed";
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    const value = window.localStorage.getItem(STORAGE_KEY);
-    if (value === "true") {
-      setCollapsed(true);
-    }
-  }, []);
+  const [collapsed, setCollapsed] = useState(() =>
+    typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY) === "true",
+  );
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, String(collapsed));

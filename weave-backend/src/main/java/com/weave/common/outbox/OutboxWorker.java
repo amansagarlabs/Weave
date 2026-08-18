@@ -34,6 +34,10 @@ public class OutboxWorker {
                 Map<?, ?> payload = mapper.readValue(event.getPayload(), Map.class);
                 users.findById(Long.valueOf(String.valueOf(payload.get("userId"))))
                         .ifPresent(user -> email.send(user, String.valueOf(payload.get("title")), String.valueOf(payload.get("detail"))));
+            } else if ("PASSWORD_RESET".equals(event.getEventType())) {
+                Map<?, ?> payload = mapper.readValue(event.getPayload(), Map.class);
+                email.sendPasswordReset(String.valueOf(payload.get("recipient")), String.valueOf(payload.get("link")),
+                        Long.parseLong(String.valueOf(payload.get("minutes"))));
             }
             event.succeed();
         } catch (Exception exception) {

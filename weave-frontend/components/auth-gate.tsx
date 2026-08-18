@@ -5,14 +5,24 @@ import { usePathname, useRouter } from "next/navigation";
 import type { Role } from "./ui";
 import { api, csrfHeaders } from "../lib/api";
 
+type SessionUser = { role: string };
+let cachedSessionUser: SessionUser | null = null;
+
+export function clearAuthSessionCache() { cachedSessionUser = null; }
+
 export function AuthGate({ role, children }: { role: Role; children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(Boolean(cachedSessionUser));
 
   useEffect(() => {
-    api<{ user: { role: string } }>("/auth/session")
-      .then(({ user }) => { const actualRole = user.role.toLowerCase() as Role; if (actualRole !== role) router.replace(`/${actualRole}/dashboard`); else setReady(true); })
+    if (cachedSessionUser) {
+      const actualRole = cachedSessionUser.role.toLowerCase() as Role;
+      if (actualRole !== role) router.replace(`/${actualRole}/dashboard`);
+      return;
+    }
+    api<{ user: SessionUser }>("/auth/session")
+      .then(({ user }) => { cachedSessionUser = user; const actualRole = user.role.toLowerCase() as Role; if (actualRole !== role) router.replace(`/${actualRole}/dashboard`); else setReady(true); })
       .catch(() => router.replace(`/login?next=${encodeURIComponent(pathname)}`));
   }, [pathname, role, router]);
 
@@ -23,6 +33,7 @@ export function AuthGate({ role, children }: { role: Role; children: React.React
 export function LogoutButton({ className = "" }: { className?: string }) {
   const router = useRouter();
   function logout() {
+    clearAuthSessionCache();
     void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
     router.replace("/login");
   }

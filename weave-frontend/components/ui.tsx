@@ -4,6 +4,7 @@ import { ActiveNavLink } from "./active-nav-link";
 import { AuthGate } from "./auth-gate";
 import { AppSidebar } from "./app-sidebar";
 import { ProfileMenu } from "./profile-menu";
+import { NotificationMenu } from "./notification-menu";
 import { SidebarInset, SidebarProvider } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, type Role } from "./workspace-nav";
 import { cn } from "../lib/utils";
@@ -164,9 +165,7 @@ export function AppShell({
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
-                <Link href="/notifications" aria-label="Notifications" className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--card)] text-[var(--ink)] shadow-[0_8px_24px_rgba(23,34,31,.06)]">
-                  <Bell size={18} aria-hidden="true" />
-                </Link>
+                <NotificationMenu role={role} />
                 <ProfileMenu role={role} />
               </div>
             </header>

@@ -39,6 +39,7 @@ weave:
   auth:
     email-verification-lifetime: ${AUTH_EMAIL_VERIFICATION_LIFETIME:PT24H}
     refresh-lifetime: ${AUTH_REFRESH_LIFETIME:P30D}
+    password-reset-lifetime: ${AUTH_PASSWORD_RESET_LIFETIME:PT1H}
     secure-cookies: ${AUTH_SECURE_COOKIES:false}
   notifications:
     email:

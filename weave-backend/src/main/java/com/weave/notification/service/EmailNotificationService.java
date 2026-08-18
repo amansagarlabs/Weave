@@ -59,6 +59,12 @@ public class EmailNotificationService {
         }
     }
 
+    public void sendPasswordReset(String recipient, String link, long minutes) {
+        if (!enabled) return;
+        deliver(recipient, "Reset your Weave password", "Reset your Weave password by opening this link:\n\n" + link
+                + "\n\nThis link expires in " + minutes + " minutes.");
+    }
+
     public boolean isConfigured() {
         return enabled && ("resend".equalsIgnoreCase(provider) ? !resendApiKey.isBlank() : !from.isBlank());
     }

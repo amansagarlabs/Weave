@@ -89,6 +89,12 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         />
       </label>
 
+      {mode === "login" ? (
+        <div className="-mt-2 text-right text-sm font-bold">
+          <Link href="/password-reset" className="text-[var(--action)] underline">Forgot password?</Link>
+        </div>
+      ) : null}
+
       <label className="block text-sm font-bold">
         Password
         <input

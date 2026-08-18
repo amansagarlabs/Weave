@@ -44,6 +44,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Added Redis-backed distributed rate limiting with local fallback and Compose health-gated Redis persistence.
 - [x] Added explicit Cloudinary production storage provider with server-side credentials, media type/size validation, and HTTPS delivery URLs; MinIO/R2-compatible storage remains available for alternate deployments.
 - [x] Added Prometheus-compatible metrics exposure and baseline security headers.
+- [x] Added hashed, one-time, expiring password reset tokens, queued reset email delivery, and refresh-session revocation after reset.
 
 ### Important verification note
 
@@ -161,14 +162,15 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add authenticated WebSocket/STOMP conversations: short-lived cookie-authenticated token, participant-scoped thread subscriptions, persisted message delivery, frontend reconnect, and accessible connection status. Typing presence remains open.
 - [x] Add Redis service wiring for shared rate limits and future presence/jobs.
 - [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
-- [ ] Add password reset tokens, signed private R2 URLs, upload finalization/cleanup jobs, and full payment webhook receipt ledger.
+- [x] Add password reset tokens with one-time expiry and session revocation.
+- [ ] Add signed private R2 URLs, upload finalization/cleanup jobs, and full payment webhook receipt ledger.
 - [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
 - [x] Add an accessible conversation composer attachment/media control with type and 10 MB size validation. Upload storage, emoji/GIF/sticker providers, and moderation rules remain explicitly unconnected.
 
 
 ## Next-day build plan
 
-1. Add password reset, private signed R2 downloads, and upload finalization/cleanup jobs.
+1. Add private signed R2 downloads, upload finalization/cleanup jobs, and the full payment webhook receipt ledger.
 2. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
 3. Connect validated attachments to configured S3/R2 storage and define moderated emoji/GIF/sticker providers.
 4. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.

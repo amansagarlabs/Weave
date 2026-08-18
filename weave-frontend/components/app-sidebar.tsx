@@ -3,7 +3,7 @@
 import { LogOut, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ActiveNavLink } from "./active-nav-link";
-import { LogoutButton } from "./auth-gate";
+import { clearAuthSessionCache, LogoutButton } from "./auth-gate";
 import { SearchForm } from "./search-form";
 import { SidebarExpandHandle, SidebarTrigger, useSidebar } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, WeaveMark, type Role } from "./workspace-nav";
@@ -90,6 +90,7 @@ export function AppSidebar({ role }: { role: Role }) {
                 aria-label="Log out"
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition-colors hover:bg-white/15"
                 onClick={() => {
+                  clearAuthSessionCache();
                   void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
                   window.location.assign("/login");
                 }}

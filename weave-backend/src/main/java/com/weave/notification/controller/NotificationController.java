@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,5 +28,10 @@ public class NotificationController {
     @PostMapping("/read-all")
     List<NotificationResponse> markAllRead(Authentication authentication) {
         return notifications.markAllRead(authentication.getName());
+    }
+
+    @PostMapping("/{id}/read")
+    NotificationResponse markRead(@PathVariable Long id, Authentication authentication) {
+        return notifications.markRead(authentication.getName(), id);
     }
 }
