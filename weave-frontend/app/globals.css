@@ -79,6 +79,40 @@ select:focus-visible {
 input[type="search"]:focus-visible {
   outline: none;
 }
+[data-command-search-input] {
+  all: unset !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  min-height: 3.5rem !important;
+  color: var(--ink) !important;
+  background: transparent !important;
+  font: inherit !important;
+  font-weight: 700 !important;
+  cursor: text !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+[data-command-search-input]:focus,
+[data-command-search-input]:focus-visible {
+  all: unset !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  min-height: 3.5rem !important;
+  color: var(--ink) !important;
+  background: transparent !important;
+  font: inherit !important;
+  font-weight: 700 !important;
+  cursor: text !important;
+  border: 0 !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
 label:has(input:focus-visible),
 label:has(textarea:focus-visible),
 label:has(select:focus-visible) {

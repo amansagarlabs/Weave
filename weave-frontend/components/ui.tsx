@@ -5,6 +5,7 @@ import { AuthGate } from "./auth-gate";
 import { AppSidebar } from "./app-sidebar";
 import { ProfileMenu } from "./profile-menu";
 import { NotificationMenu } from "./notification-menu";
+import { CommandSearch } from "./command-search";
 import { SidebarInset, SidebarProvider } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, type Role } from "./workspace-nav";
 import { cn } from "../lib/utils";
@@ -165,6 +166,7 @@ export function AppShell({
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
+                <CommandSearch role={role} />
                 <NotificationMenu role={role} />
                 <ProfileMenu role={role} />
               </div>

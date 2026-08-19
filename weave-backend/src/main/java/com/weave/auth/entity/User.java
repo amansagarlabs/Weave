@@ -25,6 +25,7 @@ public class User {
     @Column private String billingSubscriptionId;
     @Column(columnDefinition = "text") private String billingPortalUrl;
     @Column(nullable = false) private String billingStatus = "ACTIVE";
+    private Long activeOrganizationId;
     @Column(length = 128) private String emailVerificationTokenHash;
     private Instant emailVerificationExpiresAt;
     @Column(nullable = false, updatable = false) private Instant createdAt = Instant.now();
@@ -67,6 +68,8 @@ public class User {
     public String getBillingSubscriptionId() { return billingSubscriptionId; }
     public String getBillingPortalUrl() { return billingPortalUrl; }
     public String getBillingStatus() { return billingStatus; }
+    public Long getActiveOrganizationId() { return activeOrganizationId; }
+    public void setActiveOrganizationId(Long activeOrganizationId) { this.activeOrganizationId = activeOrganizationId; }
     public void activateFreeBillingPlan() {
         this.billingPlan = "FREE";
         this.billingProvider = "NONE";

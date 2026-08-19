@@ -39,7 +39,7 @@ Each domain package is internally layered (Controller → Service → Repository
 | Build tool | Maven | Broader enterprise JD match than Gradle |
 | Testing | JUnit5 + Mockito | Interview-relevant, standard |
 | File storage | AWS S3 (or Cloudflare R2, S3-compatible) | Media kit images, editor-delivered content (watermarked previews) |
-| Payments/Payouts/Escrow | **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, and payment events | $0 plans skip gateway calls. Invoice links use provider-neutral payment instructions. Paid plans still carry unavoidable gateway/bank costs. No escrow |
+| Payments/Payouts/Escrow | **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, hosted checkout, and payment events | $0 plans skip gateway calls. Invoice checkout uses UniBee. Paid plans still carry unavoidable gateway/bank costs. No escrow |
 | Containerization | Docker | Backend containerized, strong SDE1 signal |
 | CI/CD | GitHub Actions | Free, standard |
 | Backend hosting | Render/Railway (fast/free tier) or AWS EC2 (resume weight) | Pick based on time budget |
@@ -151,6 +151,7 @@ GET    /collab-matches?creator_id=
 - **This logic must be reviewable/updatable by a non-engineer (e.g., admin config panel or CMS) since CBDT rules change periodically**
 
 ## 7. Security & Access Control
+- CRUD permissions are persisted per role/resource/action in `rbac_policies`. Admins can update Creator, Brand, and Editor policies from `/admin/rbac/policies`; Admin access cannot be disabled. Core booking, package, profile, edit-request, invoice, and message endpoints evaluate these policies server-side. Policy changes are audited and read from PostgreSQL for immediate effect without unnecessary cache invalidation.
 - Role-based access control (RBAC): Creator, Brand, Editor, Admin — enforce at API layer, not just UI
 - Media kit pages are the only public/unauthenticated routes; everything else requires auth
 - Editor-delivered content (Section 4.1 of PRD): store watermarked/low-res preview separately from final asset; final asset only served after `payment_status == confirmed`
@@ -181,7 +182,10 @@ Use Makerkit-style capabilities as product requirements, while preserving Weave 
 
 - Authentication: password, magic link, social login, MFA, recovery, session revocation, rate limits, and audit events.
 - Multi-tenancy: personal account plus multiple organizations, membership roles, switching, tenant-scoped authorization, and tenant-safe queries.
+- Organization foundation is implemented through personal organizations, memberships, an active organization on the user session, and an authenticated switcher. Domain records still require explicit tenant scoping before this requirement is complete; cross-party booking access remains participant-based by design.
 - Super Admin: manage, impersonate, disable, and restore users and organizations; audit every privileged action.
+- Admin command center, user management, organization management, moderation, content, operations, impersonation, and durable privileged-action audit records are implemented.
+- Role dashboards use a shared responsive shell with distinct creator, brand, and editor information architecture, dynamic API-backed metrics, interactive analytics, and a local development feed populated with credited Pexels media.
 - Billing: UniBee self-hosted subscription and recurring billing; provider-neutral customer portal. Free plans skip gateway calls.
 - UI: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible responsive layouts, mobile-first behavior.
 - Content: SEO-ready blog and documentation/help center with controlled publishing.

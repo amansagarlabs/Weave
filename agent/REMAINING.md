@@ -50,6 +50,10 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Added a billing provider registry with UniBee-first default selection for paid-plan provisioning.
 - [x] Integrated UniBee subscription checkout and customer-portal session calls using the official UniBee merchant APIs.
 - [x] Cloudinary asset responses now refuse metadata-less public URL fallbacks and require authenticated signed delivery metadata in production.
+- [x] Added a global shadcn-style Sonner toaster with a reusable `useAppToast` hook; portfolio upload, edit, replace, and delete actions use organized success/error toasts.
+- [x] Applied shared toasts to brand/editor profile saves, creator settings saves, package create/edit, billing plan and free-plan portal actions, and portfolio mutations.
+- [x] Added creator portfolio edit/delete flows with confirmation modal, title editing, optional file replacement, ownership checks, and MinIO/S3 cleanup.
+- [x] Added the cross-machine Docker developer setup guide covering Compose services, LAN access, demo data, uploads, Mailpit, reset procedures, and troubleshooting.
 
 ### Important verification note
 
@@ -77,7 +81,8 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add backend package repository, DTOs, service, and controller.
 - [x] Connect `/creator/packages`, `/creator/packages/new`, and `/creator/packages/edit` to real package CRUD.
 - [x] Add archive behavior and owner authorization for packages. Duplicate and reorder remain open.
-- [x] Add creator portfolio storage metadata and local/mock upload flow; connect S3/R2 after storage credentials are configured.
+- [x] Add creator portfolio asset persistence and real multipart uploads to local Docker MinIO; the same S3-compatible API supports S3/R2 production configuration.
+- [x] Creator signup now creates a starter discoverable profile, and Flyway V26 backfills existing creator accounts that previously had no profile row.
 
 ### 3. Finish brand profiles and booking workflow
 
@@ -106,7 +111,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - [x] Add invoice entity, migration, repository, DTOs, service, and controller.
 - [x] Add configurable GST/TDS invoice fields: GSTIN, SAC code, place of supply, tax breakup, and net payable.
-- [x] Add provider-neutral invoice links with invoice/booking references and no gateway credentials. Target stack is UniBee self-hosted for subscription billing.
+- [x] Add UniBee-hosted invoice checkout links with invoice/booking references. Merchant API credentials and a configured UniBee gateway are required; Weave never holds funds in escrow.
 - [x] UniBee checkout and customer-portal session calls are live.
 - [x] Implement the payment-link/pass-through boundary only; do not hold funds or build escrow.
 - [x] Add webhook signature verification and idempotent payment-status updates.
@@ -133,7 +138,11 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add content preview and publish confirmation for compliance copy and category labels.
 - [x] Connect notifications to persisted events instead of sample in-memory notifications.
 - [x] Add transactional notification outbox events with worker retries and dead-letter state.
-- [ ] Add admin operations views for failed email, webhook, storage, and active session records.
+- [x] Add admin operations views for failed notification outbox and payment webhook records, including outbox retry.
+- [x] Add an admin command center covering users, organizations, disputes, content, and operations.
+- [x] Add admin organization listing with member counts and disable/restore controls; personal organizations are protected from disabling.
+- [x] Add persisted RBAC CRUD policies for Creator, Brand, Editor, and Admin roles, with an admin editor, audit events, and server-side enforcement on core domain APIs.
+- [ ] Add persisted storage-failure and active-session operations records; these require storage/session audit persistence first.
 - [x] Create persisted participant notifications for booking, message, and editor-request events.
 - [x] Add payment notification events for invoice creation, payment-link readiness, and paid webhook updates.
 
@@ -144,12 +153,14 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Replace raw `<a>` links inside workspace pages with Next `Link` where appropriate.
 - [x] Add a real modal/dialog primitive with Escape handling, focus trap, and focus restoration for ASCI/disclosure steps and confirmations.
 - [x] Add responsive admin user cards/table fallback with suspend/restore confirmation flow and suspension status badges.
+- [x] Replace static role dashboard empty states with dynamic creator, brand, and editor dashboards: role-specific metrics, actions, analytics view, interactive media feed, likes, saves, filters, and local Pexels dummy video/photo posts.
 - [x] Add a reusable file-dropzone component with progress, failure recovery, and keyboard operation.
 - [x] Add a reusable select, currency field, tag input, and payment-state component.
 - [x] Move visible copy into an i18n-ready message map as required by the design system.
 - [x] Add a skip link to authenticated shells. Logical heading audit across all routes remains open.
 - [ ] Test keyboard navigation, 360px layout, 768px layout, 1440px layout, and 200% zoom.
 - [ ] Add automated accessibility checks and component examples for primary, hover, focus, disabled, loading, and error states.
+- [ ] Migrate remaining transient mutation feedback in booking, invoice, MFA, notification, editor-request, admin, and messaging screens to `useAppToast`; keep validation, loading, empty, and retry states inline where they are needed for task context.
 - [x] Replace sample creator metrics and copy with backend-backed values; never display invented influence scores.
 - [x] Add the reusable footer to public pages without adding it to authenticated workspace shells.
 
@@ -199,8 +210,10 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - [x] Add password-reset, magic-link, social login, and MFA authentication with hashed one-time tokens, expiry, recovery codes, generic account responses, session cookies, frontend verification routes, and step-up login challenges.
 - [ ] Complete authentication audit trail and privileged-auth logging.
-- [ ] Add multi-tenancy: personal accounts, organizations, memberships, role checks, organization switcher, and tenant-isolated queries.
-- [ ] Add Super Admin: manage, impersonate, disable, and restore users and organizations with audited actions.
+- [x] Add the organization foundation: personal organizations, memberships, active-organization switching, API endpoints, and an authenticated organization switcher.
+- [x] Scope creator and editor package ownership, creation, editing, archiving, and personal package lists to the active organization with a database backfill.
+- [ ] Apply organization context to organization-owned resources and enforce tenant-safe queries; cross-party bookings must remain visible only to their explicit participants.
+- [x] Add Super Admin impersonation with a safe return session and privileged-action audit records. User suspend/restore and organization disable/restore are implemented with server-side ADMIN authorization.
 - [ ] Keep billing on UniBee and the `$0` internal path.
 - [ ] Adopt accessible Shadcn UI + Tailwind CSS v4 primitives and dark/light/system theme.
 - [ ] Add SEO-ready blog and documentation/help center with publishing workflow.
@@ -215,7 +228,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - Frontend source type-checks and production build now pass after the MFA/social-login updates; the only remaining signal is the repeated baseline-browser-mapping warning.
 - Backend Docker build and test execution now pass through `docker compose build backend` in this environment.
-- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice payment links currently use manual payment instructions; UniBee migration is complete for subscription billing.
+- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice checkout now uses UniBee; merchant API credentials and a configured gateway ID are required for live payments.
 - Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
 - Backend Docker compilation was attempted but timed out during Docker/Maven image setup; rerun `docker compose build backend` in a working Docker environment.
 - Payment scope note: current build covers brand→creator payment links only; creator→editor payout/disbursal is still missing and needs its own work item.

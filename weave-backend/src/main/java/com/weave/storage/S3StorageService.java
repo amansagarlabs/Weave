@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.BucketExistsArgs;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -80,6 +81,16 @@ public class S3StorageService {
             return client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
         } catch (Exception exception) {
             return false;
+        }
+    }
+
+    public void delete(String assetUrl) {
+        if ("cloudinary".equals(provider) || client == null || assetUrl == null || publicBaseUrl.isBlank() || !assetUrl.startsWith(publicBaseUrl + "/")) return;
+        String object = assetUrl.substring((publicBaseUrl + "/").length());
+        try {
+            client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(object).build());
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Stored portfolio file could not be removed");
         }
     }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, Mail, Moon, Settings2, User } from "lucide-react";
+import { ChevronDown, Images, LogOut, Mail, Moon, Settings2, Upload, User } from "lucide-react";
 import { api, csrfHeaders } from "../lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { roleMeta, type Role } from "./workspace-nav";
@@ -32,11 +32,15 @@ export function ProfileMenu({ role }: { role: Role }) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [theme, setTheme] = useState<ThemeMode>("light");
+  const [impersonating, setImpersonating] = useState(false);
 
   useEffect(() => {
     api<CurrentUser>("/users/me")
       .then(setUser)
       .catch(() => undefined);
+    api<{ active: boolean }>("/admin/impersonation/status")
+      .then(({ active }) => setImpersonating(active))
+      .catch(() => setImpersonating(false));
   }, []);
 
   useEffect(() => {
@@ -79,6 +83,11 @@ export function ProfileMenu({ role }: { role: Role }) {
     void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
     setOpen(false);
     router.replace("/login");
+  }
+
+  async function stopImpersonating() {
+    await api("/admin/impersonation/stop", { method: "POST" });
+    window.location.assign("/admin/dashboard");
   }
 
   const email = user?.email ?? roleMeta[role].label;
@@ -126,6 +135,7 @@ export function ProfileMenu({ role }: { role: Role }) {
           </div>
 
           <div className="px-2 pb-2">
+            {impersonating ? <button type="button" role="menuitem" onClick={() => void stopImpersonating()} className="flex min-h-10 w-full items-center gap-2.5 rounded-xl bg-[var(--accent)] px-2.5 text-left text-sm font-black text-[var(--on-bright)]">Stop impersonation</button> : null}
             <Link
               href={profileHref}
               role="menuitem"
@@ -144,6 +154,26 @@ export function ProfileMenu({ role }: { role: Role }) {
               <Settings2 size={17} aria-hidden="true" />
               Email Settings
             </Link>
+            {role === "creator" ? <>
+              <Link
+                href="/creator/portfolio"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="mt-1 flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 text-sm font-bold transition-colors hover:bg-[var(--paper)]"
+              >
+                <Images size={17} aria-hidden="true" />
+                Portfolio
+              </Link>
+              <Link
+                href="/creator/portfolio/upload"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="mt-1 flex min-h-10 items-center gap-2.5 rounded-xl px-2.5 text-sm font-bold text-[var(--forest)] transition-colors hover:bg-[var(--accent)]"
+              >
+                <Upload size={17} aria-hidden="true" />
+                Add portfolio content
+              </Link>
+            </> : null}
             <Link
               href="/notifications"
               role="menuitem"

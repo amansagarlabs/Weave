@@ -22,6 +22,7 @@ import com.weave.message.entity.Message;
 import com.weave.message.repository.MessageRepository;
 import com.weave.notification.entity.Notification;
 import com.weave.notification.repository.NotificationRepository;
+import com.weave.organization.service.OrganizationService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,9 +47,10 @@ public class DemoDataSeeder implements CommandLineRunner {
     private final InvoiceRepository invoices;
     private final NotificationRepository notifications;
     private final TaxCalculationService taxes;
+    private final OrganizationService organizations;
 
-    public DemoDataSeeder(UserRepository users, PasswordEncoder passwords, CreatorProfileRepository creators, BrandProfileRepository brands, EditorProfileRepository editors, PackageRepository packages, BookingRepository bookings, MessageRepository messages, EditRequestRepository editRequests, InvoiceRepository invoices, NotificationRepository notifications, TaxCalculationService taxes) {
-        this.users = users; this.passwords = passwords; this.creators = creators; this.brands = brands; this.editors = editors; this.packages = packages; this.bookings = bookings; this.messages = messages; this.editRequests = editRequests; this.invoices = invoices; this.notifications = notifications; this.taxes = taxes;
+    public DemoDataSeeder(UserRepository users, PasswordEncoder passwords, CreatorProfileRepository creators, BrandProfileRepository brands, EditorProfileRepository editors, PackageRepository packages, BookingRepository bookings, MessageRepository messages, EditRequestRepository editRequests, InvoiceRepository invoices, NotificationRepository notifications, TaxCalculationService taxes, OrganizationService organizations) {
+        this.users = users; this.passwords = passwords; this.creators = creators; this.brands = brands; this.editors = editors; this.packages = packages; this.bookings = bookings; this.messages = messages; this.editRequests = editRequests; this.invoices = invoices; this.notifications = notifications; this.taxes = taxes; this.organizations = organizations;
     }
 
     @Override
@@ -57,11 +59,14 @@ public class DemoDataSeeder implements CommandLineRunner {
         User brand = account("brand@gmail.com", Role.BRAND);
         User editor = account("editor@gmail.com", Role.EDITOR);
         account("admin@gmail.com", Role.ADMIN);
+        organizations.ensureActive(creator);
+        organizations.ensureActive(brand);
+        organizations.ensureActive(editor);
         creators.findById(creator.getId()).orElseGet(() -> creators.save(CreatorProfile.create(creator.getId(), "Demo Creator", "demo-creator", "[\"Tech\",\"Lifestyle\"]", "[{\"platform\":\"Instagram\",\"handle\":\"@demo_creator\",\"follower_count\":12000}]", "Bengaluru", "English", "Available for work")));
         brands.findById(brand.getId()).orElseGet(() -> brands.save(BrandProfile.create(brand.getId(), "Demo Brand Co.", "D2C", "29ABCDE1234F1Z5")));
         editors.findById(editor.getId()).orElseGet(() -> editors.save(EditorProfile.create(editor.getId(), "[\"https://example.com/demo-editing\"]")));
-        if (packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(creator.getId(), "CREATOR").isEmpty()) packages.save(Package.create(creator.getId(), "CREATOR", "Instagram Reel", new BigDecimal("3500.00"), 5, 2));
-        if (packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(editor.getId(), "EDITOR").isEmpty()) packages.save(Package.create(editor.getId(), "EDITOR", "Reel edit", new BigDecimal("1200.00"), 3, 2));
+        if (packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(creator.getId(), "CREATOR").isEmpty()) packages.save(Package.create(creator.getId(), creator.getActiveOrganizationId(), "CREATOR", "Instagram Reel", new BigDecimal("3500.00"), 5, 2));
+        if (packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(editor.getId(), "EDITOR").isEmpty()) packages.save(Package.create(editor.getId(), editor.getActiveOrganizationId(), "EDITOR", "Reel edit", new BigDecimal("1200.00"), 3, 2));
         Package creatorPackage = packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(creator.getId(), "CREATOR").get(0);
         Booking booking = bookings.findByBrandIdAndCreatorId(brand.getId(), creator.getId()).orElseGet(() -> bookings.save(Booking.create(brand.getId(), creator.getId(), creatorPackage.getId(), creatorPackage.getPrice())));
         if ("PENDING".equals(booking.getStatus())) { booking.moveTo("NEGOTIATING"); booking.moveTo("ACCEPTED"); bookings.save(booking); }

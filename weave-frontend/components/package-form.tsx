@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { api } from "../lib/api";
 import { CurrencyField } from "./form-controls";
 import { Card } from "./ui";
+import { useAppToast } from "./hooks/use-app-toast";
 
 type CreatorPackage = {
   id: number;
@@ -29,6 +30,7 @@ export function PackageForm({
   const [values, setValues] = useState({ contentType: "", price: "", deliveryDays: "", revisionsIncluded: "" });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { success, error: notifyError } = useAppToast();
 
   useEffect(() => {
     if (mode !== "edit" || !id) return;
@@ -69,9 +71,12 @@ export function PackageForm({
         method: mode === "edit" ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
+      success(mode === "edit" ? "Package updated" : "Package added", "Your package is now available in your workspace.");
       router.push(base);
     } catch (caught) {
-      setMessage(caught instanceof Error ? `${caught.message}. Check your values and sign in again if needed.` : "Could not save package.");
+      const error = caught instanceof Error ? `${caught.message}. Check your values and sign in again if needed.` : "Could not save package.";
+      notifyError("Could not save package", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }

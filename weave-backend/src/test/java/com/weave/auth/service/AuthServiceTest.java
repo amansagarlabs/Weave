@@ -5,6 +5,7 @@ import com.weave.auth.dto.LoginRequest;
 import com.weave.auth.dto.SignupRequest;
 import com.weave.auth.entity.Role;
 import com.weave.auth.entity.User;
+import com.weave.creator.repository.CreatorProfileRepository;
 import com.weave.auth.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +29,9 @@ class AuthServiceTest {
     @Mock AuthenticationManager authenticationManager;
     @Mock JwtService jwtService;
     @Mock EmailVerificationService emailVerification;
+    @Mock CreatorProfileRepository creatorProfiles;
 
-    private AuthService service() { return new AuthService(users, passwordEncoder, authenticationManager, jwtService, emailVerification); }
+    private AuthService service() { return new AuthService(users, passwordEncoder, authenticationManager, jwtService, emailVerification, creatorProfiles); }
 
     @Test
     void signupNormalizesEmailEncodesPasswordAndStartsVerification() {

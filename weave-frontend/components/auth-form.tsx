@@ -4,13 +4,12 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authCopy } from "../lib/copy";
-import { api } from "../lib/api";
+import { api, getApiUrl } from "../lib/api";
 import { setPublicSession } from "./public-session";
 
 type Role = "creator" | "brand" | "editor";
 type AuthMode = "login" | "signup";
 type LoginMethod = "password" | "magic-link";
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Role }) {
   const router = useRouter();
@@ -20,12 +19,14 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
   const [password, setPassword] = useState("");
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
   const [error, setError] = useState("");
+  const [connectivityError, setConnectivityError] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setConnectivityError(false);
     setNotice("");
     setBusy(true);
 
@@ -58,7 +59,11 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
             : `/${selectedRole}/onboarding`;
       router.push(destination);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Something went wrong. Please try again.");
+      const message = caught instanceof Error ? caught.message : "Something went wrong. Please try again.";
+      setConnectivityError(
+        message.includes("temporarily unavailable") || message.includes("session could not be refreshed"),
+      );
+      setError(message);
     } finally {
       setBusy(false);
     }
@@ -137,7 +142,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         disabled={busy}
         className="flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white shadow-[4px_4px_0_var(--orange)] transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {busy ? "One moment..." : mode === "login" ? authCopy.login.submit : authCopy.signup.submit}
+        {busy ? "Connecting..." : connectivityError && mode === "login" ? "Try again" : mode === "login" ? authCopy.login.submit : authCopy.signup.submit}
       </button>
 
       {mode === "login" ? (
@@ -151,7 +156,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
       ) : null}
 
       {mode === "login" && process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED === "true" ? (
-        <a href={`${API_URL}/oauth2/authorization/google`} className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper)] px-5 py-3 text-sm font-bold text-[var(--ink)]">
+        <a href={`${getApiUrl()}/oauth2/authorization/google`} className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper)] px-5 py-3 text-sm font-bold text-[var(--ink)]">
           Continue with Google
         </a>
       ) : null}

@@ -39,6 +39,16 @@ type TaxFields = {
   tdsApplicable: boolean;
 };
 
+function isHostedPaymentLink(link: string | null) {
+  if (!link) return false;
+  try {
+    const url = new URL(link);
+    return ["http:", "https:"].includes(url.protocol) && !["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 const money = (amount: number | string) => `₹${Number(amount).toLocaleString("en-IN")}`;
 const initialTax: TaxFields = {
   creatorGstin: "",
@@ -133,7 +143,7 @@ export function InvoiceList() {
   }
 
   async function sendDraft(invoice: Invoice) {
-    if (agreementInvoiceId !== invoice.id) return;
+    if (invoice.status === "DRAFT" && agreementInvoiceId !== invoice.id) return;
     setBusy(invoice.id);
     setMessage("");
     try {
@@ -143,7 +153,7 @@ export function InvoiceList() {
       });
       setInvoices((items) => items.map((item) => item.id === updated.id ? updated : item));
       setAgreementInvoiceId(null);
-      setMessage("Invoice sent. The brand can open the invoice and follow the payment instructions.");
+      setMessage("Invoice sent. The UniBee checkout link is now available to the brand.");
     } catch (caught) {
       setMessage(caught instanceof Error ? caught.message : "Could not send invoice.");
     } finally {
@@ -216,13 +226,13 @@ export function InvoiceList() {
             <p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--accent)]">Net payable</p>
             <p className="mt-2 text-4xl font-black">{money(selectedInvoice.netPayable ?? selectedInvoice.amount)}</p>
             <p className="mt-2 text-sm leading-6 text-white/70">
-              This is a digital invoice preview. The brand pays through the payment link after the creator sends the invoice.
+              This is a digital invoice preview. The brand pays through UniBee checkout after the creator sends the invoice.
             </p>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3 print:hidden">
-            {selectedInvoice.paymentLink ? (
-              <a href={selectedInvoice.paymentLink} target="_blank" rel="noreferrer" className="min-h-12 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--on-bright)]">
+            {isHostedPaymentLink(selectedInvoice.paymentLink) ? (
+                <a href={selectedInvoice.paymentLink!} target="_blank" rel="noreferrer" className="min-h-12 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--on-bright)]">
                 Open payment link
               </a>
             ) : null}
@@ -375,13 +385,18 @@ export function InvoiceList() {
                     <div className="w-full rounded-2xl bg-[var(--paper)] p-4 sm:w-auto sm:min-w-[280px]">
                       <label className="flex items-start gap-2 text-xs font-bold leading-5">
                         <input type="checkbox" checked={agreementInvoiceId === invoice.id} onChange={(event) => setAgreementInvoiceId(event.target.checked ? invoice.id : null)} />
-                        I confirm the booking amount and scope are agreed before sending the payment instructions.
+                        I confirm the booking amount and scope are agreed before creating the UniBee checkout.
                       </label>
-                      <button type="button" disabled={agreementInvoiceId !== invoice.id || busy === invoice.id} onClick={() => sendDraft(invoice)} className="mt-3 min-h-10 w-full rounded-full bg-[var(--forest)] px-4 text-sm font-bold text-white disabled:opacity-50">{busy === invoice.id ? "Sending..." : "Send invoice and payment instructions"}</button>
+                      <button type="button" disabled={agreementInvoiceId !== invoice.id || busy === invoice.id} onClick={() => sendDraft(invoice)} className="mt-3 min-h-10 w-full rounded-full bg-[var(--forest)] px-4 text-sm font-bold text-white disabled:opacity-50">{busy === invoice.id ? "Sending..." : "Send invoice and create UniBee checkout"}</button>
                     </div>
                   ) : null}
-                  {invoice.paymentLink ? (
-                    <a href={invoice.paymentLink} target="_blank" rel="noreferrer" className="text-sm font-bold text-[var(--forest)] underline">
+                  {invoice.status === "SENT" ? (
+                    <button type="button" disabled={busy === invoice.id} onClick={() => sendDraft(invoice)} className="text-sm font-bold text-[var(--forest)] underline disabled:opacity-50">
+                      {busy === invoice.id ? "Refreshing..." : "Refresh UniBee checkout"}
+                    </button>
+                  ) : null}
+                  {isHostedPaymentLink(invoice.paymentLink) ? (
+                    <a href={invoice.paymentLink!} target="_blank" rel="noreferrer" className="text-sm font-bold text-[var(--forest)] underline">
                       Open payment link
                     </a>
                   ) : null}

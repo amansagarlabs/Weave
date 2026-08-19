@@ -14,5 +14,6 @@ public class EditorRequestController {
     private final EditRequestService requests;
     public EditorRequestController(EditRequestService requests) { this.requests = requests; }
     @GetMapping
+    @PreAuthorize("hasRole('EDITOR') and @rbac.can(authentication, 'EDIT_REQUEST', 'READ')")
     List<EditRequestResponse> mine(Authentication authentication) { return requests.editorMine(authentication.getName()); }
 }

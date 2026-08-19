@@ -36,7 +36,7 @@ Existing Indian platforms (Qoruz, Kofluence, Winkl, Plixxo, OPA, Confluencr, Get
 | Area | Adaptation |
 |---|---|
 | Deal sourcing | WhatsApp-centric, not just email |
-| Payments | UPI-first/manual payment instructions, not just bank transfer |
+| Payments | UniBee-hosted checkout with UPI/card methods configured by the merchant |
 | Rate model | Add city-tier + language/vernacular as inputs |
 | Compliance | GST + TDS-aware invoicing |
 | Pricing | ₹299–₹599/month range (vs $19–29 globally) |
@@ -201,7 +201,7 @@ Once creators are already on the platform for deal-tracking (Phase 1), you alrea
 
 | Piece | Recommended tool | Cost reality at MVP scale |
 |---|---|---|
-| Payments/UPI collection + GST invoicing | Provider-neutral invoice links with UPI/bank-transfer instructions and GST fields | No gateway credentials or escrow in the free baseline |
+| Payments/UPI collection + GST invoicing | UniBee-hosted payment links with UPI/card methods and GST fields | Merchant gateway credentials required; Weave never holds funds in escrow |
 | E-signature for contracts | **Digio** or **Leegality** — Aadhaar OTP-based eSign | ~₹15–20 per signature at low volume (under 1,000 signs/month) — negligible at MVP scale |
 | WhatsApp deal-inbox integration | Official WhatsApp Business API via a BSP (Business Solution Provider) | ~₹0.88/marketing message, ~₹0.13/utility or authentication message (2026 Meta rates) — cheap for reminders/nudges, but adds integration complexity |
 

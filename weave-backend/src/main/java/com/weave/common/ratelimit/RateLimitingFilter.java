@@ -77,6 +77,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         if ("POST".equals(method) && (path.equals("/invoices") || path.startsWith("/invoices/"))) {
             return RateLimitCategory.PAYMENT_LINK;
         }
+        if (path.equals("/webhooks/unibee")) {
+            return RateLimitCategory.WEBHOOK;
+        }
         return null;
     }
 

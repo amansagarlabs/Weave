@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider(userDetailsService))
                 .sessionManagement(s -> s.sessionCreationPolicy(registrations.getIfAvailable() == null ? SessionCreationPolicy.STATELESS : SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/public/health", "/auth/**", "/oauth2/**", "/login/oauth2/**", "/creator/public/**", "/ws/**").permitAll()
+                        .requestMatchers("/actuator/health", "/public/health", "/auth/**", "/oauth2/**", "/login/oauth2/**", "/creator/public/**", "/webhooks/unibee", "/ws/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(csrfCookieFilter, UsernamePasswordAuthenticationFilter.class)

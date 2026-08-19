@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import { Toaster } from "../components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Weave - where good work finds its people",
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           } catch (error) {}
         `}</Script>
         {children}
+        <Toaster />
       </body>
     </html>
   );

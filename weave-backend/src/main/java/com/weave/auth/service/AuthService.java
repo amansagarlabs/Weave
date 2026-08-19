@@ -8,6 +8,8 @@ import com.weave.auth.dto.VerificationResponse;
 import com.weave.auth.entity.Role;
 import com.weave.auth.entity.User;
 import com.weave.auth.repository.UserRepository;
+import com.weave.creator.entity.CreatorProfile;
+import com.weave.creator.repository.CreatorProfileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,13 +25,15 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final EmailVerificationService emailVerification;
+    private final CreatorProfileRepository creatorProfiles;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, EmailVerificationService emailVerification) {
+    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, EmailVerificationService emailVerification, CreatorProfileRepository creatorProfiles) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.emailVerification = emailVerification;
+        this.creatorProfiles = creatorProfiles;
     }
 
     public SignupResponse signup(SignupRequest request) {
@@ -39,6 +43,7 @@ public class AuthService {
         }
         Role role = Role.from(request.role());
         User user = users.save(User.create(email, request.phone(), passwordEncoder.encode(request.password()), role));
+        if (role == Role.CREATOR && user.getId() != null) createStarterCreatorProfile(user);
         emailVerification.start(user);
         return new SignupResponse(user.getEmail(), true, "Check your email to activate your account");
     }
@@ -63,5 +68,18 @@ public class AuthService {
     public String realtimeToken(String accessToken) {
         var user = userFromAccessToken(accessToken);
         return jwtService.issue(user.email(), user.role());
+    }
+
+    private void createStarterCreatorProfile(User user) {
+        String localPart = user.getEmail().substring(0, user.getEmail().indexOf('@'));
+        String displayName = localPart.replaceAll("[._-]+", " ").trim();
+        if (displayName.isBlank()) displayName = "Creator";
+        displayName = Character.toUpperCase(displayName.charAt(0)) + displayName.substring(1);
+        String baseSlug = localPart.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+        if (baseSlug.isBlank()) baseSlug = "creator";
+        String slug = baseSlug;
+        int suffix = 2;
+        while (creatorProfiles.findByPublicSlug(slug).isPresent()) slug = baseSlug + "-" + suffix++;
+        creatorProfiles.save(CreatorProfile.create(user.getId(), displayName, slug, "[]", "[]", null, null, "AVAILABLE"));
     }
 }

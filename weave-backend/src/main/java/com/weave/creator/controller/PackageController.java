@@ -18,15 +18,19 @@ public class PackageController {
     public PackageController(PackageService packages) { this.packages = packages; }
 
     @GetMapping
+    @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PACKAGE', 'READ')")
     List<PackageResponse> mine(Authentication authentication) { return packages.mine(authentication.getName()); }
 
     @PostMapping
+    @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PACKAGE', 'CREATE')")
     PackageResponse create(@Valid @RequestBody PackageRequest request, Authentication authentication) { return packages.create(authentication.getName(), request); }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PACKAGE', 'UPDATE')")
     PackageResponse update(@PathVariable Long id, @Valid @RequestBody PackageRequest request, Authentication authentication) { return packages.update(authentication.getName(), id, request); }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PACKAGE', 'DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void archive(@PathVariable Long id, Authentication authentication) { packages.archive(authentication.getName(), id); }
 }

@@ -5,6 +5,7 @@ import com.weave.auth.entity.AuthSession;
 import com.weave.auth.entity.User;
 import com.weave.auth.repository.AuthSessionRepository;
 import com.weave.auth.repository.UserRepository;
+import com.weave.organization.service.OrganizationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,19 +25,23 @@ public class AuthSessionService {
     private final UserRepository users;
     private final JwtService jwt;
     private final Duration lifetime;
+    private final OrganizationService organizations;
     private final SecureRandom random = new SecureRandom();
 
     public AuthSessionService(AuthSessionRepository sessions, UserRepository users, JwtService jwt,
+                               OrganizationService organizations,
                                @Value("${weave.auth.refresh-lifetime:P30D}") Duration lifetime) {
         this.sessions = sessions;
         this.users = users;
         this.jwt = jwt;
+        this.organizations = organizations;
         this.lifetime = lifetime;
     }
 
     @Transactional
     public SessionResponse create(String email, String userAgent, String ipAddress) {
         User user = users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session"));
+        organizations.ensureActive(user);
         String raw = randomToken();
         sessions.save(AuthSession.create(user, hash(raw), Instant.now().plus(lifetime), userAgent, ipAddress));
         return new SessionResponse(com.weave.auth.dto.UserResponse.from(user), jwt.issue(user.getEmail(), user.getRole().name()), raw);

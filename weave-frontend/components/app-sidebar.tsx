@@ -1,25 +1,16 @@
 "use client";
 
 import { LogOut, Search } from "lucide-react";
-import { useMemo, useState } from "react";
 import { ActiveNavLink } from "./active-nav-link";
 import { clearAuthSessionCache, LogoutButton } from "./auth-gate";
-import { SearchForm } from "./search-form";
 import { SidebarExpandHandle, SidebarTrigger, useSidebar } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, WeaveMark, type Role } from "./workspace-nav";
 import { csrfHeaders } from "../lib/api";
+import { OrganizationSwitcher } from "./organization-switcher";
 
 export function AppSidebar({ role }: { role: Role }) {
   const { collapsed } = useSidebar();
   const items = nav[role];
-  const [query, setQuery] = useState("");
-
-  const visibleItems = useMemo(() => {
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return items;
-    return items.filter(([label]) => label.toLowerCase().includes(trimmed));
-  }, [items, query]);
-
   return (
     <aside
       className={`group fixed inset-y-0 left-0 z-30 hidden border-r border-[var(--line)] bg-[var(--forest)] text-white shadow-[8px_0_32px_rgba(23,34,31,.12)] transition-[width] duration-300 lg:flex ${
@@ -43,15 +34,10 @@ export function AppSidebar({ role }: { role: Role }) {
           )}
         </div>
 
-        {!collapsed ? (
-          <div className="space-y-2">
-            <p className="px-1 text-[11px] font-bold uppercase tracking-[.16em] text-white/55">Search</p>
-            <SearchForm value={query} onChange={setQuery} placeholder="Search routes" />
-          </div>
-        ) : null}
+        <OrganizationSwitcher collapsed={collapsed} />
 
         <nav className="space-y-2" aria-label="Workspace navigation">
-          {visibleItems.map(([label, href]) => {
+          {items.map(([label, href]) => {
             const Icon = navIcons[label as keyof typeof navIcons] ?? Search;
 
             return (
@@ -70,7 +56,6 @@ export function AppSidebar({ role }: { role: Role }) {
               </ActiveNavLink>
             );
           })}
-          {!visibleItems.length ? <p className="px-3 py-2 text-sm text-white/60">No routes match.</p> : null}
         </nav>
 
         <div className="mt-auto space-y-3">

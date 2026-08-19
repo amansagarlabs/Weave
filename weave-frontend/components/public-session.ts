@@ -46,7 +46,7 @@ export function dashboardHrefForRole(role: PublicRole | null) {
   if (role === "creator") return "/creator/dashboard";
   if (role === "brand") return "/brand/dashboard";
   if (role === "editor") return "/editor/dashboard";
-  if (role === "admin") return "/admin/users";
+  if (role === "admin") return "/admin/dashboard";
   return "/login";
 }
 

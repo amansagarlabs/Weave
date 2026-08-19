@@ -61,12 +61,13 @@ public class InvoiceService {
         User creator = user(email);
         Invoice invoice = owned(id, creator.getId());
         if (!"CREATOR".equals(creator.getRole().name())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only creators can send invoices");
-        if (!"DRAFT".equals(invoice.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Only draft invoices can be sent");
+        if (!Set.of("DRAFT", "SENT").contains(invoice.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Only draft or sent invoices can create checkout");
         Booking booking = bookings.findById(invoice.getBookingId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
         if (!Set.of("ACCEPTED", "CONTENT_DELIVERED").contains(booking.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT, "The booking agreement must be accepted before sending payment");
-        invoice.markSent(paymentLinks.createPaymentLink(invoice));
+        User brand = users.findById(invoice.getBrandId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Brand account not found"));
+        invoice.markSent(paymentLinks.createPaymentLink(invoice, brand.getEmail()));
         InvoiceResponse response = InvoiceResponse.from(invoices.save(invoice));
-        notifications.create(invoice.getBrandId(), "Payment instructions ready", "Invoice #" + invoice.getId() + " is ready. Open the invoice to review the payment instructions.", "PAYMENT");
+        notifications.create(invoice.getBrandId(), "UniBee checkout ready", "Invoice #" + invoice.getId() + " is ready. Open the UniBee checkout to complete payment.", "PAYMENT");
         return response;
     }
     public InvoiceResponse markPaidFromWebhook(Long id) { Invoice invoice = invoices.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found")); if (!"PAID".equals(invoice.getStatus())) { invoice.markPaid(Instant.now()); invoices.save(invoice); notifications.create(invoice.getCreatorId(), "Payment received", "Invoice #" + invoice.getId() + " is marked paid from the payment provider webhook.", "PAYMENT"); } return InvoiceResponse.from(invoice); }

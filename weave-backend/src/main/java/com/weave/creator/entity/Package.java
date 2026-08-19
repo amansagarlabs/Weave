@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 public class Package {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     private Long ownerId;
+    private Long organizationId;
     @Column(nullable = false) private String ownerType;
     @Column(nullable = false) private String contentType;
     @Column(nullable = false, precision = 12, scale = 2) private BigDecimal price;
@@ -21,8 +22,13 @@ public class Package {
     }
 
     public static Package create(Long ownerId, String ownerType, String contentType, BigDecimal price, Integer deliveryDays, Integer revisionsIncluded) {
+        return create(ownerId, null, ownerType, contentType, price, deliveryDays, revisionsIncluded);
+    }
+
+    public static Package create(Long ownerId, Long organizationId, String ownerType, String contentType, BigDecimal price, Integer deliveryDays, Integer revisionsIncluded) {
         Package item = new Package();
         item.ownerId = ownerId;
+        item.organizationId = organizationId;
         item.ownerType = ownerType;
         item.contentType = contentType;
         item.price = price;
@@ -42,6 +48,7 @@ public class Package {
     public void archive() { this.active = false; }
     public Long getId() { return id; }
     public Long getOwnerId() { return ownerId; }
+    public Long getOrganizationId() { return organizationId; }
     public String getOwnerType() { return ownerType; }
     public String getContentType() { return contentType; }
     public BigDecimal getPrice() { return price; }

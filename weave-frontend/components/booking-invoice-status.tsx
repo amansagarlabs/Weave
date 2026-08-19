@@ -14,6 +14,16 @@ type Invoice = {
   dueAt: string | null;
 };
 
+function isHostedPaymentLink(link: string | null) {
+  if (!link) return false;
+  try {
+    const url = new URL(link);
+    return ["http:", "https:"].includes(url.protocol) && !["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function BookingInvoiceStatus({ bookingId, role, bookingStatus }: { bookingId: number; role: "brand" | "creator"; bookingStatus?: string }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -67,14 +77,14 @@ export function BookingInvoiceStatus({ bookingId, role, bookingStatus }: { booki
         <PaymentStateBadge status={invoice.status} />
       </div>
 
-      {role === "brand" && ["SENT", "OVERDUE"].includes(invoice.status) && invoice.paymentLink ? (
+      {role === "brand" && ["SENT", "OVERDUE"].includes(invoice.status) && isHostedPaymentLink(invoice.paymentLink) ? (
         <a
-          href={invoice.paymentLink}
+          href={invoice.paymentLink!}
           target="_blank"
           rel="noreferrer"
           className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--on-bright)] shadow-[3px_3px_0_var(--ink)]"
         >
-          Open invoice and payment instructions
+          Pay securely with UniBee
         </a>
       ) : null}
 
@@ -82,7 +92,11 @@ export function BookingInvoiceStatus({ bookingId, role, bookingStatus }: { booki
         <p className="mt-5 rounded-2xl bg-[var(--paper)] p-4 text-sm font-bold leading-6 text-[var(--muted)]">The invoice is still a draft. The payment button appears after the creator confirms the booking agreement and sends the invoice.</p>
       ) : null}
 
-      <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Use the agreed UPI or bank-transfer details outside Weave, then share payment proof in the booking messages. Weave does not hold funds in escrow.</p>
+      {role === "brand" && ["SENT", "OVERDUE"].includes(invoice.status) && !isHostedPaymentLink(invoice.paymentLink) ? (
+        <p className="mt-5 rounded-2xl bg-[var(--paper)] p-4 text-sm font-bold leading-6 text-[var(--muted)]">The checkout link is not ready yet. Ask the creator to configure UniBee and refresh the invoice.</p>
+      ) : null}
+
+      {isHostedPaymentLink(invoice.paymentLink) ? <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Payment opens in UniBee hosted checkout. Weave does not hold funds in escrow.</p> : null}
     </Card>
   );
 }

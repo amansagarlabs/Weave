@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.Map;
@@ -49,6 +51,14 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(new ApiError(Instant.now(), 400, "Validation failed", request.getRequestURI(), correlationId, fields));
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiError> uploadTooLarge(MaxUploadSizeExceededException exception, HttpServletRequest request) {
+        String correlationId = correlationId(request);
+        log.warn("upload too large method={} path={} correlationId={}", request.getMethod(), request.getRequestURI(), correlationId);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ApiError(Instant.now(), 413, "File is too large. The maximum upload size is 25 MB.", request.getRequestURI(), correlationId, Map.of()));
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> generic(Exception exception, HttpServletRequest request) {
         String correlationId = correlationId(request);
@@ -61,6 +71,13 @@ public class ApiExceptionHandler {
         String correlationId = correlationId(request);
         log.warn("authentication failed method={} path={} correlationId={}", request.getMethod(), request.getRequestURI(), correlationId);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiError(Instant.now(), 401, "Invalid email or password", request.getRequestURI(), correlationId, Map.of()));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    ResponseEntity<ApiError> authorizationDenied(AuthorizationDeniedException exception, HttpServletRequest request) {
+        String correlationId = correlationId(request);
+        log.warn("authorization denied method={} path={} correlationId={}", request.getMethod(), request.getRequestURI(), correlationId);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, "Access denied", request.getRequestURI(), correlationId, Map.of()));
     }
 
     @ExceptionHandler(ResponseStatusException.class)

@@ -1,4 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+export function getApiUrl() {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== "undefined") return `http://${window.location.hostname}:8080`;
+  return "http://localhost:8080";
+}
 
 function csrfToken() {
   if (typeof document === "undefined") return undefined;
@@ -10,28 +14,40 @@ export function csrfHeaders(): Record<string, string> {
   return token ? { "X-Weave-CSRF": token } : {};
 }
 
+async function ensureCsrfCookie() {
+  if (csrfToken()) return csrfToken();
+  try {
+    await fetch(`${getApiUrl()}/auth/session`, { credentials: "include" });
+  } catch {
+    // The protected request will report the actual backend connectivity error.
+  }
+  return csrfToken();
+}
+
 export async function api<T>(path: string, init?: RequestInit, retry = true): Promise<T> {
   const headers = new Headers(init?.headers);
   const method = (init?.method ?? "GET").toUpperCase();
   if (init?.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
-  const csrf = csrfToken();
+  const csrf = method !== "GET" && method !== "HEAD" && !path.startsWith("/auth/login") && !path.startsWith("/auth/signup") && !path.startsWith("/auth/verify-email")
+    ? await ensureCsrfCookie()
+    : csrfToken();
   if (csrf && method !== "GET" && method !== "HEAD") headers.set("X-Weave-CSRF", csrf);
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${getApiUrl()}${path}`, {
       ...init,
       credentials: "include",
       headers,
     });
   } catch (error) {
-    throw new Error(`Cannot reach the Weave backend at ${API_URL}. Check NEXT_PUBLIC_API_URL, backend startup, and CORS.`, { cause: error });
+    throw new Error("Weave is temporarily unavailable. Check your connection and try again.", { cause: error });
   }
   if (response.status === 401 && retry && !path.startsWith("/auth/refresh") && !path.startsWith("/auth/login") && !path.startsWith("/auth/signup")) {
     let refreshed: Response;
     try {
-      refreshed = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+      refreshed = await fetch(`${getApiUrl()}/auth/refresh`, { method: "POST", credentials: "include", headers: csrfHeaders() });
     } catch (error) {
-      throw new Error(`Cannot refresh the Weave session at ${API_URL}. Check backend startup and CORS.`, { cause: error });
+      throw new Error("Your session could not be refreshed. Please try again.", { cause: error });
     }
     if (refreshed.ok) return api<T>(path, init, false);
   }

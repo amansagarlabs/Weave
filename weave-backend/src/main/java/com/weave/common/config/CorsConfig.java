@@ -12,11 +12,15 @@ import org.springframework.beans.factory.annotation.Value;
 public class CorsConfig {
     @Value("${weave.cors.allowed-origins:http://localhost:3000}")
     private String allowedOrigins;
+    @Value("${weave.cors.allowed-origin-patterns:}")
+    private String allowedOriginPatterns;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigins.split(",")).stream().map(String::trim).filter(origin -> !origin.isBlank()).toList());
+        List<String> patterns = List.of(allowedOriginPatterns.split(",")).stream().map(String::trim).filter(pattern -> !pattern.isBlank()).toList();
+        if (!patterns.isEmpty()) config.setAllowedOriginPatterns(patterns);
         config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Request-Id", "X-Weave-CSRF"));
         config.setExposedHeaders(List.of("X-Request-Id"));

@@ -19,22 +19,22 @@ public class BookingController {
     public BookingController(BookingService bookings) { this.bookings = bookings; }
 
     @PostMapping
-    @PreAuthorize("hasRole('BRAND')")
+    @PreAuthorize("hasRole('BRAND') and @rbac.can(authentication, 'BOOKING', 'CREATE')")
     BookingResponse create(@Valid @RequestBody CreateBookingRequest request, Authentication authentication) { return bookings.create(authentication.getName(), request); }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
+    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR') and @rbac.can(authentication, 'BOOKING', 'READ')")
     List<BookingResponse> mine(Authentication authentication) { return bookings.mine(authentication.getName()); }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
+    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR') and @rbac.can(authentication, 'BOOKING', 'READ')")
     BookingResponse byId(@PathVariable Long id, Authentication authentication) { return bookings.byId(authentication.getName(), id); }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
+    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR') and @rbac.can(authentication, 'BOOKING', 'UPDATE')")
     BookingResponse updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateBookingStatusRequest request, Authentication authentication) { return bookings.updateStatus(authentication.getName(), id, request.status()); }
 
     @PatchMapping("/{id}/amount")
-    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
+    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR') and @rbac.can(authentication, 'BOOKING', 'UPDATE')")
     BookingResponse updateAmount(@PathVariable Long id, @Valid @RequestBody UpdateBookingAmountRequest request, Authentication authentication) { return bookings.updateAmount(authentication.getName(), id, request.amount()); }
 }

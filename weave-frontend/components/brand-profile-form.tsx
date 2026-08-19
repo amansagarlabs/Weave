@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { Card, Pill } from "./ui";
+import { useAppToast } from "./hooks/use-app-toast";
 
 type BrandProfile = { companyName: string; industry: string | null; gstin: string | null };
 
@@ -11,6 +12,7 @@ export function BrandProfileForm({ mode = "onboarding" }: { mode?: "onboarding" 
   const [loading, setLoading] = useState(mode === "settings");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { success, error: notifyError } = useAppToast();
 
   useEffect(() => {
     if (mode !== "settings") return;
@@ -30,9 +32,11 @@ export function BrandProfileForm({ mode = "onboarding" }: { mode?: "onboarding" 
     setMessage("");
     try {
       await api("/brand/profile", { method: "POST", body: JSON.stringify(values) });
-      setMessage("Brand profile saved.");
+      success("Brand profile saved", "Your company details are now up to date.");
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "Could not save brand profile.");
+      const error = caught instanceof Error ? caught.message : "Could not save brand profile.";
+      notifyError("Could not save brand profile", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }
@@ -52,7 +56,7 @@ export function BrandProfileForm({ mode = "onboarding" }: { mode?: "onboarding" 
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <button disabled={busy} className="min-h-12 rounded-full bg-[var(--forest)] px-6 font-bold text-white disabled:opacity-60">{busy ? "Saving…" : mode === "settings" ? "Save changes ↗" : "Save profile and continue ↗"}</button>
-          {message ? <p role={message === "Brand profile saved." ? "status" : "alert"} className={`text-sm font-bold ${message === "Brand profile saved." ? "text-[var(--forest)]" : "text-[var(--danger)]"}`}>{message}</p> : null}
+          {message ? <p role="alert" className="text-sm font-bold text-[var(--danger)]">{message}</p> : null}
         </div>
       </form>
       <aside className="lg:sticky lg:top-6">

@@ -21,7 +21,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [pendingUser, setPendingUser] = useState<AdminUser | null>(null);
-  const [action, setAction] = useState<"suspend" | "restore" | null>(null);
+  const [action, setAction] = useState<"suspend" | "restore" | "impersonate" | null>(null);
   const [busy, setBusy] = useState(false);
 
   const activeCount = useMemo(() => users.filter((user) => !user.suspended).length, [users]);
@@ -48,9 +48,12 @@ export default function AdminUsers() {
     setBusy(true);
     setMessage("");
     try {
-      const updated = await api<AdminUser>(`/admin/users/${pendingUser.id}/${action}`, {
-        method: "PATCH",
-      });
+      if (action === "impersonate") {
+        const updated = await api<AdminUser>(`/admin/impersonation/users/${pendingUser.id}`, { method: "POST" });
+        window.location.assign(`/${updated.role.toLowerCase()}/dashboard`);
+        return;
+      }
+      const updated = await api<AdminUser>(`/admin/users/${pendingUser.id}/${action}`, { method: "PATCH" });
       setUsers((current) => current.map((user) => (user.id === updated.id ? updated : user)));
       setPendingUser(null);
       setAction(null);
@@ -61,12 +64,14 @@ export default function AdminUsers() {
     }
   }
 
-  const confirmTitle = action === "restore" ? "Restore this account?" : "Suspend this account?";
+  const confirmTitle = action === "restore" ? "Restore this account?" : action === "impersonate" ? "Impersonate this account?" : "Suspend this account?";
   const confirmCopy =
     action === "restore"
       ? "Restoring will allow the account back into the workspace and remove the suspended state."
+      : action === "impersonate"
+        ? "You will enter this user’s workspace. Use Stop impersonation to return to your admin session."
       : "Suspending will block the account from normal workspace actions until an admin restores it.";
-  const confirmLabel = action === "restore" ? "Restore account" : "Suspend account";
+  const confirmLabel = action === "restore" ? "Restore account" : action === "impersonate" ? "Start impersonation" : "Suspend account";
 
   return (
     <SurfacePage role="admin" title="User management." eyebrow="Admin">
@@ -137,6 +142,7 @@ export default function AdminUsers() {
                 >
                   {user.suspended ? "Restore account" : "Suspend account"}
                 </button>
+                {!user.suspended ? <button type="button" onClick={() => { setPendingUser(user); setAction("impersonate"); }} className="inline-flex min-h-12 items-center justify-center rounded-full border-2 border-[var(--ink)] px-4 py-3 text-sm font-bold">Impersonate</button> : null}
               </div>
             </Card>
           ))
@@ -190,6 +196,7 @@ export default function AdminUsers() {
                     >
                       {user.suspended ? "Restore" : "Suspend"}
                     </button>
+                    {!user.suspended ? <button type="button" onClick={() => { setPendingUser(user); setAction("impersonate"); }} className="ml-2 font-bold text-[var(--forest)] underline">Impersonate</button> : null}
                   </td>
                 </tr>
               ))

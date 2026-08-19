@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { SelectField } from "./form-controls";
 import { Card, Pill, StatusBadge } from "./ui";
+import { useAppToast } from "./hooks/use-app-toast";
 
 type CurrentUser = { id: number; email: string; phone: string | null; role: string; locale: string; notificationPreference: string };
 type CreatorProfile = { displayName: string; publicSlug: string; categoriesJson: string | null; platformsJson: string | null; city: string | null; contentLanguage: string | null; availabilityStatus: string | null };
@@ -38,6 +39,7 @@ export function CreatorSettingsForm() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { success, error: notifyError } = useAppToast();
 
   useEffect(() => {
     Promise.all([api<CurrentUser>("/users/me"), api<CreatorProfile>("/creator/profile/me")])
@@ -61,9 +63,11 @@ export function CreatorSettingsForm() {
         body: JSON.stringify({ locale, notificationPreference }),
       });
       setUser(saved);
-      setMessage("Settings saved.");
+      success("Settings saved", "Your language and notification preferences were updated.");
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "Could not save settings.");
+      const error = caught instanceof Error ? caught.message : "Could not save settings.";
+      notifyError("Could not save settings", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }

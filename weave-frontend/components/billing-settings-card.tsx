@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { Card, Pill } from "./ui";
+import { useAppToast } from "./hooks/use-app-toast";
 
 type BillingAccount = {
   plan: string;
@@ -18,6 +19,7 @@ export function BillingSettingsCard() {
   const [plan, setPlan] = useState("FREE");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { success, error: notifyError, info } = useAppToast();
 
   useEffect(() => {
     api<BillingAccount>("/billing")
@@ -39,22 +41,30 @@ export function BillingSettingsCard() {
         body: JSON.stringify({ plan }),
       });
       setAccount(response);
-      setMessage(response.message);
+      success("Billing plan updated", response.message);
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "Could not update billing plan.");
+      const error = caught instanceof Error ? caught.message : "Could not update billing plan.";
+      notifyError("Could not update billing plan", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }
   }
 
   async function openPortal() {
+    if (account?.freePlan) {
+      info("Free plan active", "No payment method or external billing portal is required.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     try {
       const response = await api<BillingAccount>("/billing/portal", { method: "POST" });
       window.location.assign(response.portalUrl);
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "Could not open billing portal.");
+      const error = caught instanceof Error ? caught.message : "Could not open billing portal.";
+      notifyError("Could not open billing portal", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }

@@ -13,6 +13,8 @@ import java.time.Duration;
 public class AuthCookieService {
     public static final String ACCESS_COOKIE = "weave_access";
     public static final String REFRESH_COOKIE = "weave_refresh";
+    public static final String IMPERSONATOR_COOKIE = "weave_impersonator";
+    public static final String IMPERSONATED_REFRESH_COOKIE = "weave_impersonated_refresh";
     private final boolean secure;
     private final Duration accessLifetime;
     private final Duration refreshLifetime;
@@ -35,8 +37,23 @@ public class AuthCookieService {
         response.addHeader("Set-Cookie", cookie(REFRESH_COOKIE, "", "/auth", Duration.ZERO, true).toString());
     }
 
+    public void setImpersonator(HttpServletResponse response, String refreshToken) {
+        response.addHeader("Set-Cookie", cookie(IMPERSONATOR_COOKIE, refreshToken, "/", refreshLifetime, true).toString());
+    }
+
+    public void clearImpersonator(HttpServletResponse response) {
+        response.addHeader("Set-Cookie", cookie(IMPERSONATOR_COOKIE, "", "/", Duration.ZERO, true).toString());
+        response.addHeader("Set-Cookie", cookie(IMPERSONATED_REFRESH_COOKIE, "", "/", Duration.ZERO, true).toString());
+    }
+
     public String refresh(HttpServletRequest request) { return value(request, REFRESH_COOKIE); }
     public String access(HttpServletRequest request) { return value(request, ACCESS_COOKIE); }
+    public String impersonator(HttpServletRequest request) { return value(request, IMPERSONATOR_COOKIE); }
+    public String impersonatedRefresh(HttpServletRequest request) { return value(request, IMPERSONATED_REFRESH_COOKIE); }
+
+    public void setImpersonatedRefresh(HttpServletResponse response, String refreshToken) {
+        response.addHeader("Set-Cookie", cookie(IMPERSONATED_REFRESH_COOKIE, refreshToken, "/", refreshLifetime, true).toString());
+    }
 
     private ResponseCookie cookie(String name, String value, String path, Duration maxAge, boolean httpOnly) {
         return ResponseCookie.from(name, value == null ? "" : value).httpOnly(httpOnly).secure(secure).sameSite("Lax").path(path).maxAge(maxAge).build();

@@ -36,7 +36,7 @@ A platform for micro-influencers (1K–100K followers) in India to manage their 
 - TDS-aware net-payable calculation (Section 194R / 194J logic — see Section 6 for compliance notes)
 - Running-total tracker that flags creator as they approach the ₹20L GST registration threshold
 - Auto payment-follow-up reminders for unpaid invoices
-- Payment collection and recurring billing via UniBee (free/open-source). Invoice links use provider-neutral payment instructions without escrow.
+- Payment collection and recurring billing via UniBee (free/open-source). Invoice checkout uses UniBee hosted payment pages without escrow.
 
 ### 3.4 Deal History / CRM
 - Table/list view: brand worked with, rate charged, deal date, payment status, payment timeliness

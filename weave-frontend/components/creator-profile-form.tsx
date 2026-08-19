@@ -52,6 +52,7 @@ export function CreatorProfileForm() {
         <CategoryPickerField selected={selected} onChange={setSelected} />
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <button disabled={busy} className="min-h-12 rounded-full bg-[var(--forest)] px-6 font-bold text-white disabled:opacity-60">{busy ? "Saving…" : "Save profile ↗"}</button>
+          {profile.publicSlug ? <a href={`/creator/${encodeURIComponent(profile.publicSlug)}`} target="_blank" rel="noreferrer" className="text-sm font-bold text-[var(--forest)] underline underline-offset-4">Open public profile ↗</a> : null}
           {message ? <p role={message === "Profile saved." ? "status" : "alert"} className={`text-sm font-bold ${message === "Profile saved." ? "text-[var(--forest)]" : "text-[var(--danger)]"}`}>{message}</p> : null}
         </div>
       </form>

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
-import { ButtonLink, Card, Pill, StatusBadge } from "./ui";
+import { AppShell, ButtonLink, Card, Pill, StatusBadge } from "./ui";
 import { PublicNav } from "./public-nav";
 import { PublicCreatorStorefront } from "./public-creator-storefront";
+import { usePublicSession } from "./public-session";
 
 type CreatorProfile = {
   userId: number;
@@ -454,7 +455,10 @@ function LegacyPublicCreatorProfile({ slug, variant = "brand" }: { slug: string;
 }
 
 export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
-  return <PublicCreatorStorefront slug={slug} variant={variant} />;
+  const session = usePublicSession();
+  if (!session.ready) return <div className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6"><p className="text-sm font-bold text-[var(--muted)]">Loading workspace...</p></div>;
+  if (!session.authenticated || !session.role) return <PublicCreatorStorefront slug={slug} variant={variant} />;
+  return <AppShell role={session.role} title="Creator profile." eyebrow="Explore creators"><PublicCreatorStorefront slug={slug} variant={variant} embedded /></AppShell>;
 }
 
 function MetricTile({ label, value, detail }: { label: string; value: string; detail: string }) {

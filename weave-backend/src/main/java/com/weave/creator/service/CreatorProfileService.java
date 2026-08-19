@@ -50,12 +50,12 @@ public class CreatorProfileService {
     }
 
     public CreatorProfileResponse bySlug(String slug) {
-        return profiles.findByPublicSlug(slug).map(CreatorProfileResponse::from)
+        return profiles.findByPublicSlugIgnoreCase(slug.trim()).map(CreatorProfileResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Creator profile not found"));
     }
 
     public List<PackageResponse> publicPackages(String slug) {
-        CreatorProfile profile = profiles.findByPublicSlug(slug).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Creator profile not found"));
+        CreatorProfile profile = profiles.findByPublicSlugIgnoreCase(slug.trim()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Creator profile not found"));
         return packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(profile.getUserId(), "CREATOR").stream().map(PackageResponse::from).toList();
     }
 

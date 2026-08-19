@@ -15,3 +15,6 @@ weave-backend/.env
 *.log
 weave-backend/docker-data/dms/mailserver.env
 weave-backend/.env.production
+
+# Local UniBee checkout
+unibee/

@@ -82,6 +82,7 @@ See `UI_UX_RESEARCH.md` — patterns borrowed from CollabMarket (profile layout)
 FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft applies if self-hosted and modified. No Aadhaar-linked eSign; fallback to Digio/Leegality if that becomes a legal requirement.
 
 ## 8. Non-Functional Requirements
+- CRUD permissions are persisted in a role/resource/action policy matrix. Super Admins can update Creator, Brand, and Editor permissions from the RBAC console; Admin access remains protected. Core booking, package, profile, edit-request, invoice, and message APIs enforce the matrix and record policy changes in the privileged audit log.
 - i18n-ready (English v1, Hindi/regional planned)
 - INR only v1, currency as a field not hardcoded
 - RBAC enforced server-side, not just UI
@@ -113,7 +114,7 @@ FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft appli
 - UniBee is the primary provider, isolated behind the same payment adapter.
 - $0 user plans use internal zero-amount completion; no gateway charge.
 - Paid user transactions are not guaranteed free; external processor costs remain.
-- Invoice payment links use provider-neutral payment instructions; no external gateway is required for the free baseline.
+- Invoice payment links use UniBee hosted checkout; a configured UniBee gateway is required for live payment collection.
 
 ## 14. SaaS Starter Capability Goal
 
@@ -121,7 +122,10 @@ Weave will use Makerkit-style SaaS capabilities as an implementation baseline, w
 
 - Full authentication: password, magic link, social login, MFA, recovery, session revocation, and audit logging.
 - Multi-tenancy: personal accounts, organizations, switching, memberships, and strict tenant isolation.
+- Current implementation starts with personal organizations, memberships, active-organization switching, and an authenticated switcher. Resource-level tenant scoping remains open; bookings are cross-party collaboration records and must use participant authorization rather than a single-tenant assumption.
 - Super Admin: user and organization management, impersonation, disable/restore controls, and privileged-action audit logs.
+- Current admin surface includes a command center, user suspend/restore, organization member/status management, moderation, content, operations, impersonation, and durable privileged-action audit tools.
+- Creator, brand, and editor dashboards now have separate role-specific hierarchy and actions inside a shared responsive UI system, with interactive analytics and credited local Pexels dummy media for development.
 - Billing: UniBee self-hosted primary; recurring billing and customer portal through provider-neutral interfaces. `$0` plans require no gateway.
 - Frontend: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible mobile-first layouts.
 - Product surfaces: SEO-ready blog, documentation/help center, realtime notifications, and plugin modules.

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { RepeatableTextListField, parseRepeatableTextList, sanitizeRepeatableTextList } from "./repeatable-text-list";
 import { Card } from "./ui";
+import { useAppToast } from "./hooks/use-app-toast";
 
 type EditorProfile = { portfolioLinksJson: string | null; rating: number | null };
 
@@ -12,6 +13,7 @@ export function EditorProfileForm({ mode = "onboarding" }: { mode?: "onboarding"
   const [loading, setLoading] = useState(mode === "settings");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { success, error: notifyError } = useAppToast();
 
   useEffect(() => {
     if (mode !== "settings") return;
@@ -31,9 +33,11 @@ export function EditorProfileForm({ mode = "onboarding" }: { mode?: "onboarding"
     try {
       const portfolioLinksJson = JSON.stringify(sanitizeRepeatableTextList(links));
       await api("/editor/profile", { method: "POST", body: JSON.stringify({ portfolioLinksJson }) });
-      setMessage("Editor profile saved.");
+      success("Editor profile saved", "Your portfolio links are now up to date.");
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : "Could not save editor profile.");
+      const error = caught instanceof Error ? caught.message : "Could not save editor profile.";
+      notifyError("Could not save editor profile", error);
+      setMessage(error);
     } finally {
       setBusy(false);
     }
@@ -57,7 +61,7 @@ export function EditorProfileForm({ mode = "onboarding" }: { mode?: "onboarding"
         />
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <button disabled={busy} className="min-h-12 rounded-full bg-[var(--forest)] px-6 font-bold text-white disabled:opacity-60">{busy ? "Saving…" : mode === "settings" ? "Save changes ↗" : "Save profile and continue ↗"}</button>
-          {message ? <p role={message === "Editor profile saved." ? "status" : "alert"} className={`text-sm font-bold ${message === "Editor profile saved." ? "text-[var(--forest)]" : "text-[var(--danger)]"}`}>{message}</p> : null}
+          {message ? <p role="alert" className="text-sm font-bold text-[var(--danger)]">{message}</p> : null}
         </div>
       </form>
       <aside className="lg:sticky lg:top-6">

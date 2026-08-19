@@ -4,6 +4,10 @@ spring:
       url: ${REDIS_URL:redis://localhost:6379}
   application:
     name: weave-backend
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:25MB}
+      max-request-size: ${MAX_REQUEST_SIZE:26MB}
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
@@ -52,13 +56,15 @@ weave:
     secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
     expiration: ${JWT_EXPIRATION:PT15M}
   payments:
-    mode: manual
+    mode: unibee
   billing:
     portal-url: ${BILLING_PORTAL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
     unibee:
       base-url: ${UNIBEE_BASE_URL:https://api.unibee.dev}
       api-key: ${UNIBEE_API_KEY:}
       plan-ids: ${UNIBEE_PLAN_IDS:}
+      payment-gateway-id: ${UNIBEE_PAYMENT_GATEWAY_ID:0}
+      payment-type: ${UNIBEE_PAYMENT_TYPE:}
       return-url: ${UNIBEE_RETURN_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
       cancel-url: ${UNIBEE_CANCEL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
   storage:
@@ -73,6 +79,7 @@ weave:
       max-upload-bytes: ${S3_MAX_UPLOAD_BYTES:26214400}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
   realtime:
     allowed-origins: ${REALTIME_ALLOWED_ORIGINS:${CORS_ALLOWED_ORIGINS:http://localhost:3000}}
   outbox:

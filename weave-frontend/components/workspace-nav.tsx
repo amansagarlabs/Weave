@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Compass, Home, Inbox, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, Compass, Home, Images, Inbox, Users, WalletCards } from "lucide-react";
 
 export type Role = "creator" | "brand" | "editor" | "admin";
 
@@ -7,7 +7,7 @@ export const roleMeta: Record<Role, { label: string; accent: string; dashboard: 
   creator: { label: "Creator workspace", accent: "Your work, your way.", dashboard: "/creator/dashboard" },
   brand: { label: "Brand workspace", accent: "Find the right fit.", dashboard: "/brand/dashboard" },
   editor: { label: "Editor workspace", accent: "Make good work better.", dashboard: "/editor/dashboard" },
-  admin: { label: "Admin workspace", accent: "Keep Weave healthy.", dashboard: "/admin/users" },
+  admin: { label: "Admin workspace", accent: "Keep Weave healthy.", dashboard: "/admin/dashboard" },
 };
 
 export function WeaveMark({ className = "" }: { className?: string }) {
@@ -56,6 +56,7 @@ export const nav: Record<Role, Array<[string, string]>> = {
     ["Home", "/creator/dashboard"],
     ["Bookings", "/creator/bookings"],
     ["Messages", "/creator/messages"],
+    ["Portfolio", "/creator/portfolio"],
     ["Hire an editor", "/creator/hire-editor"],
     ["Earnings", "/creator/earnings"],
   ],
@@ -72,9 +73,14 @@ export const nav: Record<Role, Array<[string, string]>> = {
     ["Earnings", "/editor/earnings"],
   ],
   admin: [
+    ["Dashboard", "/admin/dashboard"],
     ["Users", "/admin/users"],
+    ["Organizations", "/admin/organizations"],
     ["Disputes", "/admin/disputes"],
     ["Content", "/admin/content"],
+    ["Operations", "/admin/operations"],
+    ["Audit log", "/admin/audit"],
+    ["RBAC policies", "/admin/rbac"],
   ],
 };
 
@@ -82,12 +88,17 @@ export const navIcons = {
   Home,
   Bookings: BriefcaseBusiness,
   Messages: Inbox,
+  Portfolio: Images,
   "Hire an editor": Compass,
   Earnings: WalletCards,
   Discover: Compass,
   Requests: Inbox,
   Gigs: BriefcaseBusiness,
   Users: Home,
+  Dashboard: Home,
+  Organizations: BriefcaseBusiness,
+  "Audit log": WalletCards,
+  "RBAC policies": Users,
   Disputes: BriefcaseBusiness,
   Content: WalletCards,
 } as const;
