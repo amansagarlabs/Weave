@@ -18,6 +18,7 @@ import com.weave.message.entity.Message;
 import com.weave.message.repository.MessageRepository;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -71,6 +72,11 @@ class PostgresPersistenceIntegrationTest {
                 .locations("classpath:db/migration")
                 .load()
                 .migrate();
+    }
+
+    @AfterAll
+    static void stopPostgres() {
+        if (postgres != null) postgres.stop();
     }
 
     @Test

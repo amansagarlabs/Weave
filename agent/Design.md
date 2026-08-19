@@ -34,7 +34,7 @@
 Role Selection → Sign-up → Creator Onboarding → Dashboard (empty state, prompts to log first deal) → Deal Tracker (add deal) → Deal Detail
 
 **Flow B — Getting paid (the core value loop)**
-Deal Detail (status: accepted) → mark "content delivered" → ASCI Checklist shown → Invoice Generator (pre-filled from deal) → Invoice sent via Razorpay link → Invoice Detail shows "sent" → webhook updates to "paid" → Deal History updated automatically
+Deal Detail (status: accepted) → mark "content delivered" → ASCI Checklist shown → Invoice Generator (pre-filled from deal) → Invoice sent with payment instructions → Invoice Detail shows "sent" → payment is reconciled manually → Deal History updated automatically
 
 **Flow C — Sharing credibility**
 Media Kit Editor (creator sets up rate card once) → copies public link → shares externally (WhatsApp/Instagram bio) → Media Kit Public View (brand sees stats + credibility snapshot, no login)

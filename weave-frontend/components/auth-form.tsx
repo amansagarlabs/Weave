@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authCopy } from "../lib/copy";
 import { api } from "../lib/api";
+import { setPublicSession } from "./public-session";
 
 type Role = "creator" | "brand" | "editor";
 type AuthMode = "login" | "signup";
+type LoginMethod = "password" | "magic-link";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Role }) {
@@ -16,6 +18,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
   const [selectedRole, setSelectedRole] = useState<Role>(role);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,12 +30,24 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
     setBusy(true);
 
     try {
-      const payload = await api<{ message?: string; user: { role: string } }>(`/auth/${mode}`, { method: "POST", body: JSON.stringify(mode === "login" ? { email, password } : { email, password, role: selectedRole }) });
+      const payload = await api<{ message?: string; user: { role: string }; mfaRequired?: boolean; mfaToken?: string }>(mode === "login" && loginMethod === "magic-link" ? "/auth/magic-link/request" : `/auth/${mode}`, {
+        method: "POST",
+        body: JSON.stringify(mode === "login" && loginMethod === "magic-link" ? { email } : mode === "login" ? { email, password } : { email, password, role: selectedRole }),
+      });
 
-      if (mode === "signup") {
-        setNotice(payload.message ?? "Check your email to activate your account.");
+      if (mode === "signup" || loginMethod === "magic-link") {
+        setNotice(payload.message ?? (loginMethod === "magic-link" ? "If the account exists, a sign-in link has been sent." : "Check your email to activate your account."));
         return;
       }
+
+      if ("mfaRequired" in payload && payload.mfaRequired) {
+        const requestedPath = searchParams.get("next");
+        const next = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? `&next=${encodeURIComponent(requestedPath)}` : "";
+        router.push(`/auth/mfa?token=${encodeURIComponent(payload.mfaToken ?? "")}${next}`);
+        return;
+      }
+
+      setPublicSession({ ready: true, authenticated: true, role: String(payload.user.role).toLowerCase() as Role });
 
       const requestedPath = searchParams.get("next");
       const destination =
@@ -54,7 +69,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
       {mode === "signup" ? (
         <fieldset className="space-y-3">
           <legend className="text-sm font-bold text-[var(--muted)]">I am joining as</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {authCopy.roleOptions.map((option) => {
               const active = selectedRole === option.value;
               return (
@@ -63,7 +78,7 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
                   type="button"
                   aria-pressed={active}
                   onClick={() => setSelectedRole(option.value)}
-                  className={`rounded-2xl border-2 p-4 text-left transition-transform active:scale-[.98] ${
+                  className={`min-w-0 rounded-2xl border-2 p-4 text-left transition-transform active:scale-[.98] ${
                     active ? "border-[var(--forest)] bg-[var(--accent)] text-[var(--on-bright)]" : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink)]"
                   }`}
                 >
@@ -89,24 +104,26 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         />
       </label>
 
-      {mode === "login" ? (
+      {mode === "login" && loginMethod === "password" ? (
         <div className="-mt-2 text-right text-sm font-bold">
           <Link href="/password-reset" className="text-[var(--action)] underline">Forgot password?</Link>
         </div>
       ) : null}
 
-      <label className="block text-sm font-bold">
-        Password
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-          required
-          className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-4 text-base text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
-          placeholder="Enter your password"
-        />
-      </label>
+      {mode === "signup" || loginMethod === "password" ? (
+        <label className="block text-sm font-bold">
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            required
+            className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-4 text-base text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
+            placeholder="Enter your password"
+          />
+        </label>
+      ) : null}
 
       {notice ? <p role="status" aria-live="polite" className="rounded-2xl bg-[var(--accent)]/15 px-4 py-3 text-sm font-bold text-[var(--ink)]">{notice}</p> : null}
       {error ? (
@@ -122,6 +139,16 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
       >
         {busy ? "One moment..." : mode === "login" ? authCopy.login.submit : authCopy.signup.submit}
       </button>
+
+      {mode === "login" ? (
+        <button
+          type="button"
+          onClick={() => { setLoginMethod(loginMethod === "password" ? "magic-link" : "password"); setError(""); setNotice(""); }}
+          className="w-full text-sm font-bold text-[var(--action)] underline underline-offset-4"
+        >
+          {loginMethod === "password" ? "Use a magic link instead" : "Use password instead"}
+        </button>
+      ) : null}
 
       {mode === "login" && process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED === "true" ? (
         <a href={`${API_URL}/oauth2/authorization/google`} className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper)] px-5 py-3 text-sm font-bold text-[var(--ink)]">

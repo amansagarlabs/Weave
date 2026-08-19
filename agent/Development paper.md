@@ -67,7 +67,7 @@ Message (thread_id, sender_id, recipient_id, body, created_at)
 - DB: PostgreSQL, Flyway migrations
 - Auth: Spring Security + JWT (stateless), RBAC (Creator/Brand/Editor/Admin)
 - Build: Maven | Testing: JUnit5 + Mockito
-- Payments/Payouts/Escrow: **Cashfree** — Payment Gateway (0% MDR to ₹20L GMV/month), Payouts API (creator/editor disbursal), One Escrow, Aadhaar eSign (RBI-licensed, chosen over Razorpay/PhonePe PG for multi-party marketplace fit)
+- Payments/Payouts/Escrow: **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, and payment events. $0 plans skip gateways. No escrow/fund holding.
 - File storage: AWS S3 or Cloudflare R2 (watermarked previews, portfolio assets)
 - Containerization: Docker | CI/CD: GitHub Actions
 - Hosting: backend on Render/Railway or AWS EC2, frontend on Vercel
@@ -88,7 +88,7 @@ FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft appli
 - `status_history` append-only on Booking and EditRequest for dispute resolution
 
 ## 9. Payments/Compliance
-- Razorpay for all in-platform payments (brand→creator, creator→editor)
+- UniBee for subscription billing, recurring payments, invoices, collections, and payment events. Free plans must require no payment method or gateway call. Paid transactions still have external gateway/bank costs. Creator→editor payout/disbursal remains separate work.
 - GST/TDS invoice fields still required wherever platform facilitates payment (GSTIN, SAC code, CGST/SGST/IGST) — this is a payments-correctness requirement, not the dropped "legal-protection" feature
 - No escrow/fund-holding without payment aggregator license — confirm model (pass-through payment link vs. held funds) before building EditRequest payment-gate logic
 
@@ -102,8 +102,29 @@ FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft appli
 ## 11. Open Decisions (need founder sign-off before build)
 1. "Influencing score" — exact formula
 2. Editor-suspension trigger — under-delivery vs. rejecting requested changes
-3. Escrow vs. pass-through payment — technical blocker resolved via Cashfree One Escrow; founder cost/business sign-off still needed
+3. UniBee billing coverage — confirm gateway coverage, self-hosting, recurring billing, webhook, reconciliation, and payout requirements before production cutover
 4. Whether GST/TDS invoicing stays in scope given ASCI/legal-protection framing dropped (recommend: keep — payments still need correct invoicing regardless of positioning)
 
 ## 12. Doc Sync Status
 `PRD.md`, `SCOPE.md`, `TRD.md`, `DESIGN.md`, `AGENT_CONTEXT.md` still reflect the earlier "not a marketplace" direction. **Not yet updated to match this pivot.** Update those files before handing to a dev/agent, or agent will get conflicting instructions.
+
+## 13. Payment Direction Update
+- UniBee is the target stack: free/open-source subscription billing and recurring payments.
+- UniBee is the primary provider, isolated behind the same payment adapter.
+- $0 user plans use internal zero-amount completion; no gateway charge.
+- Paid user transactions are not guaranteed free; external processor costs remain.
+- Invoice payment links use provider-neutral payment instructions; no external gateway is required for the free baseline.
+
+## 14. SaaS Starter Capability Goal
+
+Weave will use Makerkit-style SaaS capabilities as an implementation baseline, while preserving Weave workflows, UniBee billing, and open-source ownership:
+
+- Full authentication: password, magic link, social login, MFA, recovery, session revocation, and audit logging.
+- Multi-tenancy: personal accounts, organizations, switching, memberships, and strict tenant isolation.
+- Super Admin: user and organization management, impersonation, disable/restore controls, and privileged-action audit logs.
+- Billing: UniBee self-hosted primary; recurring billing and customer portal through provider-neutral interfaces. `$0` plans require no gateway.
+- Frontend: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible mobile-first layouts.
+- Product surfaces: SEO-ready blog, documentation/help center, realtime notifications, and plugin modules.
+- Engineering: strict TypeScript/ESLint, Playwright E2E, React.Email, unified SMTP/Resend mailers, serverful/serverless-safe boundaries, AI-agent rules, and MCP tooling.
+- Architecture rule: Weave owns domain logic and data. External providers stay replaceable adapters.
+- Creator→editor payout/disbursal still needs a separate design and implementation plan.

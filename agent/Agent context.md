@@ -18,7 +18,7 @@ A web platform giving Indian micro-influencers (1K–100K followers) tools to ma
 Follow the sprint order in `product-spec-mvp.md` Section 9 / `SCOPE.md` Phase 1 list:
 1. Auth + role-based onboarding
 2. Deal tracker (manual entry)
-3. Invoice generator (Razorpay + GST/TDS fields)
+3. Invoice generator (provider-neutral payment instructions + GST/TDS fields)
 4. ASCI disclosure checklist (static content)
 5. Media kit page
 6. Deal history/CRM view
@@ -29,7 +29,7 @@ Follow the sprint order in `product-spec-mvp.md` Section 9 / `SCOPE.md` Phase 1 
 ## Hard constraints — do not violate these regardless of what seems like a good idea mid-build
 - **No AI content-scanning** for the ASCI compliance feature — it's a static checklist by design (see `PRD.md` Non-Goals, `TRD.md` Section 9). Do not "improve" this into an AI feature without explicit instruction.
 - **No true screenshot/screen-recording prevention** — not technically achievable on iOS/Android. If building the Editor module later, implement watermarking + best-effort detection only, and say so clearly in any UI copy (don't overpromise "screenshot-proof" to users).
-- **No payment escrow / fund-holding** — this requires payment aggregator licensing in India. Invoicing + payment tracking via Razorpay payment links only, unless a founder explicitly reverses this decision.
+- **No payment escrow / fund-holding** — this requires payment aggregator licensing in India. Invoicing + provider-neutral payment instructions only in the free baseline.
 - **Tax/compliance logic must be config-driven, not hardcoded** — GST rate, TDS thresholds, and disclosure text all change over time and must live in editable config/CMS tables, not embedded in application logic (`TRD.md` Section 6).
 - **i18n-ready from day one** — all user-facing copy externalized into translatable strings, even though only English ships in v1 (`DESIGN.md` Section 7). Retrofitting this later is expensive; don't hardcode strings in components now.
 
@@ -42,4 +42,4 @@ Follow the sprint order in `product-spec-mvp.md` Section 9 / `SCOPE.md` Phase 1 
 3. If genuinely unspecified and low-risk (e.g., a UI copy choice), make a reasonable choice consistent with `DESIGN.md` principles and proceed — don't block on trivial decisions.
 
 ## Definition of done for Phase 1 (MVP)
-A creator can, without any manual intervention from the founding team: sign up → complete profile → log a deal → mark it ready to post (see disclosure checklist) → generate a GST/TDS-compliant invoice → send it via Razorpay → see it marked paid → see it reflected in their deal history and media-kit credibility snapshot. This end-to-end loop is the MVP exit criteria (`SCOPE.md`).
+A creator can, without any manual intervention from the founding team: sign up → complete profile → log a deal → mark it ready to post (see disclosure checklist) → generate a GST/TDS-compliant invoice → send payment instructions → reconcile payment status → see it reflected in their deal history and media-kit credibility snapshot. This end-to-end loop is the MVP exit criteria (`SCOPE.md`).

@@ -12,16 +12,27 @@ export function csrfHeaders(): Record<string, string> {
 
 export async function api<T>(path: string, init?: RequestInit, retry = true): Promise<T> {
   const headers = new Headers(init?.headers);
-  if (!(init?.body instanceof FormData)) headers.set("Content-Type", "application/json");
+  const method = (init?.method ?? "GET").toUpperCase();
+  if (init?.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   const csrf = csrfToken();
-  if (csrf) headers.set("X-Weave-CSRF", csrf);
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers,
-  });
+  if (csrf && method !== "GET" && method !== "HEAD") headers.set("X-Weave-CSRF", csrf);
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      credentials: "include",
+      headers,
+    });
+  } catch (error) {
+    throw new Error(`Cannot reach the Weave backend at ${API_URL}. Check NEXT_PUBLIC_API_URL, backend startup, and CORS.`, { cause: error });
+  }
   if (response.status === 401 && retry && !path.startsWith("/auth/refresh") && !path.startsWith("/auth/login") && !path.startsWith("/auth/signup")) {
-    const refreshed = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+    let refreshed: Response;
+    try {
+      refreshed = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+    } catch (error) {
+      throw new Error(`Cannot refresh the Weave session at ${API_URL}. Check backend startup and CORS.`, { cause: error });
+    }
     if (refreshed.ok) return api<T>(path, init, false);
   }
   if (response.status === 401 && typeof window !== "undefined") {

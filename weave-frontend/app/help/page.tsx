@@ -7,9 +7,17 @@ import { Footer } from "../../components/footer";
 const topics = [
   ["Account", "Login, signup, roles, and profile access", "Choose a role at signup, then complete the profile steps for that workspace."],
   ["Profiles", "Packages, portfolio, categories, and public pages", "Keep your public profile clear: show what you make, your availability, and the work you want next."],
-  ["Bookings", "Briefs, statuses, revisions, and next actions", "A booking timeline keeps the agreed brief, deliverables, and next action visible to everyone."],
+  ["Bookings", "Briefs, statuses, revisions, and next actions", "Use the booking detail page to agree on amount, accept the invite, create the invoice, and track payment status in one place."],
   ["Payments", "Payment links, invoices, and payment status", "Weave uses payment links and status updates. Weave does not hold funds in escrow."],
   ["Safety", "Watermarking, privacy, and clear expectations", "Watermarked previews are best-effort. No web platform can technically prevent screenshots or screen recordings."],
+];
+
+const bookingSteps = [
+  ["1. Brand sends the invite", "A brand starts a booking from discovery or a package page with an initial amount."],
+  ["2. Amount gets agreed", "While the booking is Pending or Negotiating, either side can propose a new amount before acceptance."],
+  ["3. Creator accepts", "The creator accepts the invite once the amount and brief are aligned."],
+  ["4. Invoice appears", "After acceptance or delivery, the creator opens Earnings and creates a draft invoice."],
+  ["5. Brand pays", "The payment button appears on the booking only after the invoice is sent."],
 ];
 
 export default function HelpPage() {
@@ -44,6 +52,22 @@ export default function HelpPage() {
           </section>
 
           <div className="grid gap-4 md:grid-cols-2">
+            <Card className="md:col-span-2">
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-[var(--muted)]">Booking flow</p>
+              <h2 className="mt-3 text-2xl font-black">How a booking works in simple steps</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                This is the order we use so everyone sees the same state: agree on the amount first, accept the booking second, then create the invoice and show the payment button to the brand.
+              </p>
+              <div className="mt-6 grid gap-3 lg:grid-cols-2">
+                {bookingSteps.map(([title, copy]) => (
+                  <div key={title} className="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-4">
+                    <p className="font-black">{title}</p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{copy}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
             {filtered.map(([title, copy, answer]) => (
               <Card key={title}>
                 <button

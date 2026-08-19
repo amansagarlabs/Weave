@@ -3,16 +3,33 @@ package com.weave.common.ratelimit;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RateLimitRegistry {
+    private static final DefaultRedisScript<Long> INCREMENT_WITH_TTL_SCRIPT = new DefaultRedisScript<>("""
+            local key = KEYS[1]
+            local windowMillis = tonumber(ARGV[1])
+            local nowMillis = tonumber(ARGV[2])
+            local count = redis.call('INCR', key)
+            if count == 1 then
+                local ttl = windowMillis - (nowMillis % windowMillis)
+                if ttl < 1000 then
+                    ttl = 1000
+                end
+                redis.call('PEXPIRE', key, ttl)
+            end
+            return count
+            """, Long.class);
     private final Clock clock;
     private final Map<RateLimitCategory, RateLimitRule> rules = new EnumMap<>(RateLimitCategory.class);
     private final ConcurrentHashMap<String, WindowState> states = new ConcurrentHashMap<>();
@@ -23,6 +40,7 @@ public class RateLimitRegistry {
         this(clock, null);
     }
 
+    @Autowired
     public RateLimitRegistry(Clock clock, ObjectProvider<StringRedisTemplate> redisProvider) {
         this.clock = clock;
         this.redis = redisProvider == null ? null : redisProvider.getIfAvailable();
@@ -42,10 +60,7 @@ public class RateLimitRegistry {
 
         if (redis != null) {
             try {
-                Long count = redis.opsForValue().increment("weave:rate:" + key);
-                if (count != null && count == 1L) {
-                    redis.expire("weave:rate:" + key, java.time.Duration.ofMillis(Math.max(1000L, windowStart + windowMillis - now.toEpochMilli())));
-                }
+                Long count = redis.execute(INCREMENT_WITH_TTL_SCRIPT, List.of("weave:rate:" + key), String.valueOf(windowMillis), String.valueOf(now.toEpochMilli()));
                 int current = count == null ? 0 : Math.toIntExact(count);
                 if (current > rule.limit()) {
                     long retryAfterSeconds = Math.max(1L, (windowStart + windowMillis - now.toEpochMilli() + 999) / 1000);

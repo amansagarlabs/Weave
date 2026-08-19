@@ -36,7 +36,7 @@ A platform for micro-influencers (1K–100K followers) in India to manage their 
 - TDS-aware net-payable calculation (Section 194R / 194J logic — see Section 6 for compliance notes)
 - Running-total tracker that flags creator as they approach the ₹20L GST registration threshold
 - Auto payment-follow-up reminders for unpaid invoices
-- Payment collection via Razorpay (UPI/payment links)
+- Payment collection and recurring billing via UniBee (free/open-source). Invoice links use provider-neutral payment instructions without escrow.
 
 ### 3.4 Deal History / CRM
 - Table/list view: brand worked with, rate charged, deal date, payment status, payment timeliness
@@ -102,7 +102,7 @@ A platform for micro-influencers (1K–100K followers) in India to manage their 
 
 | Integration | Purpose | MVP Priority |
 |---|---|---|
-| Razorpay | UPI/payment collection, GST-compliant invoicing | **Build in v1** |
+| UniBee | Subscription billing, recurring payments, invoices, payment events | **Build in v1** |
 | Digio or Leegality | E-signature for contracts | Defer past v1 |
 | WhatsApp Business API (via BSP) | Deal-inbox auto-forwarding, payment reminders | Defer past v1 |
 
@@ -117,7 +117,7 @@ Plus niche sub-tags as needed (e.g., Wedding, Ethnic Wear, Pets) — extendable 
 ## 9. Build Priority — v1 Sprint Order (2–3 weeks, solo/2-person team)
 1. Auth + role-based onboarding (Section 2)
 2. Deal tracker, manual entry (Section 3.1)
-3. Invoice generator — Razorpay + GST/TDS fields (Section 3.3)
+3. Invoice generator — UniBee + GST/TDS fields (Section 3.3); provider adapter boundary
 4. ASCI disclosure checklist — static content (Section 3.5)
 5. Media kit page — shareable link (Section 3.6)
 6. Deal history/CRM view (Section 3.4)

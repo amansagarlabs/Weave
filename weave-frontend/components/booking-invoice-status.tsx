@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { PaymentStateBadge } from "./form-controls";
-import { Card } from "./ui";
+import { ButtonLink, Card } from "./ui";
 
 type Invoice = {
   id: number;
@@ -14,7 +14,7 @@ type Invoice = {
   dueAt: string | null;
 };
 
-export function BookingInvoiceStatus({ bookingId, role }: { bookingId: number; role: "brand" | "creator" }) {
+export function BookingInvoiceStatus({ bookingId, role, bookingStatus }: { bookingId: number; role: "brand" | "creator"; bookingStatus?: string }) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -39,10 +39,19 @@ export function BookingInvoiceStatus({ bookingId, role }: { bookingId: number; r
         <p className="text-xs font-bold uppercase tracking-widest text-[var(--muted)]">Payment</p>
         <h2 className="mt-3 text-xl font-black">No invoice yet</h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-          {role === "creator"
-            ? "Create a draft invoice after the booking is accepted or content is delivered."
-            : "The creator has not created an invoice for this booking yet."}
+          {bookingStatus && ["PENDING", "NEGOTIATING"].includes(bookingStatus)
+            ? "The amount is still being agreed. Once both sides agree and the creator accepts, the creator can create a draft invoice."
+            : role === "creator"
+              ? "Create a draft invoice after the booking is accepted or content is delivered."
+              : "The creator has not created an invoice for this booking yet. The pay button appears here after the invoice is sent."}
         </p>
+        {role === "creator" && bookingStatus && ["ACCEPTED", "CONTENT_DELIVERED"].includes(bookingStatus) ? (
+          <div className="mt-5">
+            <ButtonLink href="/creator/earnings" variant="outline">
+              Open earnings
+            </ButtonLink>
+          </div>
+        ) : null}
       </Card>
     );
   }
@@ -58,18 +67,22 @@ export function BookingInvoiceStatus({ bookingId, role }: { bookingId: number; r
         <PaymentStateBadge status={invoice.status} />
       </div>
 
-      {role === "brand" && invoice.paymentLink ? (
+      {role === "brand" && ["SENT", "OVERDUE"].includes(invoice.status) && invoice.paymentLink ? (
         <a
           href={invoice.paymentLink}
           target="_blank"
           rel="noreferrer"
           className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-[var(--on-bright)] shadow-[3px_3px_0_var(--ink)]"
         >
-          Pay via payment link
+          Open invoice and payment instructions
         </a>
       ) : null}
 
-      <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Weave uses payment links and does not hold funds in escrow.</p>
+      {role === "brand" && invoice.status === "DRAFT" ? (
+        <p className="mt-5 rounded-2xl bg-[var(--paper)] p-4 text-sm font-bold leading-6 text-[var(--muted)]">The invoice is still a draft. The payment button appears after the creator confirms the booking agreement and sends the invoice.</p>
+      ) : null}
+
+      <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Use the agreed UPI or bank-transfer details outside Weave, then share payment proof in the booking messages. Weave does not hold funds in escrow.</p>
     </Card>
   );
 }

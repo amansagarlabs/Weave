@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class JwtService {
@@ -25,13 +26,31 @@ public class JwtService {
     }
 
     public String issue(String email, String role) {
-        Instant now = Instant.now();
-        return Jwts.builder().subject(email).claim("role", role)
-                .issuedAt(Date.from(now)).expiration(Date.from(now.plus(tokenLifetime)))
-                .signWith(signingKey).compact();
+        return issue(email, role, tokenLifetime, null);
+    }
+
+    public String issueChallenge(String email, String purpose, Duration lifetime) {
+        return issue(email, null, lifetime, purpose);
     }
 
     public String subject(String token) {
         return Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload().getSubject();
+    }
+
+    public String subjectForPurpose(String token, String purpose) {
+        var claims = Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload();
+        String tokenPurpose = Optional.ofNullable(claims.get("purpose", String.class)).orElse("");
+        if (!purpose.equals(tokenPurpose)) {
+            throw new IllegalArgumentException("Invalid token purpose");
+        }
+        return claims.getSubject();
+    }
+
+    private String issue(String email, String role, Duration lifetime, String purpose) {
+        Instant now = Instant.now();
+        var builder = Jwts.builder().subject(email).issuedAt(Date.from(now)).expiration(Date.from(now.plus(lifetime)));
+        if (role != null) builder.claim("role", role);
+        if (purpose != null) builder.claim("purpose", purpose);
+        return builder.signWith(signingKey).compact();
     }
 }

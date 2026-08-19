@@ -1,5 +1,6 @@
 package com.weave.invoice.entity;
 
+import com.weave.invoice.service.TaxCalculationService;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,6 +33,18 @@ public class Invoice {
         Invoice invoice = new Invoice(); invoice.bookingId = bookingId; invoice.creatorId = creatorId; invoice.brandId = brandId; invoice.amount = amount; invoice.dueAt = dueAt; invoice.creatorGstin = creatorGstin; invoice.brandGstin = brandGstin; invoice.sacCode = sacCode; invoice.placeOfSupply = placeOfSupply; invoice.gstRate = gstRate; invoice.gstAmount = gstAmount; invoice.tdsRate = tdsRate; invoice.tdsAmount = tdsAmount; invoice.netPayable = netPayable; return invoice;
     }
     public void markSent(String link) { this.paymentLink = link; this.status = "SENT"; }
+    public void updateDraft(Instant dueAt, String creatorGstin, String brandGstin, String sacCode, String placeOfSupply, TaxCalculationService.TaxBreakdown tax) {
+        this.dueAt = dueAt;
+        this.creatorGstin = creatorGstin;
+        this.brandGstin = brandGstin;
+        this.sacCode = sacCode;
+        this.placeOfSupply = placeOfSupply;
+        this.gstRate = tax.gstRate();
+        this.gstAmount = tax.gstAmount();
+        this.tdsRate = tax.tdsRate();
+        this.tdsAmount = tax.tdsAmount();
+        this.netPayable = tax.netPayable();
+    }
     public void markPaid(Instant paidAt) { this.status = "PAID"; this.paidAt = paidAt; }
     public boolean markOverdue(Instant now) { if ("SENT".equals(status) && dueAt != null && dueAt.isBefore(now)) { status = "OVERDUE"; return true; } return false; }
     public Long getId() { return id; }

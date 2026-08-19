@@ -74,8 +74,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         if ("GET".equals(method) && (path.startsWith("/creator/public/") || path.equals("/creator/discover") || path.equals("/editor/discover"))) {
             return RateLimitCategory.DISCOVERY;
         }
-        if (("POST".equals(method) && (path.equals("/invoices") || path.startsWith("/invoices/"))) || path.equals("/webhooks/razorpay")) {
-            return path.equals("/webhooks/razorpay") ? RateLimitCategory.WEBHOOK : RateLimitCategory.PAYMENT_LINK;
+        if ("POST".equals(method) && (path.equals("/invoices") || path.startsWith("/invoices/"))) {
+            return RateLimitCategory.PAYMENT_LINK;
         }
         return null;
     }

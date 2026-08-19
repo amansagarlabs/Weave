@@ -36,14 +36,14 @@ Existing Indian platforms (Qoruz, Kofluence, Winkl, Plixxo, OPA, Confluencr, Get
 | Area | Adaptation |
 |---|---|
 | Deal sourcing | WhatsApp-centric, not just email |
-| Payments | UPI-first (via Razorpay/Cashfree), not just bank transfer |
+| Payments | UPI-first/manual payment instructions, not just bank transfer |
 | Rate model | Add city-tier + language/vernacular as inputs |
 | Compliance | GST + TDS-aware invoicing |
 | Pricing | ₹299–₹599/month range (vs $19–29 globally) |
 
 ### Path to Global (Phase-later)
 Core workflow doesn't change — mainly localization:
-- Swap payment rails (Stripe/PayPal)
+- Swap payment rails as needed
 - Re-run rate-benchmark model per country/market
 - Currency + language display
 
@@ -201,13 +201,13 @@ Once creators are already on the platform for deal-tracking (Phase 1), you alrea
 
 | Piece | Recommended tool | Cost reality at MVP scale |
 |---|---|---|
-| Payments/UPI collection + GST invoicing | **Razorpay** — natively reconciles UPI/RTGS/IMPS/NEFT, supports shareable payment links, and invoicing tools can structure GST-compliant fields (GSTIN, HSN/SAC, place of supply, CGST/SGST/IGST breakup) | Free to integrate; pay-per-transaction (~2% typical gateway fee), no upfront cost |
+| Payments/UPI collection + GST invoicing | Provider-neutral invoice links with UPI/bank-transfer instructions and GST fields | No gateway credentials or escrow in the free baseline |
 | E-signature for contracts | **Digio** or **Leegality** — Aadhaar OTP-based eSign | ~₹15–20 per signature at low volume (under 1,000 signs/month) — negligible at MVP scale |
 | WhatsApp deal-inbox integration | Official WhatsApp Business API via a BSP (Business Solution Provider) | ~₹0.88/marketing message, ~₹0.13/utility or authentication message (2026 Meta rates) — cheap for reminders/nudges, but adds integration complexity |
 
 ### Realistic v1 cut for a solo/2-person team (2–3 week build)
 1. Deal tracker with **manual entry** (skip WhatsApp integration for v1 — fast-follow, not core)
-2. Razorpay-powered invoice generator with GST/TDS-aware fields + GST-threshold tracker
+2. Provider-neutral invoice generator with GST/TDS-aware fields + GST-threshold tracker
 3. Static ASCI disclosure checklist (zero build cost — just accurate content, per Section 2B MVP scope note)
 4. Simple shareable media kit page (no packages/booking system yet — that's the Section 2A "creator storefront" idea, deferred to v1.1)
 

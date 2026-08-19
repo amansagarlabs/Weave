@@ -65,6 +65,12 @@ public class EmailNotificationService {
                 + "\n\nThis link expires in " + minutes + " minutes.");
     }
 
+    public void sendMagicLink(String recipient, String link, long minutes) {
+        if (!enabled) return;
+        deliver(recipient, "Sign in to Weave", "Sign in to Weave by opening this link:\n\n" + link
+                + "\n\nThis link expires in " + minutes + " minutes and can be used once.");
+    }
+
     public boolean isConfigured() {
         return enabled && ("resend".equalsIgnoreCase(provider) ? !resendApiKey.isBlank() : !from.isBlank());
     }

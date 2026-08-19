@@ -45,6 +45,7 @@ public class OutboxEvent {
     public int getAttempts() { return attempts; }
     public String getLastError() { return lastError; }
     public Instant getCreatedAt() { return createdAt; }
+    public Instant getProcessedAt() { return processedAt; }
     public void succeed() { status = "SUCCEEDED"; processedAt = Instant.now(); }
     public void retry(String error) {
         attempts++;

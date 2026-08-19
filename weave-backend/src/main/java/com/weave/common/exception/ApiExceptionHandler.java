@@ -72,7 +72,9 @@ public class ApiExceptionHandler {
         } else {
             log.warn("status exception method={} path={} correlationId={} status={}", request.getMethod(), request.getRequestURI(), correlationId, status);
         }
-        String message = status >= 500 ? "Unexpected server error" : Optional.ofNullable(exception.getReason()).orElse("Request failed");
+        String message = status >= 500
+                ? (status == 503 && exception.getReason() != null ? exception.getReason() : "Unexpected server error")
+                : Optional.ofNullable(exception.getReason()).orElse("Request failed");
         return ResponseEntity.status(exception.getStatusCode()).body(new ApiError(Instant.now(), status, message, request.getRequestURI(), correlationId, Map.of()));
     }
 

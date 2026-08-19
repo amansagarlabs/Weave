@@ -109,7 +109,12 @@ public class S3StorageService {
     }
 
     public String deliveryUrl(String legacyUrl, String publicId, String resourceType, String format, Long version) {
-        if (publicId == null || resourceType == null || format == null || version == null) return legacyUrl;
+        if (publicId == null || resourceType == null || format == null || version == null) {
+            if ("cloudinary".equals(provider)) {
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Asset signing metadata is unavailable");
+            }
+            return legacyUrl;
+        }
         if (cloudinary == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Cloudinary storage is not configured");
         return cloudinary.url().secure(true).resourceType(resourceType).type("authenticated").version(version.toString())
                 .format(format).signed(true).generate(publicId);

@@ -1,6 +1,6 @@
 # Weave — Remaining Work
 
-Updated: 2026-08-18
+Updated: 2026-08-19
 
 This file is the current implementation checklist for continuing Weave. Product direction comes from `Development paper.md`, routes from `Sitemap.md`, technical decisions from `TRD.md`, and visual behavior from `Design System file.md`.
 
@@ -45,6 +45,11 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Added explicit Cloudinary production storage provider with server-side credentials, media type/size validation, and HTTPS delivery URLs; MinIO/R2-compatible storage remains available for alternate deployments.
 - [x] Added Prometheus-compatible metrics exposure and baseline security headers.
 - [x] Added hashed, one-time, expiring password reset tokens, queued reset email delivery, and refresh-session revocation after reset.
+- [x] Added a payment webhook receipt ledger with provider-event idempotency, payload hashing, retry state, and admin-safe inspection.
+- [x] Added billing account state, a free-plan no-gateway path, and a provider-neutral billing portal surface in settings. Paid provider adapters remain open.
+- [x] Added a billing provider registry with UniBee-first default selection for paid-plan provisioning.
+- [x] Integrated UniBee subscription checkout and customer-portal session calls using the official UniBee merchant APIs.
+- [x] Cloudinary asset responses now refuse metadata-less public URL fallbacks and require authenticated signed delivery metadata in production.
 
 ### Important verification note
 
@@ -81,7 +86,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Validate that the requested creator exists and has a creator role before creating a booking.
 - [x] Validate optional `packageId` ownership and amount against the selected package.
 - [x] Add booking detail endpoint `GET /bookings/{id}` with participant authorization.
-- [x] Add status transition endpoint for Pending, Negotiating, Accepted, and Content Delivered. Paid remains payment-webhook work.
+- [x] Add status transition endpoint for Pending, Negotiating, Accepted, and Content Delivered, including creator-side invite acceptance from Pending or Negotiating. Paid remains payment-webhook work.
 - [x] Persist and return status history for the booking timeline.
 - [x] Replace placeholder booking detail pages with live API data and next-action controls.
 
@@ -101,12 +106,13 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 - [x] Add invoice entity, migration, repository, DTOs, service, and controller.
 - [x] Add configurable GST/TDS invoice fields: GSTIN, SAC code, place of supply, tax breakup, and net payable.
-- [x] Add a Razorpay payment-link integration using the provider HTTP API, with invoice/booking references and environment-only credentials. Test/live keys still need to be supplied.
+- [x] Add provider-neutral invoice links with invoice/booking references and no gateway credentials. Target stack is UniBee self-hosted for subscription billing.
+- [x] UniBee checkout and customer-portal session calls are live.
 - [x] Implement the payment-link/pass-through boundary only; do not hold funds or build escrow.
 - [x] Add webhook signature verification and idempotent payment-status updates.
 - [x] Implement invoice states: Draft, Sent, Paid, Overdue.
 - [x] Connect creator earnings/invoice screens to the invoice and booking APIs.
-- [x] Show participant-visible invoice/payment status from booking detail. Razorpay webhook status updates remain open.
+- [x] Show participant-visible invoice/payment status from booking detail. Webhook status updates remain open.
 - [x] Add explicit provider-not-configured and invalid-webhook error states. Frontend retry affordance remains open.
 
 ### 6. Complete messaging
@@ -163,18 +169,19 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add Redis service wiring for shared rate limits and future presence/jobs.
 - [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
 - [x] Add password reset tokens with one-time expiry and session revocation.
-- [ ] Add signed private R2 URLs, upload finalization/cleanup jobs, and full payment webhook receipt ledger.
+- [x] Require signed private Cloudinary asset URLs for production delivery.
+- [ ] Add upload finalization/cleanup jobs.
 - [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
 - [x] Add an accessible conversation composer attachment/media control with type and 10 MB size validation. Upload storage, emoji/GIF/sticker providers, and moderation rules remain explicitly unconnected.
 
 
 ## Next-day build plan
 
-1. Add private signed R2 downloads, upload finalization/cleanup jobs, and the full payment webhook receipt ledger.
+1. Add upload finalization/cleanup jobs.
 2. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
 3. Connect validated attachments to configured S3/R2 storage and define moderated emoji/GIF/sticker providers.
 4. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
-5. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, Razorpay, JWT, and CORS.
+5. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, UniBee, JWT, and CORS.
 6. Run the complete creator, brand, editor, payment, admin, migration, and accessibility acceptance suite in CI.
 
 ## Release acceptance checklist
@@ -188,10 +195,27 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [ ] All required routes have intentional loading, empty, error, and success states.
 - [ ] Backend tests, frontend production build, database migration checks, and accessibility checks pass in CI.
 
+## SaaS Capability Goal
+
+- [x] Add password-reset, magic-link, social login, and MFA authentication with hashed one-time tokens, expiry, recovery codes, generic account responses, session cookies, frontend verification routes, and step-up login challenges.
+- [ ] Complete authentication audit trail and privileged-auth logging.
+- [ ] Add multi-tenancy: personal accounts, organizations, memberships, role checks, organization switcher, and tenant-isolated queries.
+- [ ] Add Super Admin: manage, impersonate, disable, and restore users and organizations with audited actions.
+- [ ] Keep billing on UniBee and the `$0` internal path.
+- [ ] Adopt accessible Shadcn UI + Tailwind CSS v4 primitives and dark/light/system theme.
+- [ ] Add SEO-ready blog and documentation/help center with publishing workflow.
+- [ ] Verify mobile layouts and serverful/serverless deployment boundaries.
+- [ ] Enforce strict TypeScript/ESLint and Playwright E2E for auth, tenancy, admin, billing, and critical domain flows.
+- [ ] Standardize React.Email templates and unified SMTP/Resend mailer API.
+- [ ] Define plugin contracts for testimonials, feedback, roadmap, waitlist, and future modules.
+- [ ] Document AI-agent rules and MCP server contract; keep providers replaceable.
+- [ ] Keep realtime notifications behind an adapter compatible with current WebSocket/STOMP and future Supabase Realtime.
+
 ## Current launch blockers
 
-- Frontend source type-checks. Local `next build` is blocked by a Windows `.next/trace` permission/lock issue; CI build still needs a clean-run verification.
-- Backend source changes are not compiled locally because Maven is unavailable and Docker BuildKit cannot access its local state in this environment.
-- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Razorpay payment-link HTTP creation is implemented but requires real test/live keys.
+- Frontend source type-checks and production build now pass after the MFA/social-login updates; the only remaining signal is the repeated baseline-browser-mapping warning.
+- Backend Docker build and test execution now pass through `docker compose build backend` in this environment.
+- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice payment links currently use manual payment instructions; UniBee migration is complete for subscription billing.
 - Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
 - Backend Docker compilation was attempted but timed out during Docker/Maven image setup; rerun `docker compose build backend` in a working Docker environment.
+- Payment scope note: current build covers brand→creator payment links only; creator→editor payout/disbursal is still missing and needs its own work item.

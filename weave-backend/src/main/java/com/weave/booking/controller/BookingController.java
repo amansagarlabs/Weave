@@ -2,6 +2,7 @@ package com.weave.booking.controller;
 
 import com.weave.booking.dto.BookingResponse;
 import com.weave.booking.dto.CreateBookingRequest;
+import com.weave.booking.dto.UpdateBookingAmountRequest;
 import com.weave.booking.dto.UpdateBookingStatusRequest;
 import com.weave.booking.service.BookingService;
 import jakarta.validation.Valid;
@@ -32,4 +33,8 @@ public class BookingController {
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
     BookingResponse updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateBookingStatusRequest request, Authentication authentication) { return bookings.updateStatus(authentication.getName(), id, request.status()); }
+
+    @PatchMapping("/{id}/amount")
+    @PreAuthorize("hasAnyRole('BRAND', 'CREATOR')")
+    BookingResponse updateAmount(@PathVariable Long id, @Valid @RequestBody UpdateBookingAmountRequest request, Authentication authentication) { return bookings.updateAmount(authentication.getName(), id, request.amount()); }
 }

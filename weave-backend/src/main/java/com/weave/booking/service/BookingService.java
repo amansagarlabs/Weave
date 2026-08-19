@@ -11,6 +11,7 @@ import com.weave.booking.repository.BookingRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import com.weave.notification.service.NotificationService;
@@ -57,11 +58,23 @@ public class BookingService {
         Set<String> allowed = Set.of("PENDING", "NEGOTIATING", "ACCEPTED", "CONTENT_DELIVERED");
         if (!allowed.contains(next)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported booking status");
         if ("BRAND".equals(user.getRole().name()) && !Set.of("NEGOTIATING", "ACCEPTED").contains(next)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brands can move bookings to negotiating or accepted");
-        if ("CREATOR".equals(user.getRole().name()) && !Set.of("CONTENT_DELIVERED").contains(next)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Creators can mark accepted work as content delivered");
+        if ("CREATOR".equals(user.getRole().name()) && !Set.of("ACCEPTED", "CONTENT_DELIVERED").contains(next)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Creators can accept booking invites or mark accepted work as content delivered");
         booking.moveTo(next);
         Booking saved = bookings.save(booking);
         Long recipientId = user.getId().equals(booking.getBrandId()) ? booking.getCreatorId() : booking.getBrandId();
         notifications.create(recipientId, "Booking status updated", "Booking #" + booking.getId() + " moved to " + next.replace('_', ' ').toLowerCase() + ".", "BOOKING");
+        return BookingResponse.from(saved);
+    }
+
+    public BookingResponse updateAmount(String email, Long id, BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking amount must be positive");
+        User user = user(email);
+        Booking booking = bookings.findById(id).filter(item -> item.getBrandId().equals(user.getId()) || item.getCreatorId().equals(user.getId())).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
+        if (!Set.of("PENDING", "NEGOTIATING").contains(booking.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking amount can only be revised before acceptance");
+        booking.changeAmount(amount);
+        Booking saved = bookings.save(booking);
+        Long recipientId = user.getId().equals(booking.getBrandId()) ? booking.getCreatorId() : booking.getBrandId();
+        notifications.create(recipientId, "Booking amount updated", "Booking #" + booking.getId() + " amount is now ₹" + amount.toPlainString() + ". Review and accept when aligned.", "BOOKING");
         return BookingResponse.from(saved);
     }
 

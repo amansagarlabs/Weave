@@ -2,7 +2,9 @@ package com.weave.auth.security;
 
 import com.weave.auth.entity.User;
 import com.weave.auth.repository.UserRepository;
-import com.weave.auth.service.JwtService;
+import com.weave.auth.security.AuthCookieService;
+import com.weave.auth.service.AuthSessionService;
+import com.weave.auth.service.MfaService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,12 +21,16 @@ import java.io.IOException;
 @ConditionalOnExpression("'${GOOGLE_LOGIN_ENABLED:false}' == 'true' && '${GOOGLE_CLIENT_ID:}' != '' && '${GOOGLE_CLIENT_SECRET:}' != ''")
 public class GoogleOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final UserRepository users;
-    private final JwtService jwt;
+    private final AuthSessionService sessions;
+    private final AuthCookieService cookies;
+    private final MfaService mfa;
     private final String publicUrl;
 
-    public GoogleOAuthSuccessHandler(UserRepository users, JwtService jwt, @Value("${weave.app.public-url:http://localhost:3000}") String publicUrl) {
+    public GoogleOAuthSuccessHandler(UserRepository users, AuthSessionService sessions, AuthCookieService cookies, MfaService mfa, @Value("${weave.app.public-url:http://localhost:3000}") String publicUrl) {
         this.users = users;
-        this.jwt = jwt;
+        this.sessions = sessions;
+        this.cookies = cookies;
+        this.mfa = mfa;
         this.publicUrl = publicUrl.replaceAll("/$", "");
     }
 
@@ -38,6 +44,12 @@ public class GoogleOAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         }
         user.markEmailVerified();
         users.save(user);
-        getRedirectStrategy().sendRedirect(request, response, publicUrl + "/auth/callback?token=" + jwt.issue(user.getEmail(), user.getRole().name()));
+        if (user.isMfaEnabled()) {
+            getRedirectStrategy().sendRedirect(request, response, publicUrl + "/auth/mfa?token=" + mfa.issueLoginChallenge(user.getEmail()) + "&provider=google");
+            return;
+        }
+        var session = sessions.create(user.getEmail(), request.getHeader("User-Agent"), request.getRemoteAddr());
+        cookies.setSession(response, session.accessToken(), session.refreshToken());
+        getRedirectStrategy().sendRedirect(request, response, publicUrl + "/auth/callback");
     }
 }

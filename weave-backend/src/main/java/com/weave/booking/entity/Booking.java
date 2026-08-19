@@ -37,6 +37,10 @@ public class Booking {
         else statusHistoryJson = statusHistoryJson.substring(0, statusHistoryJson.length() - 1) + "," + entry + "]";
     }
 
+    public void changeAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
     public Long getId() { return id; }
     public Long getBrandId() { return brandId; }
     public Long getCreatorId() { return creatorId; }

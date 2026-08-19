@@ -78,6 +78,25 @@ class AuthServiceTest {
     }
 
     @Test
+    void loginReturnsMfaChallengeWhenAccountRequiresStepUp() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("brand@example.com");
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        User user = User.create("brand@example.com", null, "hash", Role.BRAND);
+        user.markEmailVerified();
+        user.enableMfa();
+        when(users.findByEmail("brand@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.issueChallenge("brand@example.com", "mfa-login", java.time.Duration.ofMinutes(5))).thenReturn("challenge");
+
+        AuthResponse response = service().login(new LoginRequest(" Brand@Example.com ", "12345678"));
+
+        assertTrue(response.mfaRequired());
+        assertEquals("challenge", response.mfaToken());
+        assertNull(response.accessToken());
+        assertEquals("BRAND", response.user().role());
+    }
+
+    @Test
     void invalidRoleIsRejected() {
         when(users.findByEmail("user@example.com")).thenReturn(Optional.empty());
 

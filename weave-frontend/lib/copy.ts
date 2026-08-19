@@ -46,7 +46,7 @@ export const homeCopy = {
     {
       number: "04",
       title: "Payment visibility",
-      copy: "Razorpay payment-link status and invoice tracking without fund holding or escrow.",
+      copy: "Payment-link status and invoice tracking without fund holding or escrow.",
     },
   ] as const,
   steps: [
@@ -117,7 +117,7 @@ export const homeCopy = {
       title: "Payments",
       price: "Pass-through",
       suffix: "at checkout",
-      copy: "Status tracking for Razorpay payment links without fund holding or escrow.",
+      copy: "Status tracking for payment links without fund holding or escrow.",
       items: ["Payment-link tracking", "Invoice status", "INR-first details", "No escrow"],
       action: "Understand payments",
       href: "/help",
@@ -131,7 +131,7 @@ export const homeCopy = {
     },
     {
       question: "Does Weave hold money?",
-      answer: "No. Razorpay payment links are tracked inside the product, but there is no escrow or fund holding.",
+      answer: "No. Payment links are tracked inside the product, but there is no escrow or fund holding.",
     },
     {
       question: "Can Weave block screenshots?",

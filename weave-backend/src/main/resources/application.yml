@@ -52,11 +52,15 @@ weave:
     secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
     expiration: ${JWT_EXPIRATION:PT15M}
   payments:
-    razorpay:
-      key-id: ${RAZORPAY_KEY_ID:}
-      key-secret: ${RAZORPAY_KEY_SECRET:}
-      api-base-url: ${RAZORPAY_API_BASE_URL:https://api.razorpay.com/v1}
-      webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+    mode: manual
+  billing:
+    portal-url: ${BILLING_PORTAL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
+    unibee:
+      base-url: ${UNIBEE_BASE_URL:https://api.unibee.dev}
+      api-key: ${UNIBEE_API_KEY:}
+      plan-ids: ${UNIBEE_PLAN_IDS:}
+      return-url: ${UNIBEE_RETURN_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
+      cancel-url: ${UNIBEE_CANCEL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
   storage:
     provider: ${STORAGE_PROVIDER:s3}
     s3:

@@ -48,6 +48,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.email().trim().toLowerCase(), request.password()));
         User user = users.findByEmail(authentication.getName()).orElseThrow();
         if (!user.isEmailVerified()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Please verify your email before signing in");
+        if (user.isMfaEnabled()) return AuthResponse.mfaRequired(user, jwtService.issueChallenge(user.getEmail(), "mfa-login", java.time.Duration.ofMinutes(5)));
         return AuthResponse.of(jwtService.issue(user.getEmail(), user.getRole().name()), user);
     }
 

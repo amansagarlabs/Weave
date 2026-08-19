@@ -39,7 +39,7 @@ Each domain package is internally layered (Controller → Service → Repository
 | Build tool | Maven | Broader enterprise JD match than Gradle |
 | Testing | JUnit5 + Mockito | Interview-relevant, standard |
 | File storage | AWS S3 (or Cloudflare R2, S3-compatible) | Media kit images, editor-delivered content (watermarked previews) |
-| Payments/Payouts/Escrow | **Cashfree** — Payment Gateway (0% MDR up to ₹20L GMV/month till 31 Mar 2027), Payouts API (creator/editor disbursal), One Escrow (marketplace escrow-as-a-service), Aadhaar eSign | RBI-licensed PA (CoA 266/2025); Java SDK available; chosen over Razorpay/PhonePe PG for multi-party payout + escrow fit |
+| Payments/Payouts/Escrow | **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, and payment events | $0 plans skip gateway calls. Invoice links use provider-neutral payment instructions. Paid plans still carry unavoidable gateway/bank costs. No escrow |
 | Containerization | Docker | Backend containerized, strong SDE1 signal |
 | CI/CD | GitHub Actions | Free, standard |
 | Backend hosting | Render/Railway (fast/free tier) or AWS EC2 (resume weight) | Pick based on time budget |
@@ -69,7 +69,7 @@ Deal
 
 Invoice
  - id, deal_id (FK), creator_id (FK), amount, gst_amount, tds_amount, sac_code, gstin_creator, gstin_brand,
-   place_of_supply, status (draft|sent|paid|overdue), razorpay_payment_link_id, due_date, paid_at
+   place_of_supply, status (draft|sent|paid|overdue), provider_payment_link_id, provider_customer_id, due_date, paid_at
 
 MediaKit
  - creator_id (FK), public_slug, rate_card (jsonb: [{content_type, price, delivery_days}]),
@@ -109,7 +109,7 @@ GET    /rate-benchmark              ?category&followers&engagement&platform&city
 
 POST   /invoices                    generate from deal_id
 GET    /invoices/:id
-POST   /invoices/:id/send           triggers Razorpay payment link + reminder scheduling
+POST   /invoices/:id/send           triggers payment-link + reminder scheduling
 
 GET    /compliance/disclosure       ?platform&deal_type  -> static checklist content
 
@@ -127,10 +127,14 @@ GET    /collab-matches?creator_id=
 
 ## 5. Third-Party Integration Notes
 
-**Razorpay**
-- Use Payment Links / Invoicing API for UPI collection
+**UniBee (free/open-source primary)**
+- Use UniBee as primary subscription, recurring-payment, invoice, collection, and payment-event system
+- Offer free/$0 plans by creating zero-amount invoices and marking them paid without a gateway transaction
+- Never claim real card/UPI/bank processing is free; gateway and payout fees remain external costs
+- Model provider customer, subscription, invoice, payment, and webhook event IDs for idempotency/reconciliation
+- Creator→editor payout/disbursal is separate from subscription billing and requires its own provider flow
 - Structure invoice objects with GSTIN, HSN/SAC code, place of supply, CGST/SGST/IGST breakup fields
-- Webhook listener required for payment-status updates (paid/failed) to update `Invoice.status`
+- Webhook or event listener required for payment-status updates (paid/failed) to update `Invoice.status`
 
 **Digio/Leegality (deferred past v1)**
 - Aadhaar OTP eSign flow; integrate only when contract-generation feature is prioritized
@@ -166,6 +170,22 @@ GET    /collab-matches?creator_id=
 - Payment escrow (holding funds) — requires payment aggregator licensing in India; confirm with founders before any implementation work begins
 
 ## 10. Open Technical Decisions (Flag to Founders, Do Not Assume)
-- Escrow vs. pass-through payment — regulatory blocker resolved: **Cashfree One Escrow** is a licensed escrow-as-a-service product, so this is technically buildable now. Still needs founder sign-off on cost/business terms before implementing.
+- UniBee billing coverage — confirm gateway coverage, self-hosting, recurring billing, webhook, and payout requirements before production cutover.
+- Creator→editor payout/disbursal flow — currently missing from implementation checklist and needs a separate design before editor-collab money flow is complete.
 - "Influencing score" composite metric definition (Phase 1.5 Brand↔Creator module)
 - Editor suspension trigger definition (under-delivery vs. rejecting change requests)
+
+## 11. SaaS Starter Capability Baseline
+
+Use Makerkit-style capabilities as product requirements, while preserving Weave domain rules and UniBee billing:
+
+- Authentication: password, magic link, social login, MFA, recovery, session revocation, rate limits, and audit events.
+- Multi-tenancy: personal account plus multiple organizations, membership roles, switching, tenant-scoped authorization, and tenant-safe queries.
+- Super Admin: manage, impersonate, disable, and restore users and organizations; audit every privileged action.
+- Billing: UniBee self-hosted subscription and recurring billing; provider-neutral customer portal. Free plans skip gateway calls.
+- UI: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible responsive layouts, mobile-first behavior.
+- Content: SEO-ready blog and documentation/help center with controlled publishing.
+- Delivery: strict TypeScript/ESLint, Playwright E2E, React.Email, unified SMTP/Resend mailer API, serverful/serverless-safe boundaries.
+- Extensibility: plugin contracts for testimonials, feedback, roadmap, waitlist, and future modules; no vendor lock-in.
+- Agent tooling: repository AI-agent rules and MCP server contract.
+- Realtime: Supabase-compatible notification boundary; current WebSocket implementation stays replaceable.

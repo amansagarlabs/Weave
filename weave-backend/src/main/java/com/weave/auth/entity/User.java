@@ -16,6 +16,15 @@ public class User {
     @Column(nullable = false) private String notificationPreference = "EMAIL";
     @Column(nullable = false) private boolean suspended = false;
     @Column(nullable = false) private boolean emailVerified = true;
+    @Column(nullable = false) private boolean mfaEnabled = false;
+    @Column(length = 128) private String mfaSecret;
+    @Column(columnDefinition = "text") private String mfaRecoveryCodeHashes;
+    @Column(nullable = false) private String billingPlan = "FREE";
+    @Column(nullable = false) private String billingProvider = "NONE";
+    @Column private String billingCustomerId;
+    @Column private String billingSubscriptionId;
+    @Column(columnDefinition = "text") private String billingPortalUrl;
+    @Column(nullable = false) private String billingStatus = "ACTIVE";
     @Column(length = 128) private String emailVerificationTokenHash;
     private Instant emailVerificationExpiresAt;
     @Column(nullable = false, updatable = false) private Instant createdAt = Instant.now();
@@ -44,6 +53,36 @@ public class User {
     public void setNotificationPreference(String notificationPreference) { this.notificationPreference = notificationPreference; }
     public boolean isSuspended() { return suspended; }
     public boolean isEmailVerified() { return emailVerified; }
+    public boolean isMfaEnabled() { return mfaEnabled; }
+    public String getMfaSecret() { return mfaSecret; }
+    public String getMfaRecoveryCodeHashes() { return mfaRecoveryCodeHashes; }
+    public void setMfaSecret(String mfaSecret) { this.mfaSecret = mfaSecret; }
+    public void setMfaRecoveryCodeHashes(String mfaRecoveryCodeHashes) { this.mfaRecoveryCodeHashes = mfaRecoveryCodeHashes; }
+    public void configureMfa(String secret, String recoveryCodeHashes) { this.mfaSecret = secret; this.mfaRecoveryCodeHashes = recoveryCodeHashes; this.mfaEnabled = false; }
+    public void enableMfa() { this.mfaEnabled = true; }
+    public void disableMfa() { this.mfaEnabled = false; this.mfaSecret = null; this.mfaRecoveryCodeHashes = null; }
+    public String getBillingPlan() { return billingPlan; }
+    public String getBillingProvider() { return billingProvider; }
+    public String getBillingCustomerId() { return billingCustomerId; }
+    public String getBillingSubscriptionId() { return billingSubscriptionId; }
+    public String getBillingPortalUrl() { return billingPortalUrl; }
+    public String getBillingStatus() { return billingStatus; }
+    public void activateFreeBillingPlan() {
+        this.billingPlan = "FREE";
+        this.billingProvider = "NONE";
+        this.billingCustomerId = null;
+        this.billingSubscriptionId = null;
+        this.billingPortalUrl = null;
+        this.billingStatus = "ACTIVE";
+    }
+    public void activatePaidBillingPlan(String plan, String provider, String customerId, String subscriptionId, String portalUrl, String status) {
+        this.billingPlan = plan;
+        this.billingProvider = provider;
+        this.billingCustomerId = customerId;
+        this.billingSubscriptionId = subscriptionId;
+        this.billingPortalUrl = portalUrl;
+        this.billingStatus = status;
+    }
     public void markEmailVerified() { this.emailVerified = true; this.emailVerificationTokenHash = null; this.emailVerificationExpiresAt = null; }
     public void beginEmailVerification(String tokenHash, Instant expiresAt) {
         this.emailVerified = false;
