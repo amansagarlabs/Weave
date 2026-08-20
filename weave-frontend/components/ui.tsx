@@ -168,11 +168,11 @@ export function AppShell({
               <div className="flex items-center gap-2 sm:gap-3">
                 <CommandSearch role={role} />
                 <NotificationMenu role={role} />
-                <ProfileMenu role={role} />
+                <div className="lg:hidden"><ProfileMenu role={role} /></div>
               </div>
             </header>
 
-            <main id="main-content" className="mx-auto max-w-7xl px-5 py-7 sm:px-6 lg:px-10 lg:py-10">
+            <main id="main-content" className="mx-auto max-w-[1600px] px-5 py-7 sm:px-6 lg:px-8 lg:py-8 2xl:px-10">
               {children}
             </main>
           </SidebarInset>

@@ -3,7 +3,13 @@
 import { useId } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
-export type PlatformEntry = { platform: string; handle: string };
+export type PlatformEntry = {
+  platform: string;
+  handle: string;
+  followers?: string;
+  averageViews?: string;
+  engagementRate?: string;
+};
 
 export function parsePlatformEntries(value: string | null) {
   try {
@@ -12,6 +18,9 @@ export function parsePlatformEntries(value: string | null) {
     return parsed.map((entry) => ({
       platform: String(entry?.platform ?? ""),
       handle: String(entry?.handle ?? ""),
+      followers: String(entry?.followers ?? entry?.follower_count ?? ""),
+      averageViews: String(entry?.averageViews ?? entry?.average_views ?? ""),
+      engagementRate: String(entry?.engagementRate ?? entry?.engagement_rate ?? ""),
     }));
   } catch {
     return [];
@@ -20,18 +29,31 @@ export function parsePlatformEntries(value: string | null) {
 
 export function sanitizePlatformEntries(entries: PlatformEntry[]) {
   return entries
-    .map((entry) => ({ platform: entry.platform.trim(), handle: entry.handle.trim() }))
+    .map((entry) => {
+      const followers = Number(entry.followers);
+      const averageViews = Number(entry.averageViews);
+      const engagementRate = Number(entry.engagementRate);
+      return {
+        platform: entry.platform.trim(),
+        handle: entry.handle.trim(),
+        ...(Number.isFinite(followers) && followers >= 0 && entry.followers !== "" ? { followers } : {}),
+        ...(Number.isFinite(averageViews) && averageViews >= 0 && entry.averageViews !== "" ? { averageViews } : {}),
+        ...(Number.isFinite(engagementRate) && engagementRate >= 0 && engagementRate <= 100 && entry.engagementRate !== "" ? { engagementRate } : {}),
+      };
+    })
     .filter((entry) => entry.platform.length > 0 || entry.handle.length > 0);
 }
 
 export function PlatformEntriesField({
   label = "Platforms and handles",
   hint = "Add every platform you actively use. You can keep the list manual and update it later.",
+  showMetrics = false,
   entries,
   onChange,
 }: {
   label?: string;
   hint?: string;
+  showMetrics?: boolean;
   entries: PlatformEntry[];
   onChange: (entries: PlatformEntry[]) => void;
 }) {
@@ -62,7 +84,7 @@ export function PlatformEntriesField({
           const handleId = `${id}-handle-${index}`;
           return (
             <div key={`${platformId}-${index}`} className="rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-4">
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+              <div className={`grid gap-4 md:grid-cols-2 ${showMetrics ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_140px_140px_140px_auto]" : "xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"}`}>
                 <label htmlFor={platformId} className="text-sm font-bold">
                   Platform
                   <input
@@ -83,6 +105,47 @@ export function PlatformEntriesField({
                     placeholder="@yourhandle"
                   />
                 </label>
+                {showMetrics ? <><label htmlFor={`${id}-followers-${index}`} className="text-sm font-bold">
+                  Followers
+                  <input
+                    id={`${id}-followers-${index}`}
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={entry.followers ?? ""}
+                    onChange={(event) => update(index, "followers", event.target.value)}
+                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 font-normal tabular-nums text-[var(--ink)] outline-none focus:border-[var(--forest)]"
+                    placeholder="12000"
+                  />
+                </label>
+                <label htmlFor={`${id}-views-${index}`} className="text-sm font-bold">
+                  Avg. views
+                  <input
+                    id={`${id}-views-${index}`}
+                    type="number"
+                    min="0"
+                    inputMode="numeric"
+                    value={entry.averageViews ?? ""}
+                    onChange={(event) => update(index, "averageViews", event.target.value)}
+                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 font-normal tabular-nums text-[var(--ink)] outline-none focus:border-[var(--forest)]"
+                    placeholder="4500"
+                  />
+                </label>
+                <label htmlFor={`${id}-engagement-${index}`} className="text-sm font-bold">
+                  Engagement %
+                  <input
+                    id={`${id}-engagement-${index}`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    inputMode="decimal"
+                    value={entry.engagementRate ?? ""}
+                    onChange={(event) => update(index, "engagementRate", event.target.value)}
+                    className="mt-2 min-h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--card)] px-4 font-normal tabular-nums text-[var(--ink)] outline-none focus:border-[var(--forest)]"
+                    placeholder="6.8"
+                  />
+                </label></> : null}
                 <div className="flex items-end">
                   <button
                     type="button"
@@ -99,6 +162,7 @@ export function PlatformEntriesField({
           );
         })}
       </div>
+      {showMetrics ? <p className="mt-3 text-xs leading-5 text-[var(--muted)]">Audience numbers are self-reported until a platform connection verifies them. Leave fields empty when you do not want to publish a metric.</p> : null}
       <button
         type="button"
         onClick={addRow}

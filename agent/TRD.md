@@ -171,7 +171,7 @@ GET    /collab-matches?creator_id=
 - Payment escrow (holding funds) — requires payment aggregator licensing in India; confirm with founders before any implementation work begins
 
 ## 10. Open Technical Decisions (Flag to Founders, Do Not Assume)
-- UniBee billing coverage — confirm gateway coverage, self-hosting, recurring billing, webhook, and payout requirements before production cutover.
+- UniBee billing coverage — payment-gateway rollout is deferred to a later release as of 2026-08-20; confirm gateway coverage, self-hosting, recurring billing, webhook, and payout requirements before production cutover.
 - Creator→editor payout/disbursal flow — currently missing from implementation checklist and needs a separate design before editor-collab money flow is complete.
 - "Influencing score" composite metric definition (Phase 1.5 Brand↔Creator module)
 - Editor suspension trigger definition (under-delivery vs. rejecting change requests)

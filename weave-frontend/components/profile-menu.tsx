@@ -26,7 +26,7 @@ function applyTheme(mode: ThemeMode) {
   document.documentElement.dataset.theme = mode;
 }
 
-export function ProfileMenu({ role }: { role: Role }) {
+export function ProfileMenu({ role, placement = "header", compact = false }: { role: Role; placement?: "header" | "sidebar"; compact?: boolean }) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -104,24 +104,24 @@ export function ProfileMenu({ role }: { role: Role }) {
         aria-expanded={open}
         aria-label="Open account menu"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--card)] px-2 pr-2.5 text-left shadow-[0_8px_24px_rgba(23,34,31,.06)] transition-colors hover:bg-[var(--paper)]"
+        className={`flex items-center gap-2 border border-[var(--line)] bg-[var(--card)] text-left transition-colors hover:bg-[var(--paper)] ${compact ? "h-11 w-11 justify-center rounded-xl p-0" : placement === "sidebar" ? "w-full rounded-2xl p-2" : "rounded-full px-2 pr-2.5 shadow-[0_8px_24px_rgba(23,34,31,.06)]"}`}
       >
         <Avatar className="h-10 w-10 border-none bg-[var(--forest)]">
           {avatarUrl ? <AvatarImage alt="" src={avatarUrl} /> : null}
           <AvatarFallback className="bg-[var(--forest)] text-[13px]">{initials}</AvatarFallback>
         </Avatar>
-        <span className="hidden min-w-0 md:block">
+        <span className={`${compact ? "hidden" : "hidden min-w-0 md:block"}`}>
           <span className="block text-[10px] font-bold uppercase tracking-[.14em] text-[var(--muted)]">Account</span>
           <span className="block max-w-32 truncate text-sm font-black text-[var(--ink)]">{email}</span>
         </span>
-        <ChevronDown size={16} className={`text-[var(--muted)] transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+        {!compact ? <ChevronDown size={16} className={`ml-auto text-[var(--muted)] transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" /> : null}
       </button>
 
       {open ? (
         <div
           role="menu"
           aria-label="Account menu"
-          className="absolute right-0 top-[calc(100%+0.4rem)] z-40 w-[min(17.5rem,calc(100vw-1rem))] overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--card)] shadow-[0_18px_32px_rgba(23,34,31,.14)]"
+          className={`absolute z-40 w-[min(17.5rem,calc(100vw-1rem))] overflow-hidden rounded-[22px] border border-[var(--line)] bg-[var(--card)] shadow-[0_18px_32px_rgba(23,34,31,.14)] ${placement === "sidebar" ? "bottom-[calc(100%+0.5rem)] left-0" : "right-0 top-[calc(100%+0.4rem)]"}`}
         >
           <div className="p-2.5">
             <div className="rounded-[18px] border border-[var(--line)] bg-[var(--paper)] px-3.5 py-3.5 text-center">

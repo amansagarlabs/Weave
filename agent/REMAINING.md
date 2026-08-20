@@ -153,7 +153,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Replace raw `<a>` links inside workspace pages with Next `Link` where appropriate.
 - [x] Add a real modal/dialog primitive with Escape handling, focus trap, and focus restoration for ASCI/disclosure steps and confirmations.
 - [x] Add responsive admin user cards/table fallback with suspend/restore confirmation flow and suspension status badges.
-- [x] Replace static role dashboard empty states with dynamic creator, brand, and editor dashboards: role-specific metrics, actions, analytics view, interactive media feed, likes, saves, filters, and local Pexels dummy video/photo posts.
+- [x] Replace static role dashboard empty states with dynamic role experiences. Creators now have a dedicated social studio with profile identity, self-reported platform metrics, audience comparison, real portfolio media, collaboration status, conversations, and earnings; brand and editor retain role-specific workspace dashboards.
 - [x] Add a reusable file-dropzone component with progress, failure recovery, and keyboard operation.
 - [x] Add a reusable select, currency field, tag input, and payment-state component.
 - [x] Move visible copy into an i18n-ready message map as required by the design system.
@@ -181,7 +181,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
 - [x] Add password reset tokens with one-time expiry and session revocation.
 - [x] Require signed private Cloudinary asset URLs for production delivery.
-- [ ] Add upload finalization/cleanup jobs.
+- [x] Add persistent upload finalization records and a scheduled cleanup job for stale portfolio/editor storage writes.
 - [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
 - [x] Add an accessible conversation composer attachment/media control with type and 10 MB size validation. Upload storage, emoji/GIF/sticker providers, and moderation rules remain explicitly unconnected.
 
@@ -230,5 +230,6 @@ This file is the current implementation checklist for continuing Weave. Product 
 - Backend Docker build and test execution now pass through `docker compose build backend` in this environment.
 - Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice checkout now uses UniBee; merchant API credentials and a configured gateway ID are required for live payments.
 - Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
+- Social-platform API connections are not implemented. Creator follower, average-view, and engagement metrics are explicitly self-reported; verified analytics require platform OAuth/API integrations and historical metric storage.
 - Backend Docker compilation was attempted but timed out during Docker/Maven image setup; rerun `docker compose build backend` in a working Docker environment.
 - Payment scope note: current build covers brand→creator payment links only; creator→editor payout/disbursal is still missing and needs its own work item.

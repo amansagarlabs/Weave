@@ -48,7 +48,12 @@ export function CreatorProfileForm() {
           <Field label="City" value={profile.city} onChange={(value) => update("city", value)} />
           <Field label="Content language" value={profile.contentLanguage} onChange={(value) => update("contentLanguage", value)} />
         </div>
-        <PlatformEntriesField entries={platforms} onChange={setPlatforms} />
+        <PlatformEntriesField
+          entries={platforms}
+          onChange={setPlatforms}
+          showMetrics
+          hint="Add your active social accounts and optional audience stats. Manual metrics are shown as self-reported until platform verification is available."
+        />
         <CategoryPickerField selected={selected} onChange={setSelected} />
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <button disabled={busy} className="min-h-12 rounded-full bg-[var(--forest)] px-6 font-bold text-white disabled:opacity-60">{busy ? "Saving…" : "Save profile ↗"}</button>
@@ -90,8 +95,11 @@ export function CreatorProfileForm() {
               <div className="mt-3 space-y-3">
                 {previewPlatforms.length ? previewPlatforms.map((entry) => (
                   <div key={`${entry.platform}-${entry.handle}`} className="rounded-2xl border border-[var(--line)] bg-[var(--card)] px-4 py-3">
-                    <p className="text-sm font-bold">{entry.platform || "Platform"}</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{entry.handle || "Handle"}</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div><p className="text-sm font-bold">{entry.platform || "Platform"}</p><p className="mt-1 text-sm text-[var(--muted)]">{entry.handle || "Handle"}</p></div>
+                      {entry.followers != null ? <p className="text-right text-sm font-black tabular-nums">{Number(entry.followers).toLocaleString("en-IN")}<span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">followers</span></p> : null}
+                    </div>
+                    {entry.averageViews != null || entry.engagementRate != null ? <div className="mt-3 flex flex-wrap gap-3 border-t border-[var(--line)] pt-3 text-xs text-[var(--muted)]">{entry.averageViews != null ? <span><strong className="text-[var(--ink)]">{Number(entry.averageViews).toLocaleString("en-IN")}</strong> avg. views</span> : null}{entry.engagementRate != null ? <span><strong className="text-[var(--ink)]">{Number(entry.engagementRate).toLocaleString("en-IN")}%</strong> engagement</span> : null}</div> : null}
                   </div>
                 )) : <p className="text-sm text-[var(--muted)]">Add at least one platform row.</p>}
               </div>

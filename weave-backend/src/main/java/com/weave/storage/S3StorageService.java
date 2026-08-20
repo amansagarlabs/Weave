@@ -94,6 +94,21 @@ public class S3StorageService {
         }
     }
 
+    public void delete(StoredAsset asset) {
+        if (asset == null) return;
+        if (asset.isCloudinary()) {
+            if (cloudinary == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Cloudinary storage is not configured");
+            try {
+                cloudinary.uploader().destroy(asset.publicId(), ObjectUtils.asMap(
+                        "resource_type", asset.resourceType(), "type", "authenticated", "invalidate", true));
+            } catch (Exception exception) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cloudinary asset could not be removed");
+            }
+            return;
+        }
+        delete(asset.legacyUrl());
+    }
+
     private StoredAsset uploadCloudinary(MultipartFile file, String namespace, String contentType) {
         if (cloudinary == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Cloudinary storage is not configured");
         String resourceType = contentType.startsWith("video/") ? "video" : contentType.equals("application/pdf") ? "raw" : "image";

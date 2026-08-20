@@ -44,7 +44,7 @@ export function useSidebar() {
 export function SidebarInset({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const { collapsed } = useSidebar();
 
-  return <div className={`min-h-screen transition-[padding] duration-300 ${collapsed ? "lg:pl-20" : "lg:pl-72"} ${className}`}>{children}</div>;
+  return <div className={`min-h-screen transition-[padding] duration-300 ${collapsed ? "lg:pl-[76px]" : "lg:pl-60"} ${className}`}>{children}</div>;
 }
 
 export function SidebarTrigger({ className = "" }: { className?: string }) {

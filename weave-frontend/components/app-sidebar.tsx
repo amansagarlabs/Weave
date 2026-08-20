@@ -1,28 +1,26 @@
 "use client";
 
-import { LogOut, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { ActiveNavLink } from "./active-nav-link";
-import { clearAuthSessionCache, LogoutButton } from "./auth-gate";
 import { SidebarExpandHandle, SidebarTrigger, useSidebar } from "./sidebar";
 import { Logo, nav, navIcons, roleMeta, WeaveMark, type Role } from "./workspace-nav";
-import { csrfHeaders } from "../lib/api";
-import { OrganizationSwitcher } from "./organization-switcher";
+import { ProfileMenu } from "./profile-menu";
 
 export function AppSidebar({ role }: { role: Role }) {
   const { collapsed } = useSidebar();
   const items = nav[role];
   return (
     <aside
-      className={`group fixed inset-y-0 left-0 z-30 hidden border-r border-[var(--line)] bg-[var(--forest)] text-white shadow-[8px_0_32px_rgba(23,34,31,.12)] transition-[width] duration-300 lg:flex ${
-        collapsed ? "w-20" : "w-72"
+      className={`group fixed inset-y-0 left-0 z-30 hidden border-r border-[var(--line)] bg-[var(--card)] text-[var(--ink)] transition-[width] duration-300 lg:flex ${
+        collapsed ? "w-[76px]" : "w-60"
       }`}
     >
-      <div className="flex h-full w-full flex-col gap-5 p-4">
+      <div className="flex h-full w-full flex-col gap-5 p-3.5">
         <div className={`relative flex w-full items-center ${collapsed ? "justify-center" : "justify-between"} gap-3`}>
           {!collapsed ? (
             <div className="flex w-full items-center justify-between gap-5">
               <Logo />
-              <SidebarTrigger className="border-white/10 bg-white/10 text-white shadow-none hover:bg-white/15" />
+              <SidebarTrigger className="border-[var(--line)] bg-[var(--paper)] text-[var(--ink)] shadow-none hover:bg-[var(--wash)]" />
             </div>
           ) : (
             <div className="group/logo relative flex items-center justify-center">
@@ -34,7 +32,7 @@ export function AppSidebar({ role }: { role: Role }) {
           )}
         </div>
 
-        <OrganizationSwitcher collapsed={collapsed} />
+        {!collapsed ? <div className="px-2"><p className="text-[10px] font-black uppercase tracking-[.16em] text-[var(--muted)]">{roleMeta[role].label}</p><p className="mt-1 text-sm font-black">Overview</p></div> : null}
 
         <nav className="space-y-2" aria-label="Workspace navigation">
           {items.map(([label, href]) => {
@@ -46,10 +44,10 @@ export function AppSidebar({ role }: { role: Role }) {
                 href={href}
                 title={label}
                 aria-label={label}
-                className={`group flex min-h-11 items-center rounded-2xl px-3 text-sm font-bold transition-colors hover:bg-white/10 ${
+                className={`group flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-[var(--muted)] transition-colors hover:bg-[var(--paper)] hover:text-[var(--ink)] ${
                   collapsed ? "justify-center" : "gap-3"
                 }`}
-                activeClassName="bg-white/15 text-[var(--accent)]"
+                activeClassName="bg-[var(--forest)] text-white shadow-[0_8px_18px_rgba(23,70,55,.15)]"
               >
                 <Icon size={17} className="shrink-0" aria-hidden="true" />
                 {!collapsed ? <span className="truncate">{label}</span> : null}
@@ -59,31 +57,7 @@ export function AppSidebar({ role }: { role: Role }) {
         </nav>
 
         <div className="mt-auto space-y-3">
-          {!collapsed ? (
-            <div className="rounded-2xl bg-[var(--accent)] p-4 text-[var(--on-bright)] shadow-[4px_4px_0_var(--orange)]">
-              <p className="text-xs font-bold uppercase tracking-widest">Weave note</p>
-              <p className="mt-2 text-sm font-bold leading-5">{roleMeta[role].accent}</p>
-            </div>
-          ) : null}
-
-          <div className={`flex ${collapsed ? "justify-center" : "justify-between"} items-center gap-2`}>
-            {!collapsed ? (
-              <LogoutButton />
-            ) : (
-              <button
-                type="button"
-                aria-label="Log out"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition-colors hover:bg-white/15"
-                onClick={() => {
-                  clearAuthSessionCache();
-                  void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
-                  window.location.assign("/login");
-                }}
-              >
-                <LogOut size={17} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          <ProfileMenu role={role} placement="sidebar" compact={collapsed} />
         </div>
       </div>
     </aside>

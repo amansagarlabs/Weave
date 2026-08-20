@@ -7,6 +7,7 @@ import com.weave.creator.entity.PortfolioAsset;
 import com.weave.creator.repository.PortfolioAssetRepository;
 import com.weave.creator.repository.CreatorProfileRepository;
 import com.weave.storage.S3StorageService;
+import com.weave.storage.StorageUploadCleanupJob;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +21,10 @@ public class PortfolioAssetService {
     private final UserRepository users;
     private final CreatorProfileRepository profiles;
     private final S3StorageService storage;
+    private final StorageUploadCleanupJob uploadCleanup;
 
-    public PortfolioAssetService(PortfolioAssetRepository assets, UserRepository users, CreatorProfileRepository profiles, S3StorageService storage) {
-        this.assets = assets; this.users = users; this.profiles = profiles; this.storage = storage;
+    public PortfolioAssetService(PortfolioAssetRepository assets, UserRepository users, CreatorProfileRepository profiles, S3StorageService storage, StorageUploadCleanupJob uploadCleanup) {
+        this.assets = assets; this.users = users; this.profiles = profiles; this.storage = storage; this.uploadCleanup = uploadCleanup;
     }
 
     @Transactional(readOnly = true)
@@ -44,11 +46,14 @@ public class PortfolioAssetService {
         if (title == null || title.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Portfolio title is required");
         if (title.trim().length() > 180) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Portfolio title is too long");
         var stored = storage.upload(file, "portfolio/" + creator.getId());
+        var pendingUpload = uploadCleanup.begin(stored);
         String contentType = file.getContentType() == null ? "application/octet-stream" : file.getContentType().toLowerCase();
         String assetUrl = stored.isCloudinary()
                 ? storage.deliveryUrl(stored.legacyUrl(), stored.publicId(), stored.resourceType(), stored.format(), stored.version())
                 : stored.legacyUrl();
-        return PortfolioAssetResponse.from(assets.save(PortfolioAsset.create(creator.getId(), title.trim(), assetUrl, contentType, file.getSize())));
+        var response = PortfolioAssetResponse.from(assets.save(PortfolioAsset.create(creator.getId(), title.trim(), assetUrl, contentType, file.getSize())));
+        uploadCleanup.commit(pendingUpload);
+        return response;
     }
 
     @Transactional
@@ -62,12 +67,17 @@ public class PortfolioAssetService {
             asset.update(normalizedTitle, null, null, null);
         } else {
             var stored = storage.upload(file, "portfolio/" + creator.getId());
+            var pendingUpload = uploadCleanup.begin(stored);
+            String previousAssetUrl = asset.getAssetUrl();
             String contentType = file.getContentType() == null ? "application/octet-stream" : file.getContentType().toLowerCase();
             String assetUrl = stored.isCloudinary()
                     ? storage.deliveryUrl(stored.legacyUrl(), stored.publicId(), stored.resourceType(), stored.format(), stored.version())
                     : stored.legacyUrl();
-            storage.delete(asset.getAssetUrl());
             asset.update(normalizedTitle, assetUrl, contentType, file.getSize());
+            var response = PortfolioAssetResponse.from(assets.save(asset));
+            uploadCleanup.commit(pendingUpload);
+            storage.delete(previousAssetUrl);
+            return response;
         }
         return PortfolioAssetResponse.from(assets.save(asset));
     }

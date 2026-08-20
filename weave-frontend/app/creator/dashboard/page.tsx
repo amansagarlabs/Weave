@@ -1,2 +1,5 @@
-import { RoleDashboard } from "../../../components/dashboard";
-export default function CreatorDashboard() { return <RoleDashboard role="creator" />; }
+import { CreatorDashboard } from "../../../components/creator-dashboard";
+
+export default function CreatorDashboardPage() {
+  return <CreatorDashboard />;
+}

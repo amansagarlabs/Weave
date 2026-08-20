@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { VChart } from "@visactor/react-vchart";
-import { ArrowUpRight, Bookmark, CheckCircle2, Clock3, Heart, Play, Sparkles, TrendingUp, Users, WandSparkles } from "lucide-react";
+import { ArrowUpRight, Bookmark, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Heart, Play, Sparkles, TrendingUp, Users, WandSparkles } from "lucide-react";
 import { api } from "../lib/api";
 import { AppShell, ButtonLink, Card, Pill, Role } from "./ui";
 
@@ -15,6 +15,7 @@ type Invoice = { id: number; status: string; netPayable: number | null; amount: 
 type ViewTab = "Overview" | "Feed" | "Analytics";
 type FeedFilter = "All" | "Video" | "Photo";
 type ActivityChartType = "line" | "area" | "bar" | "pie";
+type ActivityRangePreset = "today" | "last-week" | "last-30-days" | "last-8-weeks" | "custom";
 
 type FeedPost = {
   id: string;
@@ -44,9 +45,11 @@ const roleCopy: Record<Exclude<Role, "admin">, { title: string; eyebrow: string;
 };
 
 function money(value: number) { return `INR ${Math.round(value).toLocaleString("en-IN")}`; }
+function localDate(value: string) { const [year, month, day] = value.split("-").map(Number); return new Date(year, month - 1, day); }
+function dateKey(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`; }
 
 function MetricCard({ label, value, detail, icon: Icon, tone = "light" }: { label: string; value: string; detail: string; icon: typeof TrendingUp; tone?: "light" | "dark" }) {
-  return <div className={`rounded-[26px] border p-5 ${tone === "dark" ? "border-white/10 bg-[var(--dark-panel)] text-white" : "border-[var(--line)] bg-[var(--card)]"}`}><div className="flex items-center justify-between gap-3"><span className={`text-[11px] font-black uppercase tracking-[.16em] ${tone === "dark" ? "text-white/55" : "text-[var(--muted)]"}`}>{label}</span><Icon size={17} className={tone === "dark" ? "text-[var(--accent)]" : "text-[var(--forest)]"} aria-hidden="true" /></div><p className="mt-5 text-3xl font-black tracking-[-.06em]">{value}</p><p className={`mt-2 text-xs font-bold ${tone === "dark" ? "text-white/55" : "text-[var(--muted)]"}`}>{detail}</p></div>;
+  return <div className={`rounded-[20px] border p-4 sm:p-5 ${tone === "dark" ? "border-white/10 bg-[var(--dark-panel)] text-white" : "border-[var(--line)] bg-[var(--card)]"}`}><div className="flex items-center justify-between gap-3"><span className={`text-[10px] font-black uppercase tracking-[.16em] ${tone === "dark" ? "text-white/55" : "text-[var(--muted)]"}`}>{label}</span><span className={`flex h-8 w-8 items-center justify-center rounded-xl ${tone === "dark" ? "bg-white/10" : "bg-[var(--paper)]"}`}><Icon size={15} className={tone === "dark" ? "text-[var(--accent)]" : "text-[var(--forest)]"} aria-hidden="true" /></span></div><p className="mt-4 text-2xl font-black tracking-[-.055em] tabular-nums">{value}</p><p className={`mt-1.5 truncate text-xs font-bold ${tone === "dark" ? "text-white/55" : "text-[var(--muted)]"}`}>{detail}</p></div>;
 }
 
 function FeedCard({ post, saved, liked, onSave, onLike }: { post: FeedPost; saved: boolean; liked: boolean; onSave: () => void; onLike: () => void }) {
@@ -54,10 +57,45 @@ function FeedCard({ post, saved, liked, onSave, onLike }: { post: FeedPost; save
 }
 
 function ActivityChart({ role, activityDates }: { role: Exclude<Role, "admin">; activityDates: string[] }) {
-  const bars = Array.from({ length: 8 }, (_, index) => {
-    const end = Date.now() - (7 - index) * 7 * 24 * 60 * 60 * 1000;
-    const start = end - 7 * 24 * 60 * 60 * 1000;
-    return activityDates.filter((value) => { const timestamp = Date.parse(value); return Number.isFinite(timestamp) && timestamp >= start && timestamp < end; }).length;
+  const today = new Date();
+  const isoDate = (value: Date) => value.toISOString().slice(0, 10);
+  const daysAgo = (days: number) => { const value = new Date(today); value.setDate(value.getDate() - days); return isoDate(value); };
+  const [rangePreset, setRangePreset] = useState<ActivityRangePreset>("last-8-weeks");
+  const [rangeStart, setRangeStart] = useState(daysAgo(56));
+  const [rangeEnd, setRangeEnd] = useState(isoDate(today));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => localDate(daysAgo(56)));
+  const [selectingEnd, setSelectingEnd] = useState(false);
+  const presets: { value: ActivityRangePreset; label: string; start: string; end: string }[] = [
+    { value: "today", label: "Today", start: isoDate(today), end: isoDate(today) },
+    { value: "last-week", label: "Last week", start: daysAgo(7), end: isoDate(today) },
+    { value: "last-30-days", label: "Last 30 days", start: daysAgo(30), end: isoDate(today) },
+    { value: "last-8-weeks", label: "Last 8 weeks", start: daysAgo(56), end: isoDate(today) },
+  ];
+  const selectPreset = (preset: typeof presets[number]) => { setRangePreset(preset.value); setRangeStart(preset.start); setRangeEnd(preset.end); setCalendarMonth(localDate(preset.start)); setSelectingEnd(false); };
+  const selectCalendarDate = (value: Date) => {
+    const selected = dateKey(value);
+    setRangePreset("custom");
+    if (!selectingEnd) {
+      setRangeStart(selected);
+      setRangeEnd(selected);
+      setSelectingEnd(true);
+    } else {
+      if (selected < rangeStart) { setRangeStart(selected); setRangeEnd(rangeStart); } else setRangeEnd(selected);
+      setSelectingEnd(false);
+    }
+  };
+  const calendarStart = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const calendarOffset = calendarStart.getDay();
+  const calendarDays = Array.from({ length: 42 }, (_, index) => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), index - calendarOffset + 1));
+  const rangeDays = Math.max(1, Math.ceil((new Date(`${rangeEnd}T23:59:59`).getTime() - new Date(`${rangeStart}T00:00:00`).getTime()) / (24 * 60 * 60 * 1000)));
+  const bucketCount = rangePreset === "today" ? 1 : Math.min(8, Math.max(1, Math.ceil(rangeDays / 7)));
+  const bars = Array.from({ length: bucketCount }, (_, index) => {
+    const start = new Date(`${rangeStart}T00:00:00`).getTime();
+    const end = new Date(`${rangeEnd}T23:59:59`).getTime();
+    const bucketStart = start + ((end - start) * index) / bucketCount;
+    const bucketEnd = index === bucketCount - 1 ? end + 1 : start + ((end - start) * (index + 1)) / bucketCount;
+    return activityDates.filter((value) => { const timestamp = Date.parse(value); return Number.isFinite(timestamp) && timestamp >= bucketStart && timestamp < bucketEnd; }).length;
   });
   const maxValue = Math.max(1, ...bars);
   const [chartType, setChartType] = useState<ActivityChartType>("line");
@@ -75,7 +113,7 @@ function ActivityChart({ role, activityDates }: { role: Exclude<Role, "admin">; 
     tooltip: { visible: true, renderMode: "canvas", confine: true, style: { panel: { backgroundColor: "rgba(23,35,31,.94)", border: { color: "rgba(232,255,63,.35)", width: 1, radius: 14 }, shadow: { x: 0, y: 8, blur: 20, spread: 0, color: "rgba(0,0,0,.25)" } }, titleLabel: { fill: "rgba(255,255,255,.65)", fontWeight: "700" }, keyLabel: { fill: "rgba(255,255,255,.65)" }, valueLabel: { fill: "#e8ff3f", fontWeight: "800" } }, mark: { content: [{ key: "Activity", value: (data: any) => String(data?.[0]?.datum?.value ?? data?.[0]?.value ?? 0) }] } },
     crosshair: { xField: { visible: false }, yField: { visible: false } },
   };
-  return <Card className="overflow-hidden bg-[var(--dark-panel)] text-white"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-black uppercase tracking-[.16em] text-white/50">Momentum</p><h2 className="mt-2 text-xl font-black">Your last 8 weeks</h2><p className="mt-1 text-xs text-white/45">Bookings, messages, and invoices</p></div><div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end"><TrendingUp size={20} className="text-[var(--accent)]" aria-hidden="true" /><div className="flex rounded-full border border-white/10 bg-white/5 p-1" role="radiogroup" aria-label="Chart type">{chartOptions.map((option) => <label key={option.value} className={`cursor-pointer rounded-full px-2.5 py-1.5 text-[10px] font-bold transition ${chartType === option.value ? "bg-[var(--accent)] text-[var(--on-bright)]" : "text-white/55 hover:bg-white/10 hover:text-white"}`}><input type="radio" name={`activity-chart-${role}`} value={option.value} checked={chartType === option.value} onChange={() => setChartType(option.value)} className="sr-only" />{option.label}</label>)}</div></div></div><div className={`mt-5 ${isPie ? "h-56" : "h-48"}`} aria-label={`Your activity over the last eight weeks: ${bars.join(", ")}`}><VChart spec={spec} /></div></Card>;
+  return <Card className="relative overflow-visible bg-[var(--dark-panel)] text-white"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-[11px] font-black uppercase tracking-[.16em] text-white/50">Momentum</p><h2 className="mt-2 text-xl font-black">Your activity</h2><p className="mt-1 text-xs text-white/45">Bookings, messages, and invoices</p></div><div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end"><div className="relative z-40"><button type="button" onClick={() => setPickerOpen((open) => !open)} aria-expanded={pickerOpen} aria-haspopup="dialog" className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/70 transition hover:bg-white/10 hover:text-white"><CalendarDays size={14} aria-hidden="true" />{rangePreset === "custom" ? `${rangeStart} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ ${rangeEnd}` : presets.find((preset) => preset.value === rangePreset)?.label}<span className="text-white/40">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬â„¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾</span></button>{pickerOpen ? <div role="dialog" aria-label="Choose activity date range" className="absolute right-0 top-11 z-50 w-[min(19rem,calc(100vw-3rem))] rounded-2xl border border-white/10 bg-[var(--dark-panel)] p-4 shadow-2xl sm:left-full sm:right-auto sm:top-0 sm:ml-3"><p className="text-[10px] font-black uppercase tracking-[.14em] text-white/45">Optional date range</p><div className="mt-3 grid grid-cols-2 gap-2">{presets.map((preset) => <button key={preset.value} type="button" onClick={() => selectPreset(preset)} className={`rounded-xl px-3 py-2 text-left text-xs font-bold transition ${rangePreset === preset.value ? "bg-[var(--accent)] text-[var(--on-bright)]" : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"}`}>{preset.label}</button>)}</div><div className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-3"><div className="flex items-center justify-between"><button type="button" aria-label="Previous month" onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"><ChevronLeft size={15} aria-hidden="true" /></button><p className="text-sm font-black">{calendarMonth.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</p><button type="button" aria-label="Next month" onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 hover:bg-white/10 hover:text-white"><ChevronRight size={15} aria-hidden="true" /></button></div><div className="mt-3 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-white/35">{["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => <span key={day}>{day}</span>)}</div><div className="mt-2 grid grid-cols-7 gap-1">{calendarDays.map((day) => { const key = dateKey(day); const outside = day.getMonth() !== calendarMonth.getMonth(); const selected = key === rangeStart || key === rangeEnd; const inRange = key > rangeStart && key < rangeEnd; const future = key > isoDate(today); return <button key={key} type="button" disabled={outside || future} onClick={() => selectCalendarDate(day)} aria-label={day.toLocaleDateString("en-IN", { dateStyle: "long" })} className={`h-8 rounded-lg text-xs font-bold transition ${outside ? "text-white/15" : future ? "cursor-not-allowed text-white/20" : selected ? "bg-[var(--accent)] text-[var(--on-bright)]" : inRange ? "bg-[var(--accent)]/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"}`}>{day.getDate()}</button>; })}</div></div><div className="mt-3 flex items-center justify-between text-[10px] font-bold text-white/40"><span>{selectingEnd ? "Select end date" : "Select start date"}</span><span>{rangeStart} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ {rangeEnd}</span></div><button type="button" onClick={() => setPickerOpen(false)} className="mt-4 min-h-9 w-full rounded-xl bg-[var(--accent)] px-3 text-xs font-black text-[var(--on-bright)]">Apply range</button></div> : null}</div><div className="flex rounded-full border border-white/10 bg-white/5 p-1" role="radiogroup" aria-label="Chart type">{chartOptions.map((option) => <label key={option.value} className={`cursor-pointer rounded-full px-2.5 py-1.5 text-[10px] font-bold transition ${chartType === option.value ? "bg-[var(--accent)] text-[var(--on-bright)]" : "text-white/55 hover:bg-white/10 hover:text-white"}`}><input type="radio" name={`activity-chart-${role}`} value={option.value} checked={chartType === option.value} onChange={() => setChartType(option.value)} className="sr-only" />{option.label}</label>)}</div></div></div><div className={`mt-5 ${isPie ? "h-56" : "h-48"}`} aria-label={`Your activity between ${rangeStart} and ${rangeEnd}: ${bars.join(", ")}`}><VChart spec={spec} /></div></Card>;
 }
 
 export function RoleDashboard({ role }: { role: Exclude<Role, "admin"> }) {
@@ -101,19 +139,38 @@ export function RoleDashboard({ role }: { role: Exclude<Role, "admin"> }) {
   }, [role]);
 
   const activeBookings = bookings.filter(booking => booking.status !== "PAID").length;
+  const completedBookings = bookings.filter(booking => ["CONTENT_DELIVERED", "PAID"].includes(booking.status)).length;
   const paidInvoices = invoices.filter(invoice => invoice.status === "PAID");
   const paidValue = paidInvoices.reduce((sum, invoice) => sum + Number(invoice.netPayable ?? invoice.amount ?? 0), 0);
   const activityDates = [...bookings.map((booking) => booking.createdAt), ...threads.map((thread) => thread.latestAt), ...invoices.map((invoice) => invoice.createdAt)].filter((value): value is string => Boolean(value));
   const feed = useMemo(() => filter === "All" ? pexelsPosts : pexelsPosts.filter(post => post.kind === filter), [filter]);
   const toggle = (items: string[], setItems: (value: string[]) => void, id: string) => setItems(items.includes(id) ? items.filter(item => item !== id) : [...items, id]);
 
-  return <AppShell role={role} title={view.title} eyebrow={view.eyebrow}>
-    <div className="relative overflow-hidden rounded-[32px] bg-[var(--dark-panel)] p-6 text-white shadow-[8px_10px_0_var(--accent)] sm:p-8 lg:p-10"><div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[var(--accent)]/20 blur-3xl" /><div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end"><div className="max-w-2xl"><div className="flex flex-wrap items-center gap-2"><Pill tone="lime">Live workspace</Pill><span className="text-xs font-bold text-white/50">Updated just now</span></div><h2 className="mt-5 max-w-xl text-4xl font-black leading-[.96] tracking-[-.075em] sm:text-6xl">{view.title}</h2><p className="mt-5 max-w-xl text-sm leading-6 text-white/65 sm:text-base">{view.subhead}</p></div><div className="flex flex-wrap gap-3"><ButtonLink href={view.primaryHref} variant="accent">{view.primary} <ArrowUpRight size={16} className="ml-2" aria-hidden="true" /></ButtonLink><Link href={role === "creator" ? "/creator/bookings" : role === "brand" ? "/brand/bookings" : "/editor/requests"} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Open queue</Link></div></div></div>
+  return <AppShell role={role} title="Overview" eyebrow={view.eyebrow}>
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="relative overflow-hidden rounded-[24px] border border-[var(--line)] bg-[var(--card)] p-6 sm:p-7">
+        <div className="absolute inset-y-0 left-0 w-1.5 bg-[var(--accent)]" />
+        <div className="flex h-full flex-col justify-between gap-6 pl-2 sm:flex-row sm:items-end">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[var(--forest)]" /><p className="text-[10px] font-black uppercase tracking-[.16em] text-[var(--muted)]">Live workspace · Updated now</p></div>
+            <h2 className="mt-4 text-3xl font-black tracking-[-.06em] sm:text-4xl">{view.title}</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">{view.subhead}</p>
+          </div>
+          <ButtonLink href={view.primaryHref} variant="accent">{view.primary} <ArrowUpRight size={16} className="ml-2" aria-hidden="true" /></ButtonLink>
+        </div>
+      </section>
+      <Card className="relative overflow-hidden border border-[var(--line)] bg-[var(--dark-panel)] p-6 text-white shadow-none">
+        <Sparkles size={18} className="text-[var(--accent)]" aria-hidden="true" />
+        <p className="mt-5 text-[10px] font-black uppercase tracking-[.16em] text-white/45">{view.accent}</p>
+        <h2 className="mt-2 text-xl font-black tracking-[-.04em]">{view.spotlight}</h2>
+        <Link href={view.spotlightHref} className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-black text-[var(--accent)]">Take the next step <ArrowUpRight size={15} aria-hidden="true" /></Link>
+      </Card>
+    </div>
     <div className="mt-8 flex items-center gap-2 overflow-x-auto border-b border-[var(--line)] pb-3" role="tablist" aria-label="Dashboard views">{(["Overview", "Feed", "Analytics"] as ViewTab[]).map(item => <button key={item} type="button" role="tab" aria-selected={tab === item} onClick={() => setTab(item)} className={`min-h-10 whitespace-nowrap rounded-full px-4 text-sm font-black transition ${tab === item ? "bg-[var(--forest)] text-white" : "text-[var(--muted)] hover:bg-[var(--wash)] hover:text-[var(--ink)]"}`}>{item}</button>)}</div>
 
     {tab === "Overview" ? <>
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"><MetricCard label={role === "editor" ? "Incoming requests" : "Active bookings"} value={loading ? "-" : String(role === "editor" ? requests.length : activeBookings)} detail={role === "brand" ? "Campaigns in flight" : role === "editor" ? "Keep the queue moving" : "Collabs in motion"} icon={Clock3} /><MetricCard label={role === "brand" ? "Open conversations" : "Community reach"} value={loading ? "-" : String(role === "brand" ? threads.length : 1280)} detail={role === "brand" ? "Replies worth making" : "People seeing your work"} icon={Users} tone="dark" /><MetricCard label={role === "editor" ? "Published gigs" : "Completed work"} value={loading ? "-" : String(role === "editor" ? gigs.length : bookings.filter(booking => ["ACCEPTED", "CONTENT_DELIVERED", "PAID"].includes(booking.status)).length)} detail={role === "creator" ? "Proof that travels" : "A clear next milestone"} icon={CheckCircle2} /><MetricCard label="Settled value" value={loading ? "-" : money(paidValue)} detail={paidInvoices.length ? `${paidInvoices.length} settled invoice${paidInvoices.length === 1 ? "" : "s"}` : "Nothing settled yet"} icon={TrendingUp} /></div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><ActivityChart role={role} activityDates={activityDates} /><Card className="relative overflow-hidden bg-[var(--accent)] text-[var(--on-bright)]"><div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border-[18px] border-black/10" /><Sparkles size={23} aria-hidden="true" /><p className="mt-6 text-[11px] font-black uppercase tracking-[.16em]">{view.accent}</p><h2 className="mt-3 max-w-sm text-3xl font-black leading-none tracking-[-.06em]">{view.spotlight}</h2><p className="mt-4 max-w-sm text-sm font-semibold leading-6 opacity-75">{view.spotlightDetail}</p><Link href={view.spotlightHref} className="mt-7 inline-flex items-center gap-2 rounded-full bg-[var(--ink)] px-4 py-3 text-sm font-black text-white">Take the next step <ArrowUpRight size={15} aria-hidden="true" /></Link></Card></div>
+      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4"><MetricCard label={role === "editor" ? "Incoming requests" : "Active campaigns"} value={loading ? "-" : String(role === "editor" ? requests.length : activeBookings)} detail={role === "editor" ? "Requests awaiting action" : "Campaigns in flight"} icon={Clock3} /><MetricCard label={role === "editor" ? "Active edits" : "Open conversations"} value={loading ? "-" : String(role === "editor" ? activeBookings : threads.length)} detail={role === "editor" ? "Collaborations in motion" : "Replies worth making"} icon={Users} tone="dark" /><MetricCard label={role === "editor" ? "Published gigs" : "Completed campaigns"} value={loading ? "-" : String(role === "editor" ? gigs.length : completedBookings)} detail={role === "editor" ? "Services visible to creators" : "Delivered or settled"} icon={CheckCircle2} /><MetricCard label="Settled value" value={loading ? "-" : money(paidValue)} detail={paidInvoices.length ? `${paidInvoices.length} settled invoice${paidInvoices.length === 1 ? "" : "s"}` : "Nothing settled yet"} icon={TrendingUp} /></div>
+      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,.45fr)]"><ActivityChart role={role} activityDates={activityDates} /><Card className="border border-[var(--line)] p-6 shadow-none"><p className="text-[10px] font-black uppercase tracking-[.16em] text-[var(--muted)]">Today&apos;s focus</p><h2 className="mt-3 text-2xl font-black tracking-[-.05em]">Keep work moving</h2><div className="mt-6 space-y-4"><div className="flex items-center justify-between border-b border-[var(--line)] pb-4"><span className="text-sm font-bold text-[var(--muted)]">Open queue</span><span className="text-xl font-black tabular-nums">{role === "editor" ? requests.length : activeBookings}</span></div><div className="flex items-center justify-between border-b border-[var(--line)] pb-4"><span className="text-sm font-bold text-[var(--muted)]">Conversations</span><span className="text-xl font-black tabular-nums">{threads.length}</span></div><div className="flex items-center justify-between"><span className="text-sm font-bold text-[var(--muted)]">Settled invoices</span><span className="text-xl font-black tabular-nums">{paidInvoices.length}</span></div></div><Link href={role === "editor" ? "/editor/requests" : "/brand/bookings"} className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--forest)] px-4 text-sm font-black text-white">Open work queue <ArrowUpRight size={15} aria-hidden="true" /></Link></Card></div>
       <section className="mt-10"><div className="flex items-end justify-between gap-4"><div><p className="text-[11px] font-black uppercase tracking-[.16em] text-[var(--muted)]">The community pulse</p><h2 className="mt-2 text-3xl font-black tracking-[-.06em]">Fresh from the feed</h2></div><button type="button" onClick={() => setTab("Feed")} className="text-sm font-black text-[var(--forest)] underline underline-offset-4">See all</button></div><div className="mt-5 grid gap-5 lg:grid-cols-3">{pexelsPosts.map(post => <FeedCard key={post.id} post={post} saved={saved.includes(post.id)} liked={liked.includes(post.id)} onSave={() => toggle(saved, setSaved, post.id)} onLike={() => toggle(liked, setLiked, post.id)} />)}</div></section>
     </> : null}
 

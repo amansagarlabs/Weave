@@ -1,0 +1,159 @@
+- generic [ref=f1e1]:
+  - link "Skip to content" [active] [ref=f1e378] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f1e379]:
+    - complementary [ref=f1e380]:
+      - generic [ref=f1e381]:
+        - generic [ref=f1e383]:
+          - link "Weave home" [ref=f1e384] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f1e388]: weave.
+          - button "Collapse sidebar" [ref=f1e389]
+        - generic [ref=f1e393]:
+          - paragraph [ref=f1e394]: Creator workspace
+          - paragraph [ref=f1e395]: Overview
+        - navigation "Workspace navigation" [ref=f1e396]:
+          - link "Home" [ref=f1e397] [cursor=pointer]:
+            - /url: /creator/dashboard
+          - link "Bookings" [ref=f1e402] [cursor=pointer]:
+            - /url: /creator/bookings
+          - link "Messages" [ref=f1e408] [cursor=pointer]:
+            - /url: /creator/messages
+          - link "Portfolio" [ref=f1e413] [cursor=pointer]:
+            - /url: /creator/portfolio
+          - link "Hire an editor" [ref=f1e420] [cursor=pointer]:
+            - /url: /creator/hire-editor
+          - link "Earnings" [ref=f1e425] [cursor=pointer]:
+            - /url: /creator/earnings
+        - button "Open account menu" [ref=f1e433]:
+          - generic [ref=f1e434]: U
+          - generic [ref=f1e436]:
+            - generic [ref=f1e437]: Account
+            - generic [ref=f1e438]: user@gmail.com
+    - generic [ref=f1e441]:
+      - banner [ref=f1e442]:
+        - generic [ref=f1e444]:
+          - paragraph [ref=f1e445]: Creator studio
+          - heading "Overview" [level=1] [ref=f1e446]
+        - generic [ref=f1e447]:
+          - button "Search routes" [ref=f1e448]
+          - button "Notifications, 2 unread" [ref=f1e453]:
+            - generic [ref=f1e457]: "2"
+      - main [ref=f1e458]:
+        - generic [ref=f1e460]:
+          - generic [ref=f1e461]:
+            - generic [ref=f1e462]:
+              - generic [ref=f1e463]: DC
+              - generic [ref=f1e465]:
+                - generic [ref=f1e466]:
+                  - generic [ref=f1e467]: Available for work
+                  - generic [ref=f1e468]: Self-reported
+                - heading "Demo Creator" [level=2] [ref=f1e471]
+                - paragraph [ref=f1e472]: "@demo-creator · Bengaluru"
+            - generic [ref=f1e474]:
+              - generic [ref=f1e478]: Instagram
+              - generic [ref=f1e479]: "@demo_creator"
+            - generic [ref=f1e480]:
+              - link "Upload content" [ref=f1e481] [cursor=pointer]:
+                - /url: /creator/portfolio/upload
+              - link "Public profile" [ref=f1e486] [cursor=pointer]:
+                - /url: /creator/demo-creator
+              - button "Copy public profile link" [ref=f1e490]: Share
+          - generic [ref=f1e497]:
+            - generic [ref=f1e498]:
+              - generic [ref=f1e499]:
+                - paragraph [ref=f1e500]: Profile strength
+                - paragraph [ref=f1e501]: Ready to share
+              - generic [ref=f1e502]: 100%
+            - progressbar "Creator profile completeness" [ref=f1e503]
+            - generic [ref=f1e505]:
+              - generic [ref=f1e506]: 1 works
+              - generic [ref=f1e507]: 1 packages
+              - generic [ref=f1e508]: 1 socials
+            - link "Edit creator profile" [ref=f1e509] [cursor=pointer]:
+              - /url: /creator/profile/edit
+        - region "Creator performance summary" [ref=f1e512]:
+          - generic [ref=f1e513]:
+            - generic [ref=f1e514]:
+              - paragraph [ref=f1e519]: Total audience
+              - paragraph [ref=f1e520]: 12K
+              - paragraph [ref=f1e521]: 1 platforms reported
+            - generic [ref=f1e522]:
+              - paragraph [ref=f1e527]: Average views
+              - paragraph [ref=f1e528]: Not added
+              - paragraph [ref=f1e529]: Reported platform average
+            - generic [ref=f1e530]:
+              - paragraph [ref=f1e534]: Engagement
+              - paragraph [ref=f1e535]: Not added
+              - paragraph [ref=f1e536]: Reported average rate
+            - generic [ref=f1e537]:
+              - paragraph [ref=f1e541]: Brand interest
+              - paragraph [ref=f1e542]: "1"
+              - paragraph [ref=f1e543]: 1 conversations · 0 requests
+        - generic [ref=f1e544]:
+          - generic [ref=f1e545]:
+            - generic [ref=f1e546]:
+              - generic [ref=f1e547]:
+                - paragraph [ref=f1e548]: Audience by platform
+                - heading "Where your community lives" [level=2] [ref=f1e549]
+              - generic [ref=f1e550]: Self-reported
+            - 'generic "Instagram: 12000 followers" [ref=f1e553]'
+          - generic [ref=f1e556]:
+            - generic [ref=f1e558]:
+              - paragraph [ref=f1e559]: Collaboration snapshot
+              - heading "Work and earnings" [level=2] [ref=f1e560]
+            - generic [ref=f1e564]:
+              - generic [ref=f1e565]:
+                - paragraph [ref=f1e570]: "1"
+                - paragraph [ref=f1e571]: Active collaborations
+              - generic [ref=f1e572]:
+                - paragraph [ref=f1e576]: INR 0
+                - paragraph [ref=f1e577]: Settled earnings
+            - generic [ref=f1e579]:
+              - generic [ref=f1e580]: Awaiting payment
+              - generic [ref=f1e581]: INR 3,780
+            - link "Open earnings" [ref=f1e582] [cursor=pointer]:
+              - /url: /creator/earnings
+        - region [ref=f1e586]:
+          - generic [ref=f1e587]:
+            - generic [ref=f1e588]:
+              - paragraph [ref=f1e589]: Your work
+              - heading "Portfolio pulse" [level=2] [ref=f1e590]
+            - link "Manage portfolio" [ref=f1e591] [cursor=pointer]:
+              - /url: /creator/portfolio
+          - link [ref=f1e595] [cursor=pointer]:
+            - /url: /creator/portfolio
+            - img "Docker portfolio smoke test" [ref=f1e597]
+            - generic [ref=f1e598]:
+              - paragraph [ref=f1e599]: Docker portfolio smoke test
+              - paragraph [ref=f1e600]: Image
+        - generic [ref=f1e601]:
+          - region [ref=f1e602]:
+            - generic [ref=f1e603]:
+              - generic [ref=f1e604]:
+                - paragraph [ref=f1e605]: In progress
+                - heading "Latest collaborations" [level=2] [ref=f1e606]
+              - link "View all" [ref=f1e607] [cursor=pointer]:
+                - /url: /creator/bookings
+            - 'link "Brand 7 · Booking #3 INR 3,500 ACCEPTED" [ref=f1e609] [cursor=pointer]':
+              - /url: /creator/bookings/3
+              - generic [ref=f1e610]:
+                - paragraph [ref=f1e611]: "Brand 7 · Booking #3"
+                - paragraph [ref=f1e612]: INR 3,500
+              - generic [ref=f1e613]: ACCEPTED
+          - region [ref=f1e617]:
+            - generic [ref=f1e618]:
+              - generic [ref=f1e619]:
+                - paragraph [ref=f1e620]: Inbox
+                - heading "Recent conversations" [level=2] [ref=f1e621]
+              - link "Open inbox" [ref=f1e622] [cursor=pointer]:
+                - /url: /creator/messages
+            - link "b brand@gmail.com Hi! We would love to discuss a short product reel for our next launch." [ref=f1e624] [cursor=pointer]:
+              - /url: /creator/messages/demo-booking
+              - generic [ref=f1e625]: b
+              - generic [ref=f1e627]:
+                - paragraph [ref=f1e628]: brand@gmail.com
+                - paragraph [ref=f1e629]: Hi! We would love to discuss a short product reel for our next launch.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f1e21] [cursor=pointer]
+  - alert [ref=f1e25]

@@ -103,7 +103,7 @@ FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft appli
 ## 11. Open Decisions (need founder sign-off before build)
 1. "Influencing score" — exact formula
 2. Editor-suspension trigger — under-delivery vs. rejecting requested changes
-3. UniBee billing coverage — confirm gateway coverage, self-hosting, recurring billing, webhook, reconciliation, and payout requirements before production cutover
+3. UniBee billing coverage — payment-gateway rollout is deferred to a later release as of 2026-08-20; confirm gateway coverage, self-hosting, recurring billing, webhook, reconciliation, and payout requirements before production cutover
 4. Whether GST/TDS invoicing stays in scope given ASCI/legal-protection framing dropped (recommend: keep — payments still need correct invoicing regardless of positioning)
 
 ## 12. Doc Sync Status
@@ -114,7 +114,7 @@ FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft appli
 - UniBee is the primary provider, isolated behind the same payment adapter.
 - $0 user plans use internal zero-amount completion; no gateway charge.
 - Paid user transactions are not guaranteed free; external processor costs remain.
-- Invoice payment links use UniBee hosted checkout; a configured UniBee gateway is required for live payment collection.
+- Invoice payment links use UniBee hosted checkout; live payment-gateway onboarding is deferred to a later release as of 2026-08-20.
 
 ## 14. SaaS Starter Capability Goal
 
