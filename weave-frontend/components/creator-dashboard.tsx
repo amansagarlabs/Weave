@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { VChart } from "@visactor/react-vchart";
 import {
   ArrowRight,
@@ -137,12 +137,21 @@ function SelfReportedBadge() {
   );
 }
 
-function Metric({ label, value, detail, icon: Icon }: { label: string; value: string; detail: string; icon: typeof Eye }) {
+function Sparkline({ values, color = "var(--forest)" }: { values: number[]; color?: string }) {
+  const safe = values.length > 1 ? values : [0, values[0] ?? 0];
+  const max = Math.max(1, ...safe);
+  const min = Math.min(...safe);
+  const range = Math.max(1, max - min);
+  const points = safe.map((value, index) => `${(index / (safe.length - 1)) * 88 + 4},${28 - ((value - min) / range) * 20}`).join(" ");
+  return <svg viewBox="0 0 96 32" className="h-9 w-24 overflow-visible" aria-hidden="true"><polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /><circle cx={points.split(" ").at(-1)?.split(",")[0]} cy={points.split(" ").at(-1)?.split(",")[1]} r="3" fill={color} /></svg>;
+}
+
+function Metric({ label, value, detail, icon: Icon, series }: { label: string; value: string; detail: string; icon: typeof Eye; series: number[] }) {
   return (
     <div className="min-w-0 px-5 py-5 sm:px-6">
-      <div className="flex items-center gap-2 text-[var(--muted)]">
-        <Icon size={15} aria-hidden="true" />
-        <p className="text-[11px] font-black uppercase tracking-[.15em]">{label}</p>
+      <div className="flex items-center justify-between gap-3 text-[var(--muted)]">
+        <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--forest)_10%,transparent)] text-[var(--forest)]"><Icon size={15} aria-hidden="true" /></span><p className="text-[10px] font-black uppercase tracking-[.15em]">{label}</p></div>
+        <Sparkline values={series} />
       </div>
       <p className="mt-4 truncate text-[1.75rem] font-black tracking-[-.055em] tabular-nums">{value}</p>
       <p className="mt-1.5 truncate text-xs text-[var(--muted)]">{detail}</p>
@@ -174,18 +183,18 @@ function AudienceChart({ platforms }: { platforms: PlatformEntry[] }) {
   }
 
   const spec: any = {
-    type: "bar",
+    type: "pie",
     background: "transparent",
-    padding: { top: 14, right: 18, bottom: 8, left: 8 },
+    padding: { top: 10, right: 10, bottom: 10, left: 10 },
     data: [{ id: "audience", values }],
-    xField: "platform",
-    yField: "followers",
-    color: ["#e8f55b"],
-    bar: { style: { cornerRadius: [10, 10, 3, 3] } },
-    axes: [
-      { orient: "bottom", label: { style: { fill: "rgba(255,255,255,.58)", fontSize: 11 } }, tick: { visible: false }, domainLine: { visible: false }, grid: { visible: false } },
-      { orient: "left", label: { style: { fill: "rgba(255,255,255,.38)", fontSize: 10 }, formatMethod: (value: number) => compact(value) }, tick: { visible: false }, domainLine: { visible: false }, grid: { style: { stroke: "rgba(255,255,255,.09)", lineDash: [3, 5] } } },
-    ],
+    categoryField: "platform",
+    valueField: "followers",
+    outerRadius: 0.86,
+    innerRadius: 0.62,
+    color: ["#c9f646", "#43d79a", "#31c6b0", "#ffb547", "#ff7a4f"],
+    pie: { style: { cornerRadius: 7, stroke: "#17181e", lineWidth: 3 } },
+    legends: { visible: true, orient: "right", position: "middle", item: { label: { style: { fill: "rgba(255,255,255,.62)", fontSize: 11 } } } },
+    indicator: { visible: true, trigger: "none", title: { visible: true, style: { text: compact(values.reduce((sum, item) => sum + item.followers, 0)), fill: "#ffffff", fontSize: 22, fontWeight: 800 } }, content: [{ visible: true, style: { text: "followers", fill: "rgba(255,255,255,.45)", fontSize: 10 } }] },
     tooltip: {
       visible: true,
       renderMode: "canvas",
@@ -203,19 +212,83 @@ function AudienceChart({ platforms }: { platforms: PlatformEntry[] }) {
         </div>
         <SelfReportedBadge />
       </div>
-      <div className="h-[230px] px-2 pb-3" aria-label={values.map((item) => `${item.platform}: ${item.followers} followers`).join(", ")}>
+      <div className="h-[260px] px-2 pb-3" aria-label={values.map((item) => `${item.platform}: ${item.followers} followers`).join(", ")}>
         <VChart spec={spec} />
       </div>
     </Card>
   );
 }
 
+function RevenuePanel({ bookings, earned, awaiting }: { bookings: Booking[]; earned: number; awaiting: number }) {
+  const recent = [...bookings]
+    .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt))
+    .slice(-8)
+    .map((booking, index) => ({ period: `Collab ${index + 1}`, amount: Number(booking.amount) || 0 }));
+  const values = recent.length ? recent : [{ period: "No work", amount: 0 }];
+  const booked = bookings.reduce((sum, booking) => sum + Number(booking.amount || 0), 0);
+  const average = bookings.length ? booked / bookings.length : 0;
+  const spec: any = {
+    type: "area",
+    background: "transparent",
+    padding: { top: 18, right: 16, bottom: 4, left: 8 },
+    data: [{ id: "revenue", values }],
+    xField: "period",
+    yField: "amount",
+    color: ["#c9f646"],
+    line: { style: { stroke: "#c9f646", lineWidth: 3, curveType: "monotone" } },
+    area: { style: { fill: "rgba(201,246,70,.18)", curveType: "monotone" } },
+    point: { visible: true, style: { size: 7, fill: "#0e1612", stroke: "#e8ff8f", lineWidth: 2 } },
+    axes: [
+      { orient: "bottom", label: { style: { fill: "rgba(255,255,255,.38)", fontSize: 10 } }, tick: { visible: false }, domainLine: { visible: false }, grid: { visible: false } },
+      { orient: "left", label: { visible: false }, tick: { visible: false }, domainLine: { visible: false }, grid: { style: { stroke: "rgba(255,255,255,.08)", lineDash: [5, 6] } } },
+    ],
+    tooltip: {
+      visible: true,
+      renderMode: "canvas",
+      confine: true,
+      style: {
+        panel: {
+          backgroundColor: "rgba(14,22,18,.96)",
+          border: { color: "rgba(201,246,70,.28)", width: 1, radius: 12 },
+          shadow: { x: 0, y: 10, blur: 24, spread: 0, color: "rgba(0,0,0,.3)" },
+        },
+        titleLabel: { fill: "rgba(255,255,255,.72)", fontWeight: "700" },
+        keyLabel: { fill: "rgba(255,255,255,.55)" },
+        valueLabel: { fill: "#c9f646", fontWeight: "800" },
+      },
+      mark: { content: [{ key: "Booked", value: (datum: any) => money(Number(datum?.[0]?.datum?.amount ?? 0)) }] },
+    },
+    crosshair: { xField: { visible: false }, yField: { visible: false } },
+  };
+
+  return <Card className="overflow-hidden border border-white/5 bg-[var(--dark-panel)] p-0 text-white shadow-[0_24px_55px_rgba(4,15,10,.24)] lg:col-span-2"><div className="flex flex-col gap-6 p-6 sm:p-7"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[.18em] text-white/45">Revenue overview</p><h2 className="mt-2 text-2xl font-black tracking-[-.05em]">Creator balance</h2></div><span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black text-white/65">Recent collaborations</span></div><div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-end"><div><p className="text-xs font-bold text-white/45">Booked value</p><p className="mt-2 text-5xl font-black tracking-[-.075em]">{money(booked)}</p><p className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs font-black text-[#43d79a]"><TrendingUp size={14} aria-hidden="true" />{bookings.length} collaborations</p></div><div className="h-[210px] min-w-0 overflow-hidden" aria-label={values.map(item => `${item.period}: ${money(item.amount)}`).join(", ")}><VChart spec={spec} /></div></div></div><div className="grid border-t border-white/10 sm:grid-cols-2 lg:grid-cols-4">{[["Settled", money(earned), "#43d79a"], ["Awaiting", money(awaiting), "#ff7a4f"], ["Booked", money(booked), "#c9f646"], ["Average", money(average), "#ffb547"]].map(([label, value, color], index) => <div key={label} className={`px-6 py-5 ${index ? "border-t border-white/10 sm:border-l sm:border-t-0" : ""}`}><p className="text-[10px] font-black uppercase tracking-[.15em] text-white/40">{label}</p><p className="mt-2 text-lg font-black" style={{ color }}>{value}</p></div>)}</div></Card>;
+}
+
+function CollaborationFunnel({ bookings }: { bookings: Booking[] }) {
+  const stages = [
+    { label: "Requests", value: bookings.length, color: "#c9f646" },
+    { label: "Accepted", value: bookings.filter(item => !["PENDING", "NEGOTIATING", "REJECTED", "CANCELLED"].includes(item.status)).length, color: "#72df92" },
+    { label: "Delivered", value: bookings.filter(item => ["CONTENT_DELIVERED", "PAID"].includes(item.status)).length, color: "#31c6b0" },
+    { label: "Paid", value: bookings.filter(item => item.status === "PAID").length, color: "#176b4c" },
+  ];
+  const max = Math.max(1, ...stages.map(stage => stage.value));
+  return <Card className="border border-[var(--line)] p-6 shadow-none"><div className="flex items-center justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[.17em] text-[var(--muted)]">Conversion funnel</p><h2 className="mt-2 text-xl font-black tracking-[-.04em]">From request to paid</h2></div><TrendingUp size={18} className="text-[var(--forest)]" aria-hidden="true" /></div><div className="mt-6 space-y-2" role="img" aria-label={stages.map(stage => `${stage.label}: ${stage.value}`).join(", ")}>{stages.map((stage, index) => <div key={stage.label} className="grid grid-cols-[minmax(0,1fr)_82px] items-center gap-3"><div className="flex justify-center"><div className="h-10 rounded-md transition-[width] duration-500" style={{ width: `${Math.max(34, (stage.value / max) * 100)}%`, background: stage.color, clipPath: `polygon(${index * 4}% 0, ${100 - index * 4}% 0, ${94 - index * 4}% 100%, ${6 + index * 4}% 100%)` }} /></div><div><p className="text-xs font-bold text-[var(--muted)]">{stage.label}</p><p className="mt-0.5 font-black tabular-nums">{stage.value}</p></div></div>)}</div><p className="mt-5 text-xs leading-5 text-[var(--muted)]">Stages use current booking status. No projected conversions.</p></Card>;
+}
+
 function PortfolioStrip({ items }: { items: PortfolioAsset[] }) {
-  const portfolioLayout = items.length === 1
-    ? "mt-6"
-    : items.length === 2
-      ? "mt-6 grid gap-4 md:h-[420px] md:grid-cols-[minmax(0,1.4fr)_minmax(260px,.6fr)]"
-      : "mt-6 grid gap-4 lg:h-[520px] lg:grid-cols-[minmax(0,1.55fr)_minmax(260px,.45fr)] lg:grid-rows-3";
+  const visibleItems = items.slice(0, 4);
+  const moveGallery = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    event.currentTarget.style.setProperty("--gallery-rx", `${(-y * 3.5).toFixed(2)}deg`);
+    event.currentTarget.style.setProperty("--gallery-ry", `${(x * 4.5).toFixed(2)}deg`);
+  };
+  const resetGallery = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.currentTarget.style.setProperty("--gallery-rx", "0deg");
+    event.currentTarget.style.setProperty("--gallery-ry", "0deg");
+  };
 
   return (
     <section aria-labelledby="portfolio-heading">
@@ -227,23 +300,26 @@ function PortfolioStrip({ items }: { items: PortfolioAsset[] }) {
         <Link href="/creator/portfolio" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-black text-[var(--forest)] hover:bg-[var(--card)]">Manage portfolio <ChevronRight size={16} aria-hidden="true" /></Link>
       </div>
       {items.length ? (
-        <div className={portfolioLayout}>
-          {items.slice(0, 4).map((item, index) => (
-            <Link key={item.id} href="/creator/portfolio" className={`group relative min-h-0 overflow-hidden rounded-[22px] bg-[var(--dark-panel)] ${items.length === 1 ? "block h-[340px] sm:h-[440px]" : items.length === 2 ? "h-[280px] md:h-full" : index === 0 ? "h-[340px] sm:h-[420px] lg:row-span-3 lg:h-full" : "h-[220px] lg:h-auto"}`}>
-              <div className="h-full overflow-hidden">
-                {item.contentType.startsWith("video/") ? (
-                  <video src={item.assetUrl} muted playsInline preload="metadata" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]" />
-                ) : (
-                  <img src={item.assetUrl} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]" />
-                )}
-              </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-4 pb-4 pt-12 text-white">
-                <p className="truncate font-black">{item.title}</p>
-                <p className="mt-1 text-xs text-white/65">{item.contentType.startsWith("video/") ? "Video" : "Image"}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <Card className="mt-6 max-w-[960px] border border-[var(--line)] bg-[var(--dark-panel)] p-2.5 shadow-[0_22px_55px_rgba(4,15,10,.18)] sm:p-3">
+          <div className="portfolio-unfurl" data-count={visibleItems.length} onPointerMove={moveGallery} onPointerLeave={resetGallery}>
+            <div className="portfolio-unfurl__stage">
+              {visibleItems.map((item, index) => (
+                <Link key={item.id} href="/creator/portfolio" className="portfolio-unfurl__card group" style={{ "--gallery-index": index } as CSSProperties}>
+                  <div className="h-full overflow-hidden">
+                    {item.contentType.startsWith("video/") ? (
+                      <video src={item.assetUrl} muted loop playsInline preload="metadata" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.045]" />
+                    ) : (
+                      <img src={item.assetUrl} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.045]" />
+                    )}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent px-4 pb-4 pt-12 text-white">
+                    <div className="flex items-end justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-black">{item.title}</p><p className="mt-1 text-[9px] font-black uppercase tracking-[.14em] text-white/55">{item.contentType.startsWith("video/") ? "Motion" : "Still"}</p></div><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--on-bright)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"><ArrowRight size={14} aria-hidden="true" /></span></div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </Card>
       ) : (
         <Card className="mt-5 flex flex-col items-start justify-between gap-6 border border-dashed border-[var(--line)] shadow-none sm:flex-row sm:items-center">
           <div><h3 className="text-lg font-black">Show brands what you make.</h3><p className="mt-2 text-sm text-[var(--muted)]">Upload your strongest photo or video to start your portfolio.</p></div>
@@ -290,6 +366,9 @@ export function CreatorDashboard() {
   const averageViews = reportedViews.length ? reportedViews.reduce((sum, value) => sum + value, 0) / reportedViews.length : 0;
   const reportedEngagement = platforms.map((entry) => number(entry.engagementRate)).filter(Boolean);
   const engagement = reportedEngagement.length ? reportedEngagement.reduce((sum, value) => sum + value, 0) / reportedEngagement.length : 0;
+  const audienceSeries = platforms.map(entry => number(entry.followers));
+  const viewsSeries = platforms.map(entry => number(entry.averageViews));
+  const engagementSeries = platforms.map(entry => number(entry.engagementRate));
   const activeBookings = data.bookings.filter((booking) => !inactiveBookingStatuses.has(booking.status));
   const pendingRequests = data.bookings.filter((booking) => booking.status === "PENDING").length;
   const paidInvoices = data.invoices.filter((invoice) => invoice.status === "PAID");
@@ -301,7 +380,7 @@ export function CreatorDashboard() {
   const publicHref = data.profile?.publicSlug ? `/creator/${encodeURIComponent(data.profile.publicSlug)}` : "/creator/profile/edit";
 
   return (
-    <AppShell role="creator" title="Overview" eyebrow="Creator studio">
+    <AppShell role="creator" title="Creator analytics" eyebrow="Creator studio" skin="analytics">
       {loadError ? <p role="alert" className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-[var(--danger)]">Your creator data could not be loaded. Refresh the page or sign in again.</p> : null}
 
       <section>
@@ -334,19 +413,24 @@ export function CreatorDashboard() {
             <div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-white/45">Profile strength</p><p className="mt-2 text-sm text-white/55">Ready to share</p></div><span className="text-3xl font-black tabular-nums">{completeness}%</span></div>
             <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label="Creator profile completeness" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completeness}><div className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300" style={{ width: `${completeness}%` }} /></div>
             <div className="mt-5 flex items-center justify-between gap-2 text-xs text-white/55"><span>{data.portfolio.length} works</span><span>{data.packages.length} packages</span><span>{platforms.length} socials</span></div>
-            <Link href="/creator/profile/edit" className="mt-6 inline-flex min-h-11 items-center justify-between gap-2 rounded-xl bg-white px-4 text-sm font-black text-[var(--ink)] hover:bg-[var(--accent)]">Edit creator profile <ArrowRight size={15} aria-hidden="true" /></Link>
+            <Link href="/creator/profile/edit" className="mt-6 inline-flex min-h-11 items-center justify-between gap-2 rounded-xl bg-white px-4 text-sm font-black text-[#171821] hover:bg-[#eee9ff]">Edit creator profile <ArrowRight size={15} aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
 
       <section aria-label="Creator performance summary" className="mt-7 overflow-hidden rounded-[24px] border border-[var(--line)] bg-[var(--card)]">
         <div className="grid divide-y divide-[var(--line)] sm:grid-cols-2 sm:[&>*:nth-child(2)]:border-l sm:[&>*:nth-child(2)]:border-[var(--line)] lg:grid-cols-4 lg:divide-y-0 lg:[&>*+*]:border-l lg:[&>*+*]:border-[var(--line)]">
-          <Metric label="Total audience" value={totalFollowers ? compact(totalFollowers) : "Not added"} detail={totalFollowers ? `${platforms.filter((entry) => number(entry.followers) > 0).length} platforms reported` : "Add follower counts"} icon={TrendingUp} />
-          <Metric label="Average views" value={averageViews ? compact(averageViews) : "Not added"} detail="Reported platform average" icon={Eye} />
-          <Metric label="Engagement" value={engagement ? `${engagement.toFixed(1)}%` : "Not added"} detail="Reported average rate" icon={BarChart3} />
-          <Metric label="Brand interest" value={loading ? "-" : String(data.conversations.length + pendingRequests)} detail={`${data.conversations.length} conversations · ${pendingRequests} requests`} icon={MessageCircle} />
+          <Metric label="Total audience" value={totalFollowers ? compact(totalFollowers) : "Not added"} detail={totalFollowers ? `${platforms.filter((entry) => number(entry.followers) > 0).length} platforms reported` : "Add follower counts"} icon={TrendingUp} series={audienceSeries} />
+          <Metric label="Average views" value={averageViews ? compact(averageViews) : "Not added"} detail="Reported platform average" icon={Eye} series={viewsSeries} />
+          <Metric label="Engagement" value={engagement ? `${engagement.toFixed(1)}%` : "Not added"} detail="Reported average rate" icon={BarChart3} series={engagementSeries} />
+          <Metric label="Brand interest" value={loading ? "-" : String(data.conversations.length + pendingRequests)} detail={`${data.conversations.length} conversations · ${pendingRequests} requests`} icon={MessageCircle} series={[pendingRequests, data.conversations.length, activeBookings.length]} />
         </div>
       </section>
+
+      <div className="mt-6 grid items-start gap-5 lg:grid-cols-3">
+        <RevenuePanel bookings={data.bookings} earned={earned} awaiting={awaitingPayment} />
+        <CollaborationFunnel bookings={data.bookings} />
+      </div>
 
       <div className="mt-12 grid items-start gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,.75fr)]">
         <AudienceChart platforms={platforms} />

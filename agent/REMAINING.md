@@ -1,6 +1,6 @@
 # Weave — Remaining Work
 
-Updated: 2026-08-19
+Updated: 2026-08-20
 
 This file is the current implementation checklist for continuing Weave. Product direction comes from `Development paper.md`, routes from `Sitemap.md`, technical decisions from `TRD.md`, and visual behavior from `Design System file.md`.
 
@@ -45,6 +45,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Added explicit Cloudinary production storage provider with server-side credentials, media type/size validation, and HTTPS delivery URLs; MinIO/R2-compatible storage remains available for alternate deployments.
 - [x] Added Prometheus-compatible metrics exposure and baseline security headers.
 - [x] Added hashed, one-time, expiring password reset tokens, queued reset email delivery, and refresh-session revocation after reset.
+- [x] Added a persisted authentication audit ledger for password, magic-link, Google OAuth, MFA, refresh/logout, password-reset, email-verification, and impersonation events. Subject, IP, and user-agent identifiers are HMAC-fingerprinted; secrets and raw client identifiers are never stored.
 - [x] Added a payment webhook receipt ledger with provider-event idempotency, payload hashing, retry state, and admin-safe inspection.
 - [x] Added billing account state, a free-plan no-gateway path, and a provider-neutral billing portal surface in settings. Paid provider adapters remain open.
 - [x] Added a billing provider registry with UniBee-first default selection for paid-plan provisioning.
@@ -57,7 +58,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 ### Important verification note
 
-- [x] Backend Maven tests verified through the pinned Docker Maven/Java 21 build: 17 tests ran with 15 passing and 2 Testcontainers tests skipped when nested Docker is unavailable.
+- [x] Backend Maven tests verified through the pinned Docker Maven/Java 21 build: 41 tests ran with 39 passing and 2 Testcontainers tests skipped when nested Docker is unavailable.
 - [x] Full backend compile and Spring Boot packaging verified through the Docker build.
 - [x] Frontend route count is broader than the sitemap because package edit/new, portfolio upload, and other nested routes are also registered. Reconcile the sitemap count before release.
 
@@ -209,7 +210,7 @@ This file is the current implementation checklist for continuing Weave. Product 
 ## SaaS Capability Goal
 
 - [x] Add password-reset, magic-link, social login, and MFA authentication with hashed one-time tokens, expiry, recovery codes, generic account responses, session cookies, frontend verification routes, and step-up login challenges.
-- [ ] Complete authentication audit trail and privileged-auth logging.
+- [x] Complete authentication audit trail and privileged-auth logging.
 - [x] Add the organization foundation: personal organizations, memberships, active-organization switching, API endpoints, and an authenticated organization switcher.
 - [x] Scope creator and editor package ownership, creation, editing, archiving, and personal package lists to the active organization with a database backfill.
 - [ ] Apply organization context to organization-owned resources and enforce tenant-safe queries; cross-party bookings must remain visible only to their explicit participants.
@@ -231,5 +232,5 @@ This file is the current implementation checklist for continuing Weave. Product 
 - Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice checkout now uses UniBee; merchant API credentials and a configured gateway ID are required for live payments.
 - Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
 - Social-platform API connections are not implemented. Creator follower, average-view, and engagement metrics are explicitly self-reported; verified analytics require platform OAuth/API integrations and historical metric storage.
-- Backend Docker compilation was attempted but timed out during Docker/Maven image setup; rerun `docker compose build backend` in a working Docker environment.
+- Backend Docker compilation and packaging pass with Java 21; the 2026-08-20 build ran 41 tests with no failures and 2 expected Testcontainers skips.
 - Payment scope note: current build covers brand→creator payment links only; creator→editor payout/disbursal is still missing and needs its own work item.

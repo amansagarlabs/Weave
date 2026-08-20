@@ -45,6 +45,7 @@ weave:
     refresh-lifetime: ${AUTH_REFRESH_LIFETIME:P30D}
     password-reset-lifetime: ${AUTH_PASSWORD_RESET_LIFETIME:PT1H}
     secure-cookies: ${AUTH_SECURE_COOKIES:false}
+    audit-hash-secret: ${AUTH_AUDIT_HASH_SECRET:${JWT_SECRET:change-this-development-audit-secret}}
   notifications:
     email:
       enabled: ${MAIL_ENABLED:false}

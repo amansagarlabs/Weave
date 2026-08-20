@@ -30,6 +30,7 @@ For local demo data, set this in `weave-backend/.env`:
 
 ```dotenv
 JWT_SECRET=change-this-development-secret-to-at-least-32-characters
+AUTH_AUDIT_HASH_SECRET=change-this-separate-development-audit-secret
 SPRING_PROFILES_ACTIVE=demo
 MAIL_ENABLED=true
 MAIL_PROVIDER=mailpit

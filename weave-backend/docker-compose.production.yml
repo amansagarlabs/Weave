@@ -69,6 +69,7 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      AUTH_AUDIT_HASH_SECRET: ${AUTH_AUDIT_HASH_SECRET:?AUTH_AUDIT_HASH_SECRET is required}
       AUTH_SECURE_COOKIES: "true"
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:?APP_PUBLIC_URL is required}
       UNIBEE_BASE_URL: ${UNIBEE_BASE_URL:-https://api.unibee.dev}

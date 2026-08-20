@@ -5,6 +5,7 @@ import com.weave.auth.entity.User;
 import com.weave.auth.repository.UserRepository;
 import com.weave.auth.security.AuthCookieService;
 import com.weave.auth.service.AuthSessionService;
+import com.weave.auth.service.AuthAuditService;
 import com.weave.admin.service.AdminAuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,9 +22,10 @@ public class AdminImpersonationController {
     private final AuthSessionService sessions;
     private final AuthCookieService cookies;
     private final AdminAuditService audit;
+    private final AuthAuditService authAudit;
 
-    public AdminImpersonationController(UserRepository users, AuthSessionService sessions, AuthCookieService cookies, AdminAuditService audit) {
-        this.users = users; this.sessions = sessions; this.cookies = cookies; this.audit = audit;
+    public AdminImpersonationController(UserRepository users, AuthSessionService sessions, AuthCookieService cookies, AdminAuditService audit, AuthAuditService authAudit) {
+        this.users = users; this.sessions = sessions; this.cookies = cookies; this.audit = audit; this.authAudit = authAudit;
     }
 
     @GetMapping("/status")
@@ -41,6 +43,7 @@ public class AdminImpersonationController {
         cookies.setImpersonatedRefresh(response, session.refreshToken());
         cookies.setSession(response, session.accessToken(), session.refreshToken());
         audit.record(principal.getName(), "IMPERSONATION_STARTED", "USER", id, "Admin session entered user account");
+        authAudit.success("IMPERSONATION_STARTED", principal.getName(), request, "TARGET_USER_ID_" + id);
         return session.user();
     }
 
@@ -53,6 +56,7 @@ public class AdminImpersonationController {
         var session = sessions.rotate(adminRefresh, request.getHeader("User-Agent"), request.getRemoteAddr());
         cookies.setSession(response, session.accessToken(), session.refreshToken());
         cookies.clearImpersonator(response);
+        authAudit.success("IMPERSONATION_STOPPED", session.user().email(), request, "ADMIN_SESSION_RESTORED");
         return session.user();
     }
 }

@@ -137,11 +137,13 @@ export function AppShell({
   children,
   title,
   eyebrow,
+  skin = "default",
 }: {
   role: Role;
   children: React.ReactNode;
   title: string;
   eyebrow?: string;
+  skin?: "default" | "analytics";
 }) {
   return (
     <AuthGate role={role}>
@@ -153,7 +155,7 @@ export function AppShell({
           Skip to content
         </a>
 
-        <div className="min-h-screen bg-[var(--paper)] pb-20 lg:pb-0">
+        <div data-dashboard-skin={skin} className="min-h-screen bg-[var(--paper)] pb-20 lg:pb-0">
           <AppSidebar role={role} />
 
           <SidebarInset>
