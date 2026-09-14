@@ -10,6 +10,7 @@ import com.weave.message.dto.MessageResponse;
 import com.weave.message.entity.Message;
 import com.weave.message.repository.MessageRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,7 +28,7 @@ public class MessageService {
     private final NotificationService notifications;
     private final SimpMessagingTemplate broker;
 
-    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings, NotificationService notifications, SimpMessagingTemplate broker) {
+    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings, NotificationService notifications, @Lazy SimpMessagingTemplate broker) {
         this.messages = messages; this.users = users; this.bookings = bookings; this.notifications = notifications; this.broker = broker;
     }
 
@@ -39,9 +40,12 @@ public class MessageService {
         Message saved = messages.save(Message.create(request.threadId(), sender.getId(), request.recipientId(), request.body().trim()));
         notifications.create(recipient.getId(), "New message", "You have a new message in a Weave conversation.", "MESSAGE");
 
+        MessageResponse response = MessageResponse.from(saved);
+        broker.convertAndSend("/topic/threads/" + request.threadId(), response);
+
         publishInboxUpdate(request.threadId(), sender, saved);
 
-        return MessageResponse.from(saved);
+        return response;
     }
 
     public List<MessageResponse> thread(String email, String threadId) {

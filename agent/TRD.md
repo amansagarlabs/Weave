@@ -35,11 +35,11 @@ Each domain package is internally layered (Controller → Service → Repository
 | ORM | Spring Data JPA + Hibernate | Standard SDE1-expected pairing |
 | Database | PostgreSQL | Relational data (users, bookings, invoices); JSONB columns for flexible fields (category tags, evolving compliance content) |
 | Migrations | Flyway | Version-controlled schema, standard with Spring Boot |
-| Auth | Spring Security + JWT (stateless) | RBAC: Creator, Brand, Editor, Admin |
+| Auth | Spring Security + JWT (stateless) | RBAC: Creator, Brand, Editor, Admin; **Email OTP only** (no SMS, no MSG91, no phone number) — OTP via existing SMTP, same infra as password reset |
 | Build tool | Maven | Broader enterprise JD match than Gradle |
 | Testing | JUnit5 + Mockito | Interview-relevant, standard |
 | File storage | AWS S3 (or Cloudflare R2, S3-compatible) | Media kit images, editor-delivered content (watermarked previews) |
-| Payments/Payouts/Escrow | **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, hosted checkout, and payment events | $0 plans skip gateway calls. Invoice checkout uses UniBee. Paid plans still carry unavoidable gateway/bank costs. No escrow |
+| Payments/Payouts/Escrow | **Cashfree** — Payment Gateway (0% MDR up to ₹20L GMV/month till 31 Mar 2027), Payouts API (creator/editor disbursal), One Escrow (marketplace escrow-as-a-service), Aadhaar eSign | RBI-licensed PA (CoA 266/2025); Java SDK available; chosen over Razorpay/PhonePe PG for multi-party payout + escrow fit |
 | Containerization | Docker | Backend containerized, strong SDE1 signal |
 | CI/CD | GitHub Actions | Free, standard |
 | Backend hosting | Render/Railway (fast/free tier) or AWS EC2 (resume weight) | Pick based on time budget |
@@ -54,7 +54,8 @@ Layered: **Controller → Service → Repository → Entity**, with DTOs for req
 
 ```
 User
- - id, email, phone, role (creator|brand|editor|admin), created_at, locale
+ - id, email, role (creator|brand|editor|admin), created_at, locale
+  (no phone field — SMS/phone OTP permanently out of scope)
 
 CreatorProfile
  - user_id (FK), display_name, categories[] (see taxonomy), platforms[] (jsonb: {platform, handle, follower_count}),
@@ -69,7 +70,7 @@ Deal
 
 Invoice
  - id, deal_id (FK), creator_id (FK), amount, gst_amount, tds_amount, sac_code, gstin_creator, gstin_brand,
-   place_of_supply, status (draft|sent|paid|overdue), provider_payment_link_id, provider_customer_id, due_date, paid_at
+   place_of_supply, status (draft|sent|paid|overdue), razorpay_payment_link_id, due_date, paid_at
 
 MediaKit
  - creator_id (FK), public_slug, rate_card (jsonb: [{content_type, price, delivery_days}]),
@@ -94,7 +95,9 @@ CollabMatch
 ## 4. API Design (Representative Endpoints — not exhaustive)
 
 ```
-POST   /auth/signup                 { role, email/phone }
+POST   /auth/otp/send               { email } → sends 6-digit OTP via email
+POST   /auth/otp/verify             { email, code } → returns JWT on success
+POST   /auth/signup                 { role, email }
 POST   /auth/login
 GET    /users/me
 
@@ -109,7 +112,7 @@ GET    /rate-benchmark              ?category&followers&engagement&platform&city
 
 POST   /invoices                    generate from deal_id
 GET    /invoices/:id
-POST   /invoices/:id/send           triggers payment-link + reminder scheduling
+POST   /invoices/:id/send           triggers Razorpay payment link + reminder scheduling
 
 GET    /compliance/disclosure       ?platform&deal_type  -> static checklist content
 
@@ -127,14 +130,10 @@ GET    /collab-matches?creator_id=
 
 ## 5. Third-Party Integration Notes
 
-**UniBee (free/open-source primary)**
-- Use UniBee as primary subscription, recurring-payment, invoice, collection, and payment-event system
-- Offer free/$0 plans by creating zero-amount invoices and marking them paid without a gateway transaction
-- Never claim real card/UPI/bank processing is free; gateway and payout fees remain external costs
-- Model provider customer, subscription, invoice, payment, and webhook event IDs for idempotency/reconciliation
-- Creator→editor payout/disbursal is separate from subscription billing and requires its own provider flow
+**Razorpay**
+- Use Payment Links / Invoicing API for UPI collection
 - Structure invoice objects with GSTIN, HSN/SAC code, place of supply, CGST/SGST/IGST breakup fields
-- Webhook or event listener required for payment-status updates (paid/failed) to update `Invoice.status`
+- Webhook listener required for payment-status updates (paid/failed) to update `Invoice.status`
 
 **Digio/Leegality (deferred past v1)**
 - Aadhaar OTP eSign flow; integrate only when contract-generation feature is prioritized
@@ -151,11 +150,57 @@ GET    /collab-matches?creator_id=
 - **This logic must be reviewable/updatable by a non-engineer (e.g., admin config panel or CMS) since CBDT rules change periodically**
 
 ## 7. Security & Access Control
-- CRUD permissions are persisted per role/resource/action in `rbac_policies`. Admins can update Creator, Brand, and Editor policies from `/admin/rbac/policies`; Admin access cannot be disabled. Core booking, package, profile, edit-request, invoice, and message endpoints evaluate these policies server-side. Policy changes are audited and read from PostgreSQL for immediate effect without unnecessary cache invalidation.
 - Role-based access control (RBAC): Creator, Brand, Editor, Admin — enforce at API layer, not just UI
 - Media kit pages are the only public/unauthenticated routes; everything else requires auth
 - Editor-delivered content (Section 4.1 of PRD): store watermarked/low-res preview separately from final asset; final asset only served after `payment_status == confirmed`
 - Standard practices: hashed credentials or OAuth, HTTPS everywhere, rate-limiting on public endpoints (media kit, rate-benchmark)
+
+### 7A. Messaging Security (Hardening Pass)
+
+**Threat model:** horizontal privilege escalation (User A reads User B's messages), cross-role leakage, unauthenticated STOMP subscriptions, STOMP token replay, thread ID enumeration, message injection, stored XSS, mass scraping, unadminaudited admin access.
+
+**Authorization model:**
+- Every message entry point (REST and STOMP) must verify the requesting user is a thread participant before returning data or accepting writes.
+- Participant check is explicit and fail-fast — not relying on JPA query filtering alone.
+- Thread membership is derived from `Message.senderId` / `Message.recipientId` — no separate `Thread` entity exists. Threads are implicit, keyed by `threadId` string.
+
+**STOMP subscription security:**
+- Dedicated `MessageSubscriptionInterceptor` validates every SUBSCRIBE frame against topic patterns:
+  - `/topic/threads/{threadId}` — must be participant
+  - `/topic/thread/{threadId}/typing` — must be participant
+  - `/topic/user/{userId}/inbox` — must be the same user (userId from JWT Principal, never from payload)
+  - Any other `/topic/` subscription — blocked
+- Registered alongside `StompAuthChannelInterceptor` in `WebSocketConfig`.
+
+**STOMP token:**
+- Short-lived JWT issued on-demand via `POST /auth/realtime-token`.
+- Claims: `sub` (email), `role`. No `userId` claim — email is resolved to userId via DB lookup on CONNECT.
+- Token is not cached in browser state; frontend fetches fresh on every reconnect.
+- Session binding (sessionId→userId ConcurrentHashMap, evict on DISCONNECT) is deferred to production hardening.
+
+**Message body:**
+- Sanitized on WRITE (backend), not on READ (frontend).
+- HTML tags stripped via regex (`<[^>]*>`). Ampersands/angle brackets entity-encoded.
+- Max 4000 chars. `@Size(max = 4000)` on DTO, enforced in service before sanitize.
+- Frontend renders via `{message.body}` (React auto-escapes). No `dangerouslySetInnerHTML`.
+
+**Thread ID:**
+- Free-form string (VARCHAR(120)), client-supplied. `booking-{id}` prefix is predictable.
+- Format validation: `^[a-zA-Z0-9_-]+$`, max 120 chars.
+- Full UUID migration deferred — participant check is the primary enumeration mitigation.
+
+**Inbox query:**
+- SQL-level filtering: latest message per thread via `GROUP BY threadId` subquery.
+- No Java-side deduplication of all message rows.
+
+**Rate limiting:**
+- REST message endpoints covered by existing `RateLimitingFilter` (MESSAGES category, 60 req/min per user).
+- STOMP typing: 400ms ConcurrentHashMap debounce per user+thread.
+- WebSocket frame rate limiting deferred (servlet filter does not cover WS).
+
+**Admin audit:**
+- Admin message thread access logged via existing `AdminAuditEvent` + `AdminAuditService` (V23 migration).
+- No new entity — extend existing audit service.
 
 ## 8. Non-Functional Requirements
 - **Localization:** UI copy must be externalized (i18n-ready) from day one, even if only English ships in v1 — Hindi/regional language is a planned Phase 1.x addition, and retrofitting i18n later is expensive
@@ -171,25 +216,6 @@ GET    /collab-matches?creator_id=
 - Payment escrow (holding funds) — requires payment aggregator licensing in India; confirm with founders before any implementation work begins
 
 ## 10. Open Technical Decisions (Flag to Founders, Do Not Assume)
-- UniBee billing coverage — payment-gateway rollout is deferred to a later release as of 2026-08-20; confirm gateway coverage, self-hosting, recurring billing, webhook, and payout requirements before production cutover.
-- Creator→editor payout/disbursal flow — currently missing from implementation checklist and needs a separate design before editor-collab money flow is complete.
+- Escrow vs. pass-through payment — regulatory blocker resolved: **Cashfree One Escrow** is a licensed escrow-as-a-service product, so this is technically buildable now. Still needs founder sign-off on cost/business terms before implementing.
 - "Influencing score" composite metric definition (Phase 1.5 Brand↔Creator module)
 - Editor suspension trigger definition (under-delivery vs. rejecting change requests)
-
-## 11. SaaS Starter Capability Baseline
-
-Use Makerkit-style capabilities as product requirements, while preserving Weave domain rules and UniBee billing:
-
-- Authentication: password, magic link, social login, MFA, recovery, session revocation, rate limits, and audit events.
-- Multi-tenancy: personal account plus multiple organizations, membership roles, switching, tenant-scoped authorization, and tenant-safe queries.
-- Organization foundation is implemented through personal organizations, memberships, an active organization on the user session, and an authenticated switcher. Domain records still require explicit tenant scoping before this requirement is complete; cross-party booking access remains participant-based by design.
-- Super Admin: manage, impersonate, disable, and restore users and organizations; audit every privileged action.
-- Admin command center, user management, organization management, moderation, content, operations, impersonation, and durable privileged-action audit records are implemented.
-- Role dashboards use a shared responsive shell with distinct creator, brand, and editor information architecture, dynamic API-backed metrics, interactive analytics, and a local development feed populated with credited Pexels media.
-- Billing: UniBee self-hosted subscription and recurring billing; provider-neutral customer portal. Free plans skip gateway calls.
-- UI: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible responsive layouts, mobile-first behavior.
-- Content: SEO-ready blog and documentation/help center with controlled publishing.
-- Delivery: strict TypeScript/ESLint, Playwright E2E, React.Email, unified SMTP/Resend mailer API, serverful/serverless-safe boundaries.
-- Extensibility: plugin contracts for testimonials, feedback, roadmap, waitlist, and future modules; no vendor lock-in.
-- Agent tooling: repository AI-agent rules and MCP server contract.
-- Realtime: Supabase-compatible notification boundary; current WebSocket implementation stays replaceable.

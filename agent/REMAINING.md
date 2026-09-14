@@ -1,6 +1,6 @@
 # Weave — Remaining Work
 
-Updated: 2026-08-20
+Updated: 2026-09-14
 
 This file is the current implementation checklist for continuing Weave. Product direction comes from `Development paper.md`, routes from `Sitemap.md`, technical decisions from `TRD.md`, and visual behavior from `Design System file.md`.
 
@@ -129,6 +129,36 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Connect creator and brand inbox pages to live threads instead of empty-state-only UI.
 - [x] Add booking context and participant validation to `booking-{id}` message threads.
 - [x] Add send failure retry and optimistic/pending message states.
+- [x] Add real-time STOMP messaging with connection status, reconnection, and typing indicators.
+
+### 6A. Messaging security hardening (security-only pass — no features, no UI changes)
+
+**Confirmed already closed:**
+- [x] STOMP CONNECT authentication via JWT in `StompAuthChannelInterceptor`.
+- [x] STOMP SUBSCRIBE authorization for `/topic/threads/{threadId}` in `StompAuthChannelInterceptor`.
+- [x] REST message endpoints require authentication + RBAC (`@PreAuthorize`).
+- [x] Rate limiting on `/messages` endpoints (MESSAGES category, 60 req/min).
+- [x] Typing indicator spam prevention (400ms ConcurrentHashMap debounce).
+- [x] JWT revocation on logout (refresh token deletion + cookie clearing).
+- [x] STOMP token is short-lived, fetched fresh on every reconnect (not cached in state).
+- [x] Frontend renders message body as plain text (`{message.body}`, no `dangerouslySetInnerHTML`).
+
+**Gaps to fix:**
+- [ ] Add `sanitize()` method to `MessageService.send()` — strip HTML tags, encode entities, before persisting.
+- [ ] Add `@Size(max = 4000)` to `CreateMessageRequest.body` + enforce in service.
+- [ ] Create Flyway migration V34 — ALTER COLUMN body to VARCHAR(4000).
+- [ ] Add thread ID format validation (`^[a-zA-Z0-9_-]+$`, max 120 chars) to `CreateMessageRequest`.
+- [ ] Create `MessageSubscriptionInterceptor.java` — validate all STOMP SUBSCRIBE frames (thread, typing, inbox topics).
+- [ ] Register `MessageSubscriptionInterceptor` in `WebSocketConfig.configureClientInboundChannel()`.
+- [ ] Replace inbox Java-side dedup with SQL-level `GROUP BY threadId` query in `MessageRepository`.
+- [ ] Verify `inbox()` query only returns threads where user is participant (SQL-level, not Java filter).
+- [ ] Verify STOMP SUBSCRIBE to `/topic/thread/{threadId}/typing` requires participant check.
+- [ ] Verify STOMP SUBSCRIBE to `/topic/user/{userId}/inbox` rejects other users' inboxes.
+- [ ] Extend `AdminAuditService` for message thread read audit trail (reuse existing `AdminAuditEvent`).
+- [ ] Add `MessageSecurityTest` — nonParticipantCannotReadThread, nonParticipantCannotSendToThread, nonParticipantStompSubscriptionRejected, userCannotSubscribeToAnotherUsersInbox, messageBodySanitizesHtmlTags, messageBodyRejectsOver4000Chars, inboxQueryOnlyReturnsOwnThreads.
+- [ ] Frontend: verify 403 from `GET /messages/{threadId}` shows error and does not render messages.
+- [ ] Frontend: static analysis confirms no `dangerouslySetInnerHTML` in message rendering.
+- [ ] Frontend: verify STOMP reconnect always fetches fresh token (not cached).
 
 ### 7. Complete admin and support surfaces
 
@@ -177,7 +207,8 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
 - [x] Configure S3-compatible MinIO development storage and participant-authorized preview/final asset uploads through environment variables. Cloudflare R2 or another S3-compatible deployment can replace the endpoint and credentials without application changes.
 - [x] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
-- [x] Add authenticated WebSocket/STOMP conversations: short-lived cookie-authenticated token, participant-scoped thread subscriptions, persisted message delivery, frontend reconnect, and accessible connection status. Typing presence remains open.
+- [x] Add authenticated WebSocket/STOMP conversations: short-lived cookie-authenticated token, participant-scoped thread subscriptions, persisted message delivery, frontend reconnect, and accessible connection status.
+- [x] Add dynamic typing indicators with debounce/throttle protection and accessible status text.
 - [x] Add Redis service wiring for shared rate limits and future presence/jobs.
 - [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
 - [x] Add password reset tokens with one-time expiry and session revocation.
@@ -189,8 +220,8 @@ This file is the current implementation checklist for continuing Weave. Product 
 
 ## Next-day build plan
 
-1. Add upload finalization/cleanup jobs.
-2. Add typing indicators with a short-lived presence event, debounce/throttle protection, reduced-motion support, and an `aria-live` status.
+1. Add messaging security hardening: body sanitization, subscription interceptor, inbox query optimization, thread ID validation (see Section 6A).
+2. Add upload finalization/cleanup jobs.
 3. Connect validated attachments to configured S3/R2 storage and define moderated emoji/GIF/sticker providers.
 4. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
 5. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, UniBee, JWT, and CORS.
