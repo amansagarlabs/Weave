@@ -51,8 +51,8 @@ export function Footer({ compact = false }: FooterProps) {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
-                      clearPublicSession();
+                    onClick={async () => {
+                      await clearPublicSession();
                       window.location.assign("/login");
                     }}
                     className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-white/75 transition-colors hover:text-white"

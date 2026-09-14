@@ -105,7 +105,8 @@ class PostgresPersistenceIntegrationTest {
                 "[\"Instagram\"]",
                 "Mumbai",
                 "Hindi",
-                "Available"
+                "Available",
+                null
         ));
 
         Package activePackage = packages.saveAndFlush(Package.create(

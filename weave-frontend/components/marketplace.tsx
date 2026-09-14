@@ -17,6 +17,7 @@ type CreatorProfile = {
   city: string | null;
   contentLanguage: string | null;
   availabilityStatus: string | null;
+  avatarUrl: string | null;
   influencingScore: number | null;
 };
 
@@ -34,6 +35,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Mumbai",
     contentLanguage: "English",
     availabilityStatus: "Available",
+    avatarUrl: null,
     influencingScore: null,
     followers: "18k",
     price: "Rs 3,500",
@@ -49,6 +51,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Delhi",
     contentLanguage: "Hindi",
     availabilityStatus: "Available",
+    avatarUrl: null,
     influencingScore: null,
     followers: "24k",
     price: "Rs 4,000",
@@ -64,6 +67,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Bengaluru",
     contentLanguage: "English",
     availabilityStatus: "Limited",
+    avatarUrl: null,
     influencingScore: null,
     followers: "12k",
     price: "Rs 2,800",
@@ -383,8 +387,8 @@ function LegacyPublicCreatorProfile({ slug, variant = "brand" }: { slug: string;
 
       <div className="mx-auto max-w-6xl px-6 pb-20 lg:px-8">
         <section className="grid gap-8 rounded-3xl bg-[var(--forest)] p-8 text-white md:grid-cols-[auto_1fr_auto] md:items-end">
-          <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[var(--accent)] text-5xl text-[var(--on-bright)]">
-            ✦
+          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-[var(--accent)] text-5xl text-[var(--on-bright)]">
+            {creator?.avatarUrl ? <img src={creator.avatarUrl} alt={creator.displayName} className="h-full w-full object-cover" /> : "✦"}
           </div>
           <div>
             <Pill tone="lime">{loading ? "Loading profile" : creator?.availabilityStatus ?? "Available for work"}</Pill>

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Role } from "./ui";
-import { api, csrfHeaders } from "../lib/api";
+import { api } from "../lib/api";
+import { clearPublicSession } from "./public-session";
 import { AppleLoader } from "./apple-loader";
 
 type SessionUser = { role: string };
@@ -33,9 +34,9 @@ export function AuthGate({ role, children }: { role: Role; children: React.React
 
 export function LogoutButton({ className = "" }: { className?: string }) {
   const router = useRouter();
-  function logout() {
+  async function logout() {
     clearAuthSessionCache();
-    void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+    await clearPublicSession();
     router.replace("/login");
   }
   return (

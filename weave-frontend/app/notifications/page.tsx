@@ -5,7 +5,8 @@ import Link from "next/link";
 import { api } from "../../lib/api";
 import { SurfacePage } from "../../components/surface";
 import { Card, Pill } from "../../components/ui";
-import { Modal } from "../../components/modal";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Loader2 } from "lucide-react";
 import type { Role } from "../../components/workspace-nav";
 
 type Notification = {
@@ -99,30 +100,31 @@ export default function NotificationsPage() {
           )) : !loading ? <div className="py-8 text-sm text-[var(--muted)]">No notifications yet.</div> : null}
         </div>
       </Card>
-      <Modal
-        open={confirmOpen}
-        title="Mark all notifications as read?"
-        description="This updates your notification state on the server. You can still open each item later."
-        onClose={() => setConfirmOpen(false)}
-      >
-        <div className="flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => setConfirmOpen(false)}
-            className="min-h-12 rounded-full border-2 border-[var(--ink)] px-5 py-3 text-sm font-bold transition-transform active:scale-[.97]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={markAllRead}
-            disabled={busy}
-            className="min-h-12 rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition-transform active:scale-[.97] disabled:opacity-60"
-          >
-            {busy ? "Saving..." : "Mark all read"}
-          </button>
-        </div>
-      </Modal>
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark all notifications as read?</DialogTitle>
+            <DialogDescription>This updates your notification state on the server. You can still open each item later.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(false)}
+              className="min-h-12 rounded-full border-2 border-[var(--ink)] px-5 py-3 text-sm font-bold transition-transform active:scale-[.97]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={markAllRead}
+              disabled={busy}
+              className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white transition-transform active:scale-[.97] disabled:opacity-60"
+            >
+              {busy ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Mark all read"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SurfacePage>
   );
 }

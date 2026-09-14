@@ -65,8 +65,8 @@ export function PublicNav() {
               </Link>
               <button
                 type="button"
-                onClick={() => {
-                  clearPublicSession();
+                onClick={async () => {
+                  await clearPublicSession();
                   window.location.assign("/login");
                 }}
                 className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-[var(--ink)] transition-colors hover:bg-[var(--card)]"
@@ -106,8 +106,8 @@ export function PublicNav() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
-                      clearPublicSession();
+                    onClick={async () => {
+                      await clearPublicSession();
                       window.location.assign("/login");
                     }}
                     className="flex items-center gap-2 rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--paper)]"

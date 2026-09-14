@@ -50,9 +50,13 @@ export function dashboardHrefForRole(role: PublicRole | null) {
   return "/login";
 }
 
-export function clearPublicSession() {
+export async function clearPublicSession() {
   setPublicSession({ ready: true, authenticated: false, role: null });
-  void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+  try {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+  } catch {
+    // Logout endpoint may be unreachable; cookies are still cleared client-side below.
+  }
 }
 
 export function usePublicSession() {

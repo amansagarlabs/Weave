@@ -15,11 +15,13 @@ public class CreatorProfile {
     private String city;
     private String contentLanguage;
     private String availabilityStatus;
+    private String avatarUrl;
+    private String bio;
     // Placeholder only; influencing_score formula is pending founder sign-off.
     private Integer influencingScore;
     protected CreatorProfile() { }
 
-    public static CreatorProfile create(Long userId, String displayName, String publicSlug, String categoriesJson, String platformsJson, String city, String contentLanguage, String availabilityStatus) {
+    public static CreatorProfile create(Long userId, String displayName, String publicSlug, String categoriesJson, String platformsJson, String city, String contentLanguage, String availabilityStatus, String bio) {
         CreatorProfile profile = new CreatorProfile();
         profile.userId = userId;
         profile.displayName = displayName;
@@ -29,10 +31,11 @@ public class CreatorProfile {
         profile.city = city;
         profile.contentLanguage = contentLanguage;
         profile.availabilityStatus = availabilityStatus;
+        profile.bio = bio;
         return profile;
     }
 
-    public void update(String displayName, String publicSlug, String categoriesJson, String platformsJson, String city, String contentLanguage, String availabilityStatus) {
+    public void update(String displayName, String publicSlug, String categoriesJson, String platformsJson, String city, String contentLanguage, String availabilityStatus, String bio) {
         this.displayName = displayName;
         this.publicSlug = publicSlug;
         this.categoriesJson = categoriesJson;
@@ -40,6 +43,7 @@ public class CreatorProfile {
         this.city = city;
         this.contentLanguage = contentLanguage;
         this.availabilityStatus = availabilityStatus;
+        this.bio = bio;
     }
 
     public Long getUserId() { return userId; }
@@ -50,5 +54,9 @@ public class CreatorProfile {
     public String getCity() { return city; }
     public String getContentLanguage() { return contentLanguage; }
     public String getAvailabilityStatus() { return availabilityStatus; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
     public Integer getInfluencingScore() { return influencingScore; }
 }

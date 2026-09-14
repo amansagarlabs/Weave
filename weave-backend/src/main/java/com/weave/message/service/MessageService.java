@@ -5,10 +5,12 @@ import com.weave.auth.repository.UserRepository;
 import com.weave.booking.entity.Booking;
 import com.weave.booking.repository.BookingRepository;
 import com.weave.message.dto.CreateMessageRequest;
+import com.weave.message.dto.InboxUpdatePayload;
 import com.weave.message.dto.MessageResponse;
 import com.weave.message.entity.Message;
 import com.weave.message.repository.MessageRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
@@ -23,8 +25,11 @@ public class MessageService {
     private final UserRepository users;
     private final BookingRepository bookings;
     private final NotificationService notifications;
+    private final SimpMessagingTemplate broker;
 
-    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings, NotificationService notifications) { this.messages = messages; this.users = users; this.bookings = bookings; this.notifications = notifications; }
+    public MessageService(MessageRepository messages, UserRepository users, BookingRepository bookings, NotificationService notifications, SimpMessagingTemplate broker) {
+        this.messages = messages; this.users = users; this.bookings = bookings; this.notifications = notifications; this.broker = broker;
+    }
 
     public MessageResponse send(String email, CreateMessageRequest request) {
         User sender = users.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -33,6 +38,9 @@ public class MessageService {
         if (request.threadId().startsWith("booking-")) bookingParticipant(request.threadId(), sender, recipient);
         Message saved = messages.save(Message.create(request.threadId(), sender.getId(), request.recipientId(), request.body().trim()));
         notifications.create(recipient.getId(), "New message", "You have a new message in a Weave conversation.", "MESSAGE");
+
+        publishInboxUpdate(request.threadId(), sender, saved);
+
         return MessageResponse.from(saved);
     }
 
@@ -90,5 +98,27 @@ public class MessageService {
         if (!senderAllowed) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not a booking participant");
         if (recipient != null) { Long expected = booking.getBrandId().equals(sender.getId()) ? booking.getCreatorId() : booking.getBrandId(); if (!expected.equals(recipient.getId())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Recipient is not the booking participant"); }
         return true;
+    }
+
+    private void publishInboxUpdate(String threadId, User sender, Message saved) {
+        List<Message> threadMessages = messages.findByThreadIdOrderByCreatedAtAsc(threadId);
+        for (Message msg : threadMessages) {
+            Long recipientId = msg.getSenderId().equals(sender.getId()) ? msg.getRecipientId() : msg.getSenderId();
+            if (recipientId.equals(sender.getId())) continue;
+            String senderName = sender.getEmail().split("@")[0];
+            InboxUpdatePayload update = new InboxUpdatePayload(
+                threadId,
+                truncate(saved.getBody(), 80),
+                saved.getCreatedAt(),
+                String.valueOf(sender.getId()),
+                senderName
+            );
+            broker.convertAndSend("/topic/user/" + recipientId + "/inbox", update);
+        }
+    }
+
+    private String truncate(String text, int max) {
+        if (text == null) return "";
+        return text.length() <= max ? text : text.substring(0, max) + "…";
     }
 }

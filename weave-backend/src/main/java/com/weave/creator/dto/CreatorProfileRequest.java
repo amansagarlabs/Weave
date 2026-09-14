@@ -9,5 +9,6 @@ public record CreatorProfileRequest(
         String platformsJson,
         String city,
         String contentLanguage,
-        String availabilityStatus
+        String availabilityStatus,
+        String bio
 ) { }

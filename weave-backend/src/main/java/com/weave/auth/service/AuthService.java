@@ -80,6 +80,6 @@ public class AuthService {
         String slug = baseSlug;
         int suffix = 2;
         while (creatorProfiles.findByPublicSlug(slug).isPresent()) slug = baseSlug + "-" + suffix++;
-        creatorProfiles.save(CreatorProfile.create(user.getId(), displayName, slug, "[]", "[]", null, null, "AVAILABLE"));
+        creatorProfiles.save(CreatorProfile.create(user.getId(), displayName, slug, "[]", "[]", null, null, "AVAILABLE", null));
     }
 }

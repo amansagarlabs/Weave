@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import com.weave.creator.dto.PackageResponse;
 import com.weave.creator.dto.PortfolioAssetResponse;
@@ -29,6 +30,12 @@ public class CreatorProfileController {
     @GetMapping("/profile/me")
     @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PROFILE', 'READ')")
     CreatorProfileResponse mine(Authentication authentication) { return profiles.mine(authentication.getName()); }
+
+    @PostMapping(path = "/profile/avatar", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('CREATOR') and @rbac.can(authentication, 'PROFILE', 'CREATE')")
+    CreatorProfileResponse uploadAvatar(@RequestPart MultipartFile file, Authentication authentication) {
+        return profiles.uploadAvatar(authentication.getName(), file);
+    }
 
     @GetMapping("/profile/{id}")
     CreatorProfileResponse byId(@PathVariable Long id) { return profiles.byId(id); }

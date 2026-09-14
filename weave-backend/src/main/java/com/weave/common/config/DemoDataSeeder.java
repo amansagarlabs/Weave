@@ -62,7 +62,7 @@ public class DemoDataSeeder implements CommandLineRunner {
         organizations.ensureActive(creator);
         organizations.ensureActive(brand);
         organizations.ensureActive(editor);
-        creators.findById(creator.getId()).orElseGet(() -> creators.save(CreatorProfile.create(creator.getId(), "Demo Creator", "demo-creator", "[\"Tech\",\"Lifestyle\"]", "[{\"platform\":\"Instagram\",\"handle\":\"@demo_creator\",\"follower_count\":12000}]", "Bengaluru", "English", "Available for work")));
+        creators.findById(creator.getId()).orElseGet(() -> creators.save(CreatorProfile.create(creator.getId(), "Demo Creator", "demo-creator", "[\"Tech\",\"Lifestyle\"]", "[{\"platform\":\"Instagram\",\"handle\":\"@demo_creator\",\"follower_count\":12000}]", "Bengaluru", "English", "Available for work", null)));
         brands.findById(brand.getId()).orElseGet(() -> brands.save(BrandProfile.create(brand.getId(), "Demo Brand Co.", "D2C", "29ABCDE1234F1Z5")));
         editors.findById(editor.getId()).orElseGet(() -> editors.save(EditorProfile.create(editor.getId(), "[\"https://example.com/demo-editing\"]")));
         if (packages.findByOwnerIdAndOwnerTypeAndActiveTrueOrderByIdAsc(creator.getId(), "CREATOR").isEmpty()) packages.save(Package.create(creator.getId(), creator.getActiveOrganizationId(), "CREATOR", "Instagram Reel", new BigDecimal("3500.00"), 5, 2));

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Images, LogOut, Mail, Moon, Settings2, Upload, User } from "lucide-react";
-import { api, csrfHeaders } from "../lib/api";
+import { api } from "../lib/api";
+import { clearPublicSession } from "./public-session";
+import { clearAuthSessionCache } from "./auth-gate";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { roleMeta, type Role } from "./workspace-nav";
 
@@ -79,8 +81,9 @@ export function ProfileMenu({ role, placement = "header", compact = false }: { r
     applyTheme(nextTheme);
   }
 
-  function logout() {
-    void fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/auth/logout`, { method: "POST", credentials: "include", headers: csrfHeaders() });
+  async function logout() {
+    clearAuthSessionCache();
+    await clearPublicSession();
     setOpen(false);
     router.replace("/login");
   }
