@@ -1,6 +1,21 @@
 spring:
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
   application:
     name: weave-backend
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:25MB}
+      max-request-size: ${MAX_REQUEST_SIZE:26MB}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS:false}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/weave}
     username: ${DATABASE_USERNAME:weave}
@@ -13,12 +28,68 @@ spring:
     enabled: true
 server:
   port: ${PORT:8080}
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-swallow-size: ${MAX_REQUEST_BYTES:26214400}
+logging:
+  level:
+    root: INFO
+    com.weave: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [cid=%X{correlationId:-na}] %logger{36} - %msg%n"
 weave:
+  app:
+    public-url: ${APP_PUBLIC_URL:http://localhost:3000}
+  auth:
+    email-verification-lifetime: ${AUTH_EMAIL_VERIFICATION_LIFETIME:PT24H}
+    refresh-lifetime: ${AUTH_REFRESH_LIFETIME:P30D}
+    password-reset-lifetime: ${AUTH_PASSWORD_RESET_LIFETIME:PT1H}
+    secure-cookies: ${AUTH_SECURE_COOKIES:false}
+    audit-hash-secret: ${AUTH_AUDIT_HASH_SECRET:${JWT_SECRET:change-this-development-audit-secret}}
+  notifications:
+    email:
+      enabled: ${MAIL_ENABLED:false}
+      from: ${MAIL_FROM:no-reply@weave.local}
+      provider: ${MAIL_PROVIDER:smtp}
+      resend-api-key: ${RESEND_API_KEY:}
+      resend-api-base-url: ${RESEND_API_BASE_URL:https://api.resend.com}
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-to-at-least-32-characters}
-    expiration: ${JWT_EXPIRATION:PT24H}
+    expiration: ${JWT_EXPIRATION:PT15M}
+  payments:
+    mode: unibee
+  billing:
+    portal-url: ${BILLING_PORTAL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
+    unibee:
+      base-url: ${UNIBEE_BASE_URL:https://api.unibee.dev}
+      api-key: ${UNIBEE_API_KEY:}
+      plan-ids: ${UNIBEE_PLAN_IDS:}
+      payment-gateway-id: ${UNIBEE_PAYMENT_GATEWAY_ID:0}
+      payment-type: ${UNIBEE_PAYMENT_TYPE:}
+      return-url: ${UNIBEE_RETURN_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
+      cancel-url: ${UNIBEE_CANCEL_URL:${APP_PUBLIC_URL:http://localhost:3000}/billing}
+  storage:
+    provider: ${STORAGE_PROVIDER:s3}
+    s3:
+      endpoint: ${S3_ENDPOINT:}
+      region: ${S3_REGION:auto}
+      bucket: ${S3_BUCKET:}
+      access-key: ${S3_ACCESS_KEY:}
+      secret-key: ${S3_SECRET_KEY:}
+      public-base-url: ${S3_PUBLIC_BASE_URL:}
+      max-upload-bytes: ${S3_MAX_UPLOAD_BYTES:26214400}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+  realtime:
+    allowed-origins: ${REALTIME_ALLOWED_ORIGINS:${CORS_ALLOWED_ORIGINS:http://localhost:3000}}
+  outbox:
+    poll-ms: ${OUTBOX_POLL_MS:2000}
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never

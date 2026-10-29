@@ -35,16 +35,16 @@ Each domain package is internally layered (Controller → Service → Repository
 | ORM | Spring Data JPA + Hibernate | Standard SDE1-expected pairing |
 | Database | PostgreSQL | Relational data (users, bookings, invoices); JSONB columns for flexible fields (category tags, evolving compliance content) |
 | Migrations | Flyway | Version-controlled schema, standard with Spring Boot |
-| Auth | Spring Security + JWT (stateless) | RBAC: Creator, Brand, Editor, Admin |
+| Auth | Spring Security + JWT (stateless) | RBAC: Creator, Brand, Editor, Admin; **Email OTP only** (no SMS, no MSG91, no phone number) — OTP via existing SMTP, same infra as password reset |
 | Build tool | Maven | Broader enterprise JD match than Gradle |
 | Testing | JUnit5 + Mockito | Interview-relevant, standard |
 | File storage | AWS S3 (or Cloudflare R2, S3-compatible) | Media kit images, editor-delivered content (watermarked previews) |
-| Payments | Razorpay Java SDK | UPI/RTGS/IMPS/NEFT reconciliation, payment links, invoicing primitives |
+| Payments/Payouts/Escrow | **Cashfree** — Payment Gateway (0% MDR up to ₹20L GMV/month till 31 Mar 2027), Payouts API (creator/editor disbursal), One Escrow (marketplace escrow-as-a-service), Aadhaar eSign | RBI-licensed PA (CoA 266/2025); Java SDK available; chosen over Razorpay/PhonePe PG for multi-party payout + escrow fit |
 | Containerization | Docker | Backend containerized, strong SDE1 signal |
 | CI/CD | GitHub Actions | Free, standard |
 | Backend hosting | Render/Railway (fast/free tier) or AWS EC2 (resume weight) | Pick based on time budget |
 | Frontend hosting | Vercel | Native Next.js host |
-| E-signature (deferred) | Digio or Leegality | Aadhaar OTP-based eSign, usage-based pricing |
+| E-signature (deferred) | FreeSign (freesign.io) — open-source, self-hostable, no subscription | AGPL license (copyleft — self-hosted modifications must stay open-source); no native Aadhaar-linked eSign like Digio/Leegality, but standard e-signature is generally valid for most contracts. Fallback: Digio/Leegality if Aadhaar-linked signing becomes a requirement. |
 | Messaging (deferred) | WhatsApp Business API via BSP | For deal-inbox forwarding, payment reminders |
 
 ## 2A. Backend Architecture Convention (Spring Boot)
@@ -54,7 +54,8 @@ Layered: **Controller → Service → Repository → Entity**, with DTOs for req
 
 ```
 User
- - id, email, phone, role (creator|brand|editor|admin), created_at, locale
+ - id, email, role (creator|brand|editor|admin), created_at, locale
+  (no phone field — SMS/phone OTP permanently out of scope)
 
 CreatorProfile
  - user_id (FK), display_name, categories[] (see taxonomy), platforms[] (jsonb: {platform, handle, follower_count}),
@@ -94,7 +95,9 @@ CollabMatch
 ## 4. API Design (Representative Endpoints — not exhaustive)
 
 ```
-POST   /auth/signup                 { role, email/phone }
+POST   /auth/otp/send               { email } → sends 6-digit OTP via email
+POST   /auth/otp/verify             { email, code } → returns JWT on success
+POST   /auth/signup                 { role, email }
 POST   /auth/login
 GET    /users/me
 
@@ -152,6 +155,53 @@ GET    /collab-matches?creator_id=
 - Editor-delivered content (Section 4.1 of PRD): store watermarked/low-res preview separately from final asset; final asset only served after `payment_status == confirmed`
 - Standard practices: hashed credentials or OAuth, HTTPS everywhere, rate-limiting on public endpoints (media kit, rate-benchmark)
 
+### 7A. Messaging Security (Hardening Pass)
+
+**Threat model:** horizontal privilege escalation (User A reads User B's messages), cross-role leakage, unauthenticated STOMP subscriptions, STOMP token replay, thread ID enumeration, message injection, stored XSS, mass scraping, unadminaudited admin access.
+
+**Authorization model:**
+- Every message entry point (REST and STOMP) must verify the requesting user is a thread participant before returning data or accepting writes.
+- Participant check is explicit and fail-fast — not relying on JPA query filtering alone.
+- Thread membership is derived from `Message.senderId` / `Message.recipientId` — no separate `Thread` entity exists. Threads are implicit, keyed by `threadId` string.
+
+**STOMP subscription security:**
+- Dedicated `MessageSubscriptionInterceptor` validates every SUBSCRIBE frame against topic patterns:
+  - `/topic/threads/{threadId}` — must be participant
+  - `/topic/thread/{threadId}/typing` — must be participant
+  - `/topic/user/{userId}/inbox` — must be the same user (userId from JWT Principal, never from payload)
+  - Any other `/topic/` subscription — blocked
+- Registered alongside `StompAuthChannelInterceptor` in `WebSocketConfig`.
+
+**STOMP token:**
+- Short-lived JWT issued on-demand via `POST /auth/realtime-token`.
+- Claims: `sub` (email), `role`. No `userId` claim — email is resolved to userId via DB lookup on CONNECT.
+- Token is not cached in browser state; frontend fetches fresh on every reconnect.
+- Session binding (sessionId→userId ConcurrentHashMap, evict on DISCONNECT) is deferred to production hardening.
+
+**Message body:**
+- Sanitized on WRITE (backend), not on READ (frontend).
+- HTML tags stripped via regex (`<[^>]*>`). Ampersands/angle brackets entity-encoded.
+- Max 4000 chars. `@Size(max = 4000)` on DTO, enforced in service before sanitize.
+- Frontend renders via `{message.body}` (React auto-escapes). No `dangerouslySetInnerHTML`.
+
+**Thread ID:**
+- Free-form string (VARCHAR(120)), client-supplied. `booking-{id}` prefix is predictable.
+- Format validation: `^[a-zA-Z0-9_-]+$`, max 120 chars.
+- Full UUID migration deferred — participant check is the primary enumeration mitigation.
+
+**Inbox query:**
+- SQL-level filtering: latest message per thread via `GROUP BY threadId` subquery.
+- No Java-side deduplication of all message rows.
+
+**Rate limiting:**
+- REST message endpoints covered by existing `RateLimitingFilter` (MESSAGES category, 60 req/min per user).
+- STOMP typing: 400ms ConcurrentHashMap debounce per user+thread.
+- WebSocket frame rate limiting deferred (servlet filter does not cover WS).
+
+**Admin audit:**
+- Admin message thread access logged via existing `AdminAuditEvent` + `AdminAuditService` (V23 migration).
+- No new entity — extend existing audit service.
+
 ## 8. Non-Functional Requirements
 - **Localization:** UI copy must be externalized (i18n-ready) from day one, even if only English ships in v1 — Hindi/regional language is a planned Phase 1.x addition, and retrofitting i18n later is expensive
 - **Currency:** INR only for v1, but currency should be a field, not hardcoded, to support global expansion later
@@ -166,6 +216,6 @@ GET    /collab-matches?creator_id=
 - Payment escrow (holding funds) — requires payment aggregator licensing in India; confirm with founders before any implementation work begins
 
 ## 10. Open Technical Decisions (Flag to Founders, Do Not Assume)
-- Escrow vs. simple invoicing+tracking model
+- Escrow vs. pass-through payment — regulatory blocker resolved: **Cashfree One Escrow** is a licensed escrow-as-a-service product, so this is technically buildable now. Still needs founder sign-off on cost/business terms before implementing.
 - "Influencing score" composite metric definition (Phase 1.5 Brand↔Creator module)
 - Editor suspension trigger definition (under-delivery vs. rejecting change requests)

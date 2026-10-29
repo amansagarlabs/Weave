@@ -13,7 +13,7 @@ This document is the single source of truth for what is IN and OUT of scope at e
 - Role-based onboarding (Brand / Creator selection, separate UI per role)
 - Deal Tracker (manual entry only)
 - Rate Benchmarking (seeded from public data, not live model)
-- GST/TDS-compliant Invoice Generator (Razorpay-powered)
+- GST/TDS-compliant provider-neutral Invoice Generator
 - GST-threshold running tracker
 - Deal History / CRM view (including renewal nudges)
 - ASCI Disclosure Checklist (static content, triggered at "ready to post" step)

@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface CreatorProfileRepository extends JpaRepository<CreatorProfile, Long> {
     Optional<CreatorProfile> findByPublicSlug(String publicSlug);
+    Optional<CreatorProfile> findByPublicSlugIgnoreCase(String publicSlug);
 }

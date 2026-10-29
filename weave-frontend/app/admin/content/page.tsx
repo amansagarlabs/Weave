@@ -1,2 +1,15 @@
-import { FormCard, SurfacePage } from "../../../components/surface";
-export default function AdminContent() { return <SurfacePage role="brand" title="Content and taxonomy." eyebrow="Admin" description="Manage editable platform copy and keep category labels consistent across discovery and profiles."><FormCard title="Content entry" fields={["Content type", "Title", "Body", "Category label", "Locale"]} /></SurfacePage>; }
+import { AdminContentManager } from "../../../components/admin-content-manager";
+import { SurfacePage } from "../../../components/surface";
+
+export default function AdminContent() {
+  return (
+    <SurfacePage
+      role="admin"
+      title="Content and taxonomy."
+      eyebrow="Admin"
+      description="Keep the public platform copy and the fixed discovery taxonomy aligned across the product."
+    >
+      <AdminContentManager />
+    </SurfacePage>
+  );
+}

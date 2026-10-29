@@ -1,6 +1,6 @@
 # Weave — Remaining Work
 
-Updated: 2026-08-13
+Updated: 2026-09-14
 
 This file is the current implementation checklist for continuing Weave. Product direction comes from `Development paper.md`, routes from `Sitemap.md`, technical decisions from `TRD.md`, and visual behavior from `Design System file.md`.
 
@@ -21,123 +21,211 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [x] Profile and message UI actions call the backend API.
 - [x] Public navigation has a grouped Explore flyout and mobile menu.
 - [x] Reusable authenticated shell, mobile bottom navigation, cards, pills, statuses, tabs, timelines, forms, empty states, discovery cards, and footer exist.
+- [x] Authenticated shell now uses a shadcn-style collapsible sidebar with icon-only collapsed mode, sidebar search, and a reusable workspace trigger/inset layout.
+- [x] Authenticated shell now includes a top-right profile avatar dropdown with account links, logout, and a persisted theme toggle using the shared global color variables.
 - [x] Public help search/accordion and notifications interactions exist.
 - [x] Watermark copy clearly states that screenshots and screen recordings cannot technically be prevented.
 - [x] Payment copy uses payment links/status and does not promise escrow or fund holding.
+- [x] Creator settings now persist locale and notification preference through `/users/me` and show a live account snapshot.
 - [x] Frontend production build passes all currently registered routes.
+- [x] Development-only demo accounts documented in `agent/DEMO_CREDENTIALS.md`; seeded only with the explicit Spring `demo` profile.
+- [x] Demo profile includes representative booking, message, editor-request, package, and draft-invoice records for page-flow testing.
+- [x] Map JSONB-backed entity fields explicitly with Hibernate `@JdbcTypeCode(SqlTypes.JSON)`; creator profile save verified end to end.
+- [x] Added the reusable footer to all public-facing surfaces: homepage, help, login, signup, role selection, and public creator profiles.
+- [x] Public footer includes full and compact variants, role links, workspace/login state, responsive utility navigation, and the animated crowd illustration.
+- [x] Removed the crowd pause control and tightened footer utility-link hover spacing.
+- [x] Launch hardening: suspended accounts are disabled by Spring Security and invalid credentials return a structured 401 response.
+- [x] Launch hardening: booking creation/status changes, messages, and editor requests now create persisted participant notifications.
+- [x] Launch hardening: persisted notifications can send best-effort transactional email through environment-configured SMTP; Mailpit is included for local capture.
+- [x] Enterprise auth pass: access and refresh sessions use HttpOnly cookies, refresh rotation, revocation, secure cookie configuration, and CSRF double-submit protection.
+- [x] Frontend auth no longer stores access JWTs or roles in localStorage; API calls use credentials, silent refresh, and backend session truth.
+- [x] Added short-lived server-issued realtime credentials for STOMP without persistent browser token storage.
+- [x] Added PostgreSQL outbox persistence for notifications, retry/backoff, dead-letter state, and admin-safe inspection/retry.
+- [x] Added Redis-backed distributed rate limiting with local fallback and Compose health-gated Redis persistence.
+- [x] Added explicit Cloudinary production storage provider with server-side credentials, media type/size validation, and HTTPS delivery URLs; MinIO/R2-compatible storage remains available for alternate deployments.
+- [x] Added Prometheus-compatible metrics exposure and baseline security headers.
+- [x] Added hashed, one-time, expiring password reset tokens, queued reset email delivery, and refresh-session revocation after reset.
+- [x] Added a persisted authentication audit ledger for password, magic-link, Google OAuth, MFA, refresh/logout, password-reset, email-verification, and impersonation events. Subject, IP, and user-agent identifiers are HMAC-fingerprinted; secrets and raw client identifiers are never stored.
+- [x] Added a payment webhook receipt ledger with provider-event idempotency, payload hashing, retry state, and admin-safe inspection.
+- [x] Added billing account state, a free-plan no-gateway path, and a provider-neutral billing portal surface in settings. Paid provider adapters remain open.
+- [x] Added a billing provider registry with UniBee-first default selection for paid-plan provisioning.
+- [x] Integrated UniBee subscription checkout and customer-portal session calls using the official UniBee merchant APIs.
+- [x] Cloudinary asset responses now refuse metadata-less public URL fallbacks and require authenticated signed delivery metadata in production.
+- [x] Added a global shadcn-style Sonner toaster with a reusable `useAppToast` hook; portfolio upload, edit, replace, and delete actions use organized success/error toasts.
+- [x] Applied shared toasts to brand/editor profile saves, creator settings saves, package create/edit, billing plan and free-plan portal actions, and portfolio mutations.
+- [x] Added creator portfolio edit/delete flows with confirmation modal, title editing, optional file replacement, ownership checks, and MinIO/S3 cleanup.
+- [x] Added the cross-machine Docker developer setup guide covering Compose services, LAN access, demo data, uploads, Mailpit, reset procedures, and troubleshooting.
 
 ### Important verification note
 
-- [ ] Backend Maven tests are still unverified in this environment because `mvn` is not available on PATH and no Maven wrapper is currently present.
-- [ ] Frontend route count is broader than the sitemap because package edit/new, portfolio upload, and other nested routes are also registered. Reconcile the sitemap count before release.
+- [x] Backend Maven tests verified through the pinned Docker Maven/Java 21 build: 41 tests ran with 39 passing and 2 Testcontainers tests skipped when nested Docker is unavailable.
+- [x] Full backend compile and Spring Boot packaging verified through the Docker build.
+- [x] Frontend route count is broader than the sitemap because package edit/new, portfolio upload, and other nested routes are also registered. Reconcile the sitemap count before release.
 
 ## Highest-priority remaining work
 
 ### 1. Finish authentication and authorization
 
-- [ ] Add protected-route handling in the frontend. Redirect unauthenticated users away from workspace routes.
-- [ ] Validate the JWT role on the backend for every domain endpoint, not only inside selected services.
-- [ ] Add a current-user endpoint and use the real user ID in frontend message rendering and message requests.
-- [ ] Replace the hardcoded message recipient fallback in `components/message-thread.tsx` with the actual conversation participant.
-- [ ] Add logout, token expiry handling, and a consistent unauthorized state.
-- [ ] Add backend tests for signup, login, duplicate email, invalid JWT, and role restrictions.
+- [x] Add protected-route handling in the frontend. Redirect unauthenticated users away from workspace routes.
+- [x] Validate the JWT role on the backend for domain controllers with Spring method security; service-level ownership checks remain in place.
+- [x] Add a current-user endpoint and use the real user ID in frontend message rendering and message requests.
+- [x] Replace the hardcoded message recipient fallback in `components/message-thread.tsx` with the actual conversation participant.
+- [x] Add logout and a consistent unauthorized state with silent refresh and session revocation.
+- [x] Add backend unit tests for signup, login, duplicate email, and invalid JWT handling. Role-restriction integration coverage remains open.
+- [x] Reject suspended accounts at the Spring Security user-details boundary.
 
 ### 2. Complete creator profile and package management
 
-- [ ] Add `GET /creator/profile/me` so profile edit loads existing values.
-- [ ] Change profile save from always-create behavior to update/upsert behavior.
-- [ ] Validate unique public slugs with a clear field-level error.
-- [ ] Add backend package repository, DTOs, service, and controller.
-- [ ] Connect `/creator/packages`, `/creator/packages/new`, and `/creator/packages/edit` to real package CRUD.
-- [ ] Add archive, duplicate, reorder, and owner authorization for packages.
-- [ ] Add creator portfolio storage metadata and upload flow using S3/R2 later; keep local/mock upload state until storage credentials are configured.
+- [x] Add `GET /creator/profile/me` so profile edit loads existing values.
+- [x] Change profile save from always-create behavior to update/upsert behavior.
+- [x] Validate unique public slugs with a clear field-level error.
+- [x] Add backend package repository, DTOs, service, and controller.
+- [x] Connect `/creator/packages`, `/creator/packages/new`, and `/creator/packages/edit` to real package CRUD.
+- [x] Add archive behavior and owner authorization for packages. Duplicate and reorder remain open.
+- [x] Add creator portfolio asset persistence and real multipart uploads to local Docker MinIO; the same S3-compatible API supports S3/R2 production configuration.
+- [x] Creator signup now creates a starter discoverable profile, and Flyway V26 backfills existing creator accounts that previously had no profile row.
 
 ### 3. Finish brand profiles and booking workflow
 
-- [ ] Add brand profile DTOs, repository, service, controller, and migration if needed.
-- [ ] Connect `/brand/onboarding` and `/brand/settings` to persisted brand data.
-- [ ] Validate that the requested creator exists and has a creator role before creating a booking.
-- [ ] Validate optional `packageId` ownership and amount against the selected package.
-- [ ] Add booking detail endpoint `GET /bookings/{id}` with participant authorization.
-- [ ] Add status transition endpoints with the approved states: Pending, Negotiating, Accepted, Content Delivered, Paid.
-- [ ] Persist and return status history for the booking timeline.
-- [ ] Replace placeholder booking detail pages with live API data and next-action controls.
+- [x] Add brand profile DTOs, repository, service, and controller.
+- [x] Connect `/brand/onboarding` and `/brand/settings` to persisted brand data.
+- [x] Validate that the requested creator exists and has a creator role before creating a booking.
+- [x] Validate optional `packageId` ownership and amount against the selected package.
+- [x] Add booking detail endpoint `GET /bookings/{id}` with participant authorization.
+- [x] Add status transition endpoint for Pending, Negotiating, Accepted, and Content Delivered, including creator-side invite acceptance from Pending or Negotiating. Paid remains payment-webhook work.
+- [x] Persist and return status history for the booking timeline.
+- [x] Replace placeholder booking detail pages with live API data and next-action controls.
 
 ### 4. Build editor domain APIs and UI
 
-- [ ] Add editor profile DTOs, repository, service, controller, and save/load endpoints.
-- [ ] Add editor gig/package persistence and connect `/editor/gigs`, `/editor/gigs/new`, and `/editor/gigs/edit`.
-- [ ] Add edit-request creation, list, detail, status, revision-count, and preview metadata endpoints.
-- [ ] Enforce the three-revision cap in backend validation.
-- [ ] Keep editor suspension behavior as a placeholder with the comment `pending founder sign-off`; do not invent trigger logic.
-- [ ] Connect creator hire-editor and editor request pages to real editor data.
-- [ ] Add upload-state UI for preview and final asset metadata; integrate S3/R2 only after storage configuration is available.
+- [x] Add editor profile DTOs, repository, service, controller, and save/load endpoints.
+- [x] Add editor gig/package persistence and connect `/editor/gigs`, `/editor/gigs/new`, and `/editor/gigs/edit`.
+- [x] Add edit-request creation, list, detail, status, revision-count, and preview metadata endpoints.
+- [x] Enforce the three-revision cap in backend validation.
+- [x] Keep editor suspension behavior as a placeholder with the comment `pending founder sign-off`; do not invent trigger logic. Existing suspension code preserves this boundary.
+- [x] Connect creator hire-editor discovery and request creation to real editor data. Request queues/details are now live.
+- [x] Public creator storefront loads persisted profile and package data without invented metrics.
+- [x] Brand discovery uses persisted creator profiles with intentional loading, error, and empty states; invented discovery metrics are removed.
+- [x] Add upload-state UI for preview and final asset metadata; integrate S3/R2 only after storage configuration is available.
 
 ### 5. Implement payments and invoices safely
 
-- [ ] Add invoice entity, migration, repository, DTOs, service, and controller.
-- [ ] Add Razorpay Java SDK integration behind a service interface.
-- [ ] Implement payment-link/pass-through flow only; do not hold funds or build escrow.
-- [ ] Add webhook signature verification and idempotent payment-status updates.
-- [ ] Implement invoice states: Draft, Sent, Paid, Overdue.
-- [ ] Connect creator earnings/invoice screens and brand booking payment status to the API.
-- [ ] Add explicit error and retry states for failed payment-link creation and webhook processing.
+- [x] Add invoice entity, migration, repository, DTOs, service, and controller.
+- [x] Add configurable GST/TDS invoice fields: GSTIN, SAC code, place of supply, tax breakup, and net payable.
+- [x] Add UniBee-hosted invoice checkout links with invoice/booking references. Merchant API credentials and a configured UniBee gateway are required; Weave never holds funds in escrow.
+- [x] UniBee checkout and customer-portal session calls are live.
+- [x] Implement the payment-link/pass-through boundary only; do not hold funds or build escrow.
+- [x] Add webhook signature verification and idempotent payment-status updates.
+- [x] Implement invoice states: Draft, Sent, Paid, Overdue.
+- [x] Connect creator earnings/invoice screens to the invoice and booking APIs.
+- [x] Show participant-visible invoice/payment status from booking detail. Webhook status updates remain open.
+- [x] Add explicit provider-not-configured and invalid-webhook error states. Frontend retry affordance remains open.
 
 ### 6. Complete messaging
 
-- [ ] Add conversation/thread persistence or a thread query that returns participants and context.
-- [ ] Add participant authorization to `GET /messages/{threadId}`.
-- [ ] Add inbox endpoint with unread counts and latest-message preview.
-- [ ] Connect creator and brand inbox pages to live threads instead of empty-state-only UI.
-- [ ] Add booking/package context to message threads.
-- [ ] Add send failure retry and optimistic/pending message states.
+- [x] Add conversation/thread persistence or a thread query that returns participants and context.
+- [x] Add participant authorization to `GET /messages/{threadId}`.
+- [x] Add participant-scoped inbox endpoint with latest-message preview. Unread counts remain open.
+- [x] Connect creator and brand inbox pages to live threads instead of empty-state-only UI.
+- [x] Add booking context and participant validation to `booking-{id}` message threads.
+- [x] Add send failure retry and optimistic/pending message states.
+- [x] Add real-time STOMP messaging with connection status, reconnection, and typing indicators.
+
+### 6A. Messaging security hardening (security-only pass — no features, no UI changes)
+
+**Confirmed already closed:**
+- [x] STOMP CONNECT authentication via JWT in `StompAuthChannelInterceptor`.
+- [x] STOMP SUBSCRIBE authorization for `/topic/threads/{threadId}` in `StompAuthChannelInterceptor`.
+- [x] REST message endpoints require authentication + RBAC (`@PreAuthorize`).
+- [x] Rate limiting on `/messages` endpoints (MESSAGES category, 60 req/min).
+- [x] Typing indicator spam prevention (400ms ConcurrentHashMap debounce).
+- [x] JWT revocation on logout (refresh token deletion + cookie clearing).
+- [x] STOMP token is short-lived, fetched fresh on every reconnect (not cached in state).
+- [x] Frontend renders message body as plain text (`{message.body}`, no `dangerouslySetInnerHTML`).
+
+**Gaps to fix:**
+- [ ] Add `sanitize()` method to `MessageService.send()` — strip HTML tags, encode entities, before persisting.
+- [ ] Add `@Size(max = 4000)` to `CreateMessageRequest.body` + enforce in service.
+- [ ] Create Flyway migration V34 — ALTER COLUMN body to VARCHAR(4000).
+- [ ] Add thread ID format validation (`^[a-zA-Z0-9_-]+$`, max 120 chars) to `CreateMessageRequest`.
+- [ ] Create `MessageSubscriptionInterceptor.java` — validate all STOMP SUBSCRIBE frames (thread, typing, inbox topics).
+- [ ] Register `MessageSubscriptionInterceptor` in `WebSocketConfig.configureClientInboundChannel()`.
+- [ ] Replace inbox Java-side dedup with SQL-level `GROUP BY threadId` query in `MessageRepository`.
+- [ ] Verify `inbox()` query only returns threads where user is participant (SQL-level, not Java filter).
+- [ ] Verify STOMP SUBSCRIBE to `/topic/thread/{threadId}/typing` requires participant check.
+- [ ] Verify STOMP SUBSCRIBE to `/topic/user/{userId}/inbox` rejects other users' inboxes.
+- [ ] Extend `AdminAuditService` for message thread read audit trail (reuse existing `AdminAuditEvent`).
+- [ ] Add `MessageSecurityTest` — nonParticipantCannotReadThread, nonParticipantCannotSendToThread, nonParticipantStompSubscriptionRejected, userCannotSubscribeToAnotherUsersInbox, messageBodySanitizesHtmlTags, messageBodyRejectsOver4000Chars, inboxQueryOnlyReturnsOwnThreads.
+- [ ] Frontend: verify 403 from `GET /messages/{threadId}` shows error and does not render messages.
+- [ ] Frontend: static analysis confirms no `dangerouslySetInnerHTML` in message rendering.
+- [ ] Frontend: verify STOMP reconnect always fetches fresh token (not cached).
 
 ### 7. Complete admin and support surfaces
 
-- [ ] Add admin-only backend endpoints for users, disputes, flags, taxonomy, and editable content.
-- [ ] Enforce `ADMIN` role server-side; the admin UI must not use a normal brand shell as its authorization boundary.
-- [ ] Replace placeholder admin rows with loading, error, pagination, filtering, and safe action states.
-- [ ] Add confirmation dialogs for destructive admin actions.
-- [ ] Add content preview and publish confirmation for compliance copy and category labels.
-- [ ] Connect notifications to persisted events instead of sample in-memory notifications.
+- [x] Add admin-only backend endpoints for users, disputes, flags, taxonomy, and editable content. Admin user suspend/restore endpoints now exist; disputes/flags/taxonomy/content are now wired end to end.
+- [x] Enforce `ADMIN` role server-side and use a dedicated admin shell/navigation boundary.
+- [x] Replace placeholder admin user rows with an admin-only API, loading, and error states. Pagination/filtering remain open.
+- [x] Add confirmation dialogs for destructive admin actions.
+- [x] Add content preview and publish confirmation for compliance copy and category labels.
+- [x] Connect notifications to persisted events instead of sample in-memory notifications.
+- [x] Add transactional notification outbox events with worker retries and dead-letter state.
+- [x] Add admin operations views for failed notification outbox and payment webhook records, including outbox retry.
+- [x] Add an admin command center covering users, organizations, disputes, content, and operations.
+- [x] Add admin organization listing with member counts and disable/restore controls; personal organizations are protected from disabling.
+- [x] Add persisted RBAC CRUD policies for Creator, Brand, Editor, and Admin roles, with an admin editor, audit events, and server-side enforcement on core domain APIs.
+- [ ] Add persisted storage-failure and active-session operations records; these require storage/session audit persistence first.
+- [x] Create persisted participant notifications for booking, message, and editor-request events.
+- [x] Add payment notification events for invoice creation, payment-link readiness, and paid webhook updates.
 
 ## Frontend quality work remaining
 
-- [ ] Add loading and error files/states for important App Router segments.
-- [ ] Add `aria-current` and active-route styling to desktop and mobile navigation.
-- [ ] Replace raw `<a>` links inside workspace pages with Next `Link` where appropriate.
-- [ ] Add a real modal/dialog primitive with Escape handling, focus trap, and focus restoration for ASCI/disclosure steps and confirmations.
-- [ ] Add a reusable file-dropzone component with progress, failure recovery, and keyboard operation.
-- [ ] Add a reusable select, currency field, tag input, and payment-state component.
-- [ ] Move visible copy into an i18n-ready message map as required by the design system.
-- [ ] Add a skip link and ensure every page has one logical `h1`.
+- [x] Add loading and error files/states for important App Router segments.
+- [x] Add `aria-current` and active-route styling to desktop and mobile navigation.
+- [x] Replace raw `<a>` links inside workspace pages with Next `Link` where appropriate.
+- [x] Add a real modal/dialog primitive with Escape handling, focus trap, and focus restoration for ASCI/disclosure steps and confirmations.
+- [x] Add responsive admin user cards/table fallback with suspend/restore confirmation flow and suspension status badges.
+- [x] Replace static role dashboard empty states with dynamic role experiences. Creators now have a dedicated social studio with profile identity, self-reported platform metrics, audience comparison, real portfolio media, collaboration status, conversations, and earnings; brand and editor retain role-specific workspace dashboards.
+- [x] Add a reusable file-dropzone component with progress, failure recovery, and keyboard operation.
+- [x] Add a reusable select, currency field, tag input, and payment-state component.
+- [x] Move visible copy into an i18n-ready message map as required by the design system.
+- [x] Add a skip link to authenticated shells. Logical heading audit across all routes remains open.
 - [ ] Test keyboard navigation, 360px layout, 768px layout, 1440px layout, and 200% zoom.
 - [ ] Add automated accessibility checks and component examples for primary, hover, focus, disabled, loading, and error states.
-- [ ] Replace sample creator metrics and copy with backend-backed values; never display invented influence scores.
+- [ ] Migrate remaining transient mutation feedback in booking, invoice, MFA, notification, editor-request, admin, and messaging screens to `useAppToast`; keep validation, loading, empty, and retry states inline where they are needed for task context.
+- [x] Replace sample creator metrics and copy with backend-backed values; never display invented influence scores.
+- [x] Add the reusable footer to public pages without adding it to authenticated workspace shells.
 
 ## Backend and infrastructure remaining
 
-- [ ] Add Maven Wrapper or document the required Maven installation so builds are reproducible.
-- [ ] Add JUnit 5 and Mockito tests for every service and controller authorization path.
-- [ ] Add Testcontainers PostgreSQL integration tests for Flyway migrations and repositories.
-- [ ] Add database indexes for public slug, creator category discovery, booking participants, and message threads.
-- [ ] Add request validation and consistent API error envelopes for all domains.
-- [ ] Add structured logging, correlation IDs, and safe production error messages.
-- [ ] Add Docker Compose development verification for PostgreSQL, backend, and frontend.
-- [ ] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
-- [ ] Configure S3/R2, Razorpay, JWT secret, database credentials, and CORS through environment variables only.
-- [ ] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
+- [x] Add a reproducible Docker Maven/Java 21 build path; local Maven Wrapper remains optional.
+- [x] Add JUnit 5 and Mockito unit tests for tax calculation, invoice states, and webhook signature handling. Full service/controller authorization coverage remains open.
+- [x] Add Testcontainers PostgreSQL integration tests for Flyway migrations and repositories.
+- [x] Add database indexes for public slug, creator category discovery, booking participants, and message threads.
+- [x] Add request validation and consistent API error envelopes for current domain requests.
+- [x] Add structured logging, correlation IDs, and safe production error messages.
+- [x] Add Docker Compose development wiring and PostgreSQL health check for the backend stack; runtime smoke test passes with Flyway v5 and `/actuator/health` returning `UP`.
+- [x] Add GitHub Actions workflows for backend tests, frontend build, and security/dependency checks.
+- [x] Configure S3-compatible MinIO development storage and participant-authorized preview/final asset uploads through environment variables. Cloudflare R2 or another S3-compatible deployment can replace the endpoint and credentials without application changes.
+- [x] Add rate limiting and abuse protection for auth, messages, discovery, and payment-link endpoints.
+- [x] Add authenticated WebSocket/STOMP conversations: short-lived cookie-authenticated token, participant-scoped thread subscriptions, persisted message delivery, frontend reconnect, and accessible connection status.
+- [x] Add dynamic typing indicators with debounce/throttle protection and accessible status text.
+- [x] Add Redis service wiring for shared rate limits and future presence/jobs.
+- [x] Add `/actuator/prometheus` exposure behind authenticated operator access.
+- [x] Add password reset tokens with one-time expiry and session revocation.
+- [x] Require signed private Cloudinary asset URLs for production delivery.
+- [x] Add persistent upload finalization records and a scheduled cleanup job for stale portfolio/editor storage writes.
+- [ ] Add dynamic typing indicators with accessible status text and a subtle animation.
+- [x] Add an accessible conversation composer attachment/media control with type and 10 MB size validation. Upload storage, emoji/GIF/sticker providers, and moderation rules remain explicitly unconnected.
 
-## Suggested build order
 
-1. Authentication guards, current-user endpoint, logout, and backend tests.
-2. Creator package CRUD and brand profile persistence.
-3. Booking detail/status transitions and live timelines.
-4. Inbox/thread participant model and live inboxes.
-5. Editor profiles, gigs, and edit requests.
-6. Invoice/payment-link integration and webhook handling.
-7. Portfolio storage and preview upload states.
-8. Admin APIs, notifications, accessibility audit, and deployment CI.
+## Next-day build plan
+
+1. Add messaging security hardening: body sanitization, subscription interceptor, inbox query optimization, thread ID validation (see Section 6A).
+2. Add upload finalization/cleanup jobs.
+3. Connect validated attachments to configured S3/R2 storage and define moderated emoji/GIF/sticker providers.
+4. Run a responsive/accessibility pass at 360px, 768px, 1440px, and 200% zoom; fix heading order, focus states, touch targets, and footer overflow.
+5. Configure deployment secrets and provider integrations through environment variables only: PostgreSQL, S3/R2, UniBee, JWT, and CORS.
+6. Run the complete creator, brand, editor, payment, admin, migration, and accessibility acceptance suite in CI.
 
 ## Release acceptance checklist
 
@@ -146,6 +234,34 @@ This file is the current implementation checklist for continuing Weave. Product 
 - [ ] Both participants can view the same booking status history and authorized messages.
 - [ ] An editor can create a gig, receive a request, upload a preview, handle revisions, and see payment status.
 - [ ] A creator can create an invoice/payment link and see Draft, Sent, Paid, or Overdue state without escrow behavior.
-- [ ] Admin routes are server-authorized and operational.
+- [x] Admin routes are server-authorized and operational.
 - [ ] All required routes have intentional loading, empty, error, and success states.
-- [ ] Backend tests, frontend build, database migration checks, and accessibility checks pass in CI.
+- [ ] Backend tests, frontend production build, database migration checks, and accessibility checks pass in CI.
+
+## SaaS Capability Goal
+
+- [x] Add password-reset, magic-link, social login, and MFA authentication with hashed one-time tokens, expiry, recovery codes, generic account responses, session cookies, frontend verification routes, and step-up login challenges.
+- [x] Complete authentication audit trail and privileged-auth logging.
+- [x] Add the organization foundation: personal organizations, memberships, active-organization switching, API endpoints, and an authenticated organization switcher.
+- [x] Scope creator and editor package ownership, creation, editing, archiving, and personal package lists to the active organization with a database backfill.
+- [ ] Apply organization context to organization-owned resources and enforce tenant-safe queries; cross-party bookings must remain visible only to their explicit participants.
+- [x] Add Super Admin impersonation with a safe return session and privileged-action audit records. User suspend/restore and organization disable/restore are implemented with server-side ADMIN authorization.
+- [ ] Keep billing on UniBee and the `$0` internal path.
+- [ ] Adopt accessible Shadcn UI + Tailwind CSS v4 primitives and dark/light/system theme.
+- [ ] Add SEO-ready blog and documentation/help center with publishing workflow.
+- [ ] Verify mobile layouts and serverful/serverless deployment boundaries.
+- [ ] Enforce strict TypeScript/ESLint and Playwright E2E for auth, tenancy, admin, billing, and critical domain flows.
+- [ ] Standardize React.Email templates and unified SMTP/Resend mailer API.
+- [ ] Define plugin contracts for testimonials, feedback, roadmap, waitlist, and future modules.
+- [ ] Document AI-agent rules and MCP server contract; keep providers replaceable.
+- [ ] Keep realtime notifications behind an adapter compatible with current WebSocket/STOMP and future Supabase Realtime.
+
+## Current launch blockers
+
+- Frontend source type-checks and production build now pass after the MFA/social-login updates; the only remaining signal is the repeated baseline-browser-mapping warning.
+- Backend Docker build and test execution now pass through `docker compose build backend` in this environment.
+- Cloudinary production credentials or an alternate R2 endpoint still need to be supplied. Invoice checkout now uses UniBee; merchant API credentials and a configured gateway ID are required for live payments.
+- Production SMTP/Listmonk deployment, newsletter consent, unsubscribe handling, and subscriber synchronization remain open. Transactional email is now provider-agnostic: Mailpit locally, Resend, or the optional self-hosted Docker Mailserver overlay. Deliverability still requires domain DNS, reverse DNS, DKIM/SPF/DMARC, bounce handling, and monitoring.
+- Social-platform API connections are not implemented. Creator follower, average-view, and engagement metrics are explicitly self-reported; verified analytics require platform OAuth/API integrations and historical metric storage.
+- Backend Docker compilation and packaging pass with Java 21; the 2026-08-20 build ran 41 tests with no failures and 2 expected Testcontainers skips.
+- Payment scope note: current build covers brand→creator payment links only; creator→editor payout/disbursal is still missing and needs its own work item.

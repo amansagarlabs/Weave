@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
-import { ButtonLink, Card, Pill, StatusBadge } from "./ui";
+import { AppShell, ButtonLink, Card, Pill, StatusBadge } from "./ui";
 import { PublicNav } from "./public-nav";
+import { PublicCreatorStorefront } from "./public-creator-storefront";
+import { usePublicSession } from "./public-session";
 
 type CreatorProfile = {
   userId: number;
@@ -15,6 +17,7 @@ type CreatorProfile = {
   city: string | null;
   contentLanguage: string | null;
   availabilityStatus: string | null;
+  avatarUrl: string | null;
   influencingScore: number | null;
 };
 
@@ -32,6 +35,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Mumbai",
     contentLanguage: "English",
     availabilityStatus: "Available",
+    avatarUrl: null,
     influencingScore: null,
     followers: "18k",
     price: "Rs 3,500",
@@ -47,6 +51,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Delhi",
     contentLanguage: "Hindi",
     availabilityStatus: "Available",
+    avatarUrl: null,
     influencingScore: null,
     followers: "24k",
     price: "Rs 4,000",
@@ -62,6 +67,7 @@ const fallbackCreators: Array<CreatorProfile & { followers: string; price: strin
     city: "Bengaluru",
     contentLanguage: "English",
     availabilityStatus: "Limited",
+    avatarUrl: null,
     influencingScore: null,
     followers: "12k",
     price: "Rs 2,800",
@@ -186,7 +192,7 @@ export function DiscoveryBrowser() {
               type="button"
               onClick={() => setSelectedCategory(category)}
               className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                selectedCategory === category ? "bg-[var(--ink)] text-white" : "bg-white"
+                selectedCategory === category ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--ink)]"
               }`}
             >
               {category}
@@ -198,21 +204,21 @@ export function DiscoveryBrowser() {
           <button
             type="button"
             onClick={() => setSort("followers")}
-            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "followers" ? "bg-[var(--ink)] text-white" : "bg-white"}`}
+            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "followers" ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--ink)]"}`}
           >
             Followers ▾
           </button>
           <button
             type="button"
             onClick={() => setSort("engagement")}
-            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "engagement" ? "bg-[var(--ink)] text-white" : "bg-white"}`}
+            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "engagement" ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--ink)]"}`}
           >
             Engagement ▾
           </button>
           <button
             type="button"
             onClick={() => setSort("availability")}
-            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "availability" ? "bg-[var(--ink)] text-white" : "bg-white"}`}
+            className={`rounded-xl px-4 py-3 text-sm font-bold ${sort === "availability" ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--ink)]"}`}
           >
             Availability ▾
           </button>
@@ -224,7 +230,7 @@ export function DiscoveryBrowser() {
         </p>
 
         {loading ? <p className="text-sm font-bold text-[var(--muted)]">Loading creators...</p> : null}
-        {error ? <p className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[var(--muted)]">{error}</p> : null}
+        {error ? <p className="rounded-2xl bg-[var(--card)] px-4 py-3 text-sm font-bold text-[var(--muted)]">{error}</p> : null}
       </section>
 
       {visibleCreators.length ? (
@@ -234,7 +240,7 @@ export function DiscoveryBrowser() {
 
             return (
               <Card key={creator.publicSlug} className="group overflow-hidden p-0">
-                <div className="flex aspect-[4/3] items-center justify-center bg-[var(--accent)] text-5xl transition-transform group-hover:scale-[1.02]">
+                <div className="flex aspect-[4/3] items-center justify-center bg-[var(--accent)] text-5xl text-[var(--on-bright)] transition-transform group-hover:scale-[1.02]">
                   ✦
                 </div>
                 <div className="space-y-4 p-5">
@@ -294,7 +300,7 @@ export function DiscoveryBrowser() {
   );
 }
 
-export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
+function LegacyPublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
   const [creator, setCreator] = useState<
     (CreatorProfile & { followers: string; bio: string; packages: Array<{ title: string; price: string; note: string }> }) | null
   >(null);
@@ -381,8 +387,8 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
 
       <div className="mx-auto max-w-6xl px-6 pb-20 lg:px-8">
         <section className="grid gap-8 rounded-3xl bg-[var(--forest)] p-8 text-white md:grid-cols-[auto_1fr_auto] md:items-end">
-          <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[var(--accent)] text-5xl text-[var(--ink)]">
-            ✦
+          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-[var(--accent)] text-5xl text-[var(--on-bright)]">
+            {creator?.avatarUrl ? <img src={creator.avatarUrl} alt={creator.displayName} className="h-full w-full object-cover" /> : "✦"}
           </div>
           <div>
             <Pill tone="lime">{loading ? "Loading profile" : creator?.availabilityStatus ?? "Available for work"}</Pill>
@@ -392,11 +398,11 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
               {creator?.city ?? "India"} · @{slug}
             </p>
           </div>
-          {variant === "brand" ? <button type="button" onClick={startConversation} disabled={actionBusy} className="min-h-12 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--ink)] shadow-[4px_4px_0_var(--ink)] disabled:opacity-60">{actionBusy ? "Sending…" : actionLabel} →</button> : <ButtonLink href={actionHref} variant="accent">{actionLabel} →</ButtonLink>}
+          {variant === "brand" ? <button type="button" onClick={startConversation} disabled={actionBusy} className="min-h-12 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-[var(--on-bright)] shadow-[4px_4px_0_var(--ink)] disabled:opacity-60">{actionBusy ? "Sending…" : actionLabel} →</button> : <ButtonLink href={actionHref} variant="accent">{actionLabel} →</ButtonLink>}
         </section>
 
-        {error ? <p className="mt-5 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[var(--muted)]">{error}</p> : null}
-        {actionMessage ? <p className="mt-5 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold" role="status" aria-live="polite">{actionMessage}</p> : null}
+        {error ? <p className="mt-5 rounded-2xl bg-[var(--card)] px-4 py-3 text-sm font-bold text-[var(--muted)]">{error}</p> : null}
+        {actionMessage ? <p className="mt-5 rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-[var(--on-bright)]" role="status" aria-live="polite">{actionMessage}</p> : null}
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_.7fr]">
           <div className="space-y-8">
@@ -417,7 +423,7 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
               </div>
               <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {["Campaign story", "Product detail", "Behind the scenes", "Weekend edit", "Launch day", "Creator notes"].map((item, index) => (
-                  <div key={item} className={`flex aspect-square items-end rounded-2xl p-3 ${index % 3 === 1 ? "bg-[var(--orange)]" : "bg-[var(--accent)]"}`}><span className="text-xs font-black uppercase tracking-[.1em]">{item}</span></div>
+                  <div key={item} className={`flex aspect-square items-end rounded-2xl p-3 ${index % 3 === 1 ? "bg-[var(--orange)] text-[var(--on-bright)]" : "bg-[var(--accent)] text-[var(--on-bright)]"}`}><span className="text-xs font-black uppercase tracking-[.1em]">{item}</span></div>
                 ))}
               </div>
             </Card>
@@ -440,7 +446,7 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
                 </Card>
               ))}
             </div>
-            <Card className="mt-4 bg-[var(--ink)] text-white">
+            <Card className="mt-4 bg-[var(--dark-panel)] text-[var(--on-dark)]">
               <p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--accent)]">Credibility</p>
               <h2 className="mt-3 text-xl font-black">Building a track record</h2>
               <p className="mt-2 text-sm leading-6 text-white/70">Completed-work metrics will appear here once there is enough verified history. We do not manufacture a score.</p>
@@ -450,6 +456,13 @@ export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string
       </div>
     </div>
   );
+}
+
+export function PublicCreatorProfile({ slug, variant = "brand" }: { slug: string; variant?: "brand" | "creator" }) {
+  const session = usePublicSession();
+  if (!session.ready) return <div className="flex min-h-screen items-center justify-center bg-[var(--paper)] px-6"><p className="text-sm font-bold text-[var(--muted)]">Loading workspace...</p></div>;
+  if (!session.authenticated || !session.role) return <PublicCreatorStorefront slug={slug} variant={variant} />;
+  return <AppShell role={session.role} title="Creator profile." eyebrow="Explore creators"><PublicCreatorStorefront slug={slug} variant={variant} embedded /></AppShell>;
 }
 
 function MetricTile({ label, value, detail }: { label: string; value: string; detail: string }) {

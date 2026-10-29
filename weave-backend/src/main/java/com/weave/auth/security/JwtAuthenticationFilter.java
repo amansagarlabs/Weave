@@ -19,18 +19,21 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final WeaveUserDetailsService users;
+    private final AuthCookieService cookies;
 
-    public JwtAuthenticationFilter(JwtService jwtService, WeaveUserDetailsService users) {
+    public JwtAuthenticationFilter(JwtService jwtService, WeaveUserDetailsService users, AuthCookieService cookies) {
         this.jwtService = jwtService;
         this.users = users;
+        this.cookies = cookies;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ") && SecurityContextHolder.getContext().getAuthentication() == null) {
+        String token = header != null && header.startsWith("Bearer ") ? header.substring(7) : cookies.access(request);
+        if (token != null && !token.isBlank() && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                String email = jwtService.subject(header.substring(7));
+                String email = jwtService.subject(token);
                 UserDetails details = users.loadUserByUsername(email);
                 var authentication = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

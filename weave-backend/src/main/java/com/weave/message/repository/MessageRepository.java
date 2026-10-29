@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByThreadIdOrderByCreatedAtAsc(String threadId);
+    List<Message> findBySenderIdOrRecipientIdOrderByCreatedAtDesc(Long senderId, Long recipientId);
 }

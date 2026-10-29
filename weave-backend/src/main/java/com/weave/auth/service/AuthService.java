@@ -3,9 +3,13 @@ package com.weave.auth.service;
 import com.weave.auth.dto.AuthResponse;
 import com.weave.auth.dto.LoginRequest;
 import com.weave.auth.dto.SignupRequest;
+import com.weave.auth.dto.SignupResponse;
+import com.weave.auth.dto.VerificationResponse;
 import com.weave.auth.entity.Role;
 import com.weave.auth.entity.User;
 import com.weave.auth.repository.UserRepository;
+import com.weave.creator.entity.CreatorProfile;
+import com.weave.creator.repository.CreatorProfileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,28 +24,62 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final EmailVerificationService emailVerification;
+    private final CreatorProfileRepository creatorProfiles;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthService(UserRepository users, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, EmailVerificationService emailVerification, CreatorProfileRepository creatorProfiles) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.emailVerification = emailVerification;
+        this.creatorProfiles = creatorProfiles;
     }
 
-    public AuthResponse signup(SignupRequest request) {
+    public SignupResponse signup(SignupRequest request) {
         String email = request.email().trim().toLowerCase();
         if (users.findByEmail(email).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "An account with this email already exists");
         }
         Role role = Role.from(request.role());
         User user = users.save(User.create(email, request.phone(), passwordEncoder.encode(request.password()), role));
-        return AuthResponse.of(jwtService.issue(user.getEmail(), user.getRole().name()), user);
+        if (role == Role.CREATOR && user.getId() != null) createStarterCreatorProfile(user);
+        emailVerification.start(user);
+        return new SignupResponse(user.getEmail(), true, "Check your email to activate your account");
     }
 
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email().trim().toLowerCase(), request.password()));
         User user = users.findByEmail(authentication.getName()).orElseThrow();
+        if (!user.isEmailVerified()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Please verify your email before signing in");
+        if (user.isMfaEnabled()) return AuthResponse.mfaRequired(user, jwtService.issueChallenge(user.getEmail(), "mfa-login", java.time.Duration.ofMinutes(5)));
         return AuthResponse.of(jwtService.issue(user.getEmail(), user.getRole().name()), user);
+    }
+
+    public VerificationResponse verifyEmail(String token) { return emailVerification.verify(token); }
+    public void resendVerification(String email) { emailVerification.resend(email); }
+    public com.weave.auth.dto.UserResponse userFromAccessToken(String token) {
+        User user = users.findByEmail(jwtService.subject(token)).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session"));
+        if (user.isSuspended()) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is suspended");
+        return com.weave.auth.dto.UserResponse.from(user);
+    }
+
+    public String realtimeToken(String accessToken) {
+        var user = userFromAccessToken(accessToken);
+        return jwtService.issue(user.email(), user.role());
+    }
+
+    private void createStarterCreatorProfile(User user) {
+        String localPart = user.getEmail().substring(0, user.getEmail().indexOf('@'));
+        String displayName = localPart.replaceAll("[._-]+", " ").trim();
+        if (displayName.isBlank()) displayName = "Creator";
+        displayName = Character.toUpperCase(displayName.charAt(0)) + displayName.substring(1);
+        String baseSlug = localPart.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+        if (baseSlug.isBlank()) baseSlug = "creator";
+        String slug = baseSlug;
+        int suffix = 2;
+        while (creatorProfiles.findByPublicSlug(slug).isPresent()) slug = baseSlug + "-" + suffix++;
+        creatorProfiles.save(CreatorProfile.create(user.getId(), displayName, slug, "[]", "[]", null, null, "AVAILABLE", null));
     }
 }

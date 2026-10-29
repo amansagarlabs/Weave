@@ -2,61 +2,80 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authCopy } from "../lib/copy";
+import { api, getApiUrl } from "../lib/api";
+import { setPublicSession } from "./public-session";
 
 type Role = "creator" | "brand" | "editor";
 type AuthMode = "login" | "signup";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-const roleOptions: Array<{ value: Role; label: string; copy: string }> = [
-  { value: "creator", label: "Creator", copy: "Show your work and manage bookings." },
-  { value: "brand", label: "Brand", copy: "Discover talent and move with context." },
-  { value: "editor", label: "Editor", copy: "Offer packages and manage delivery." },
-];
+type LoginMethod = "password" | "magic-link";
 
 export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Role }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<Role>(role);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
   const [error, setError] = useState("");
+  const [connectivityError, setConnectivityError] = useState(false);
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setConnectivityError(false);
+    setNotice("");
     setBusy(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/${mode}`, {
+      const payload = await api<{ message?: string; user: { role: string }; mfaRequired?: boolean; mfaToken?: string }>(mode === "login" && loginMethod === "magic-link" ? "/auth/magic-link/request" : `/auth/${mode}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mode === "login" ? { email, password } : { email, password, role: selectedRole }),
+        body: JSON.stringify(mode === "login" && loginMethod === "magic-link" ? { email } : mode === "login" ? { email, password } : { email, password, role: selectedRole }),
       });
 
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Something went wrong. Please try again.");
+      if (mode === "signup" || loginMethod === "magic-link") {
+        setNotice(payload.message ?? (loginMethod === "magic-link" ? "If the account exists, a sign-in link has been sent." : "Check your email to activate your account."));
+        return;
       }
 
-      localStorage.setItem("weave_access_token", payload.accessToken);
-      const destination = mode === "login" ? `/${String(payload.user.role).toLowerCase()}/dashboard` : `/${selectedRole}/onboarding`;
+      if ("mfaRequired" in payload && payload.mfaRequired) {
+        const requestedPath = searchParams.get("next");
+        const next = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") ? `&next=${encodeURIComponent(requestedPath)}` : "";
+        router.push(`/auth/mfa?token=${encodeURIComponent(payload.mfaToken ?? "")}${next}`);
+        return;
+      }
+
+      setPublicSession({ ready: true, authenticated: true, role: String(payload.user.role).toLowerCase() as Role });
+
+      const requestedPath = searchParams.get("next");
+      const destination =
+        mode === "login" && requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+          ? requestedPath
+          : mode === "login"
+            ? `/${String(payload.user.role).toLowerCase()}/dashboard`
+            : `/${selectedRole}/onboarding`;
       router.push(destination);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Something went wrong. Please try again.");
+      const message = caught instanceof Error ? caught.message : "Something went wrong. Please try again.";
+      setConnectivityError(
+        message.includes("temporarily unavailable") || message.includes("session could not be refreshed"),
+      );
+      setError(message);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form className="mt-10 space-y-5" onSubmit={submit}>
+    <form className="mt-10 space-y-5 text-[var(--ink)]" onSubmit={submit}>
       {mode === "signup" ? (
         <fieldset className="space-y-3">
           <legend className="text-sm font-bold text-[var(--muted)]">I am joining as</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {roleOptions.map((option) => {
+          <div className="grid gap-4 sm:grid-cols-3">
+            {authCopy.roleOptions.map((option) => {
               const active = selectedRole === option.value;
               return (
                 <button
@@ -64,8 +83,8 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
                   type="button"
                   aria-pressed={active}
                   onClick={() => setSelectedRole(option.value)}
-                  className={`rounded-2xl border-2 p-4 text-left transition-transform active:scale-[.98] ${
-                    active ? "border-[var(--forest)] bg-[var(--accent)]" : "border-[var(--line)] bg-white"
+                  className={`min-w-0 rounded-2xl border-2 p-4 text-left transition-transform active:scale-[.98] ${
+                    active ? "border-[var(--forest)] bg-[var(--accent)] text-[var(--on-bright)]" : "border-[var(--line)] bg-[var(--paper)] text-[var(--ink)]"
                   }`}
                 >
                   <span className="block text-sm font-black uppercase tracking-[.14em]">{option.label}</span>
@@ -85,24 +104,33 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
           required
-          className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-white px-4 text-base outline-none"
+          className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-4 text-base text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
           placeholder="you@example.com"
         />
       </label>
 
-      <label className="block text-sm font-bold">
-        Password
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete={mode === "login" ? "current-password" : "new-password"}
-          required
-          className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-white px-4 text-base outline-none"
-          placeholder="Enter your password"
-        />
-      </label>
+      {mode === "login" && loginMethod === "password" ? (
+        <div className="-mt-2 text-right text-sm font-bold">
+          <Link href="/password-reset" className="text-[var(--action)] underline">Forgot password?</Link>
+        </div>
+      ) : null}
 
+      {mode === "signup" || loginMethod === "password" ? (
+        <label className="block text-sm font-bold">
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            required
+            className="mt-2 min-h-12 w-full rounded-2xl border border-[var(--line)] bg-[var(--paper)] px-4 text-base text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
+            placeholder="Enter your password"
+          />
+        </label>
+      ) : null}
+
+      {notice ? <p role="status" aria-live="polite" className="rounded-2xl bg-[var(--accent)]/15 px-4 py-3 text-sm font-bold text-[var(--ink)]">{notice}</p> : null}
       {error ? (
         <p role="alert" aria-live="polite" className="rounded-2xl bg-[var(--orange)]/10 px-4 py-3 text-sm font-bold text-[var(--danger)]">
           {error}
@@ -114,11 +142,35 @@ export function AuthForm({ mode, role = "creator" }: { mode: AuthMode; role?: Ro
         disabled={busy}
         className="flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--forest)] px-5 py-3 text-sm font-bold text-white shadow-[4px_4px_0_var(--orange)] transition-transform active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {busy ? "One moment..." : mode === "login" ? "Log in ->" : "Create account ->"}
+        {busy ? "Connecting..." : connectivityError && mode === "login" ? "Try again" : mode === "login" ? authCopy.login.submit : authCopy.signup.submit}
       </button>
 
+      {mode === "login" ? (
+        <button
+          type="button"
+          onClick={() => { setLoginMethod(loginMethod === "password" ? "magic-link" : "password"); setError(""); setNotice(""); }}
+          className="w-full text-sm font-bold text-[var(--action)] underline underline-offset-4"
+        >
+          {loginMethod === "password" ? "Use a magic link instead" : "Use password instead"}
+        </button>
+      ) : null}
+
+      {mode === "login" && process.env.NEXT_PUBLIC_GOOGLE_LOGIN_ENABLED === "true" ? (
+        <a href={`${getApiUrl()}/oauth2/authorization/google`} className="flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper)] px-5 py-3 text-sm font-bold text-[var(--ink)]">
+          Continue with Google
+        </a>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-bold">
-        {mode === "login" ? <Link href="/signup" className="text-[var(--forest)] underline">Create an account</Link> : <Link href="/login" className="text-[var(--forest)] underline">Already have an account?</Link>}
+        {mode === "login" ? (
+          <Link href="/signup" className="text-[var(--action)] underline">
+            {authCopy.login.switchLink}
+          </Link>
+        ) : (
+          <Link href="/login" className="text-[var(--action)] underline">
+            {authCopy.signup.switchLink}
+          </Link>
+        )}
         <Link href="/help" className="text-[var(--muted)] underline">
           Need help?
         </Link>

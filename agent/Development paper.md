@@ -67,7 +67,7 @@ Message (thread_id, sender_id, recipient_id, body, created_at)
 - DB: PostgreSQL, Flyway migrations
 - Auth: Spring Security + JWT (stateless), RBAC (Creator/Brand/Editor/Admin)
 - Build: Maven | Testing: JUnit5 + Mockito
-- Payments: Razorpay Java SDK (UPI, payment links)
+- Payments/Payouts/Escrow: **UniBee self-hosted** — $0/month open-source subscription billing, recurring payments, invoicing, and payment events. $0 plans skip gateways. No escrow/fund holding.
 - File storage: AWS S3 or Cloudflare R2 (watermarked previews, portfolio assets)
 - Containerization: Docker | CI/CD: GitHub Actions
 - Hosting: backend on Render/Railway or AWS EC2, frontend on Vercel
@@ -78,14 +78,18 @@ See `SITEMAP.md` — 32 routes across Creator/Brand/Editor/Public/Admin.
 ## 7. UI/UX Reference
 See `UI_UX_RESEARCH.md` — patterns borrowed from CollabMarket (profile layout), GetCollab (discovery/filter), Fiverr (package tiers, gig cards, revision flow).
 
+## 7A. E-signature (deferred)
+FreeSign (freesign.io) — open-source, self-hostable, free. AGPL copyleft applies if self-hosted and modified. No Aadhaar-linked eSign; fallback to Digio/Leegality if that becomes a legal requirement.
+
 ## 8. Non-Functional Requirements
+- CRUD permissions are persisted in a role/resource/action policy matrix. Super Admins can update Creator, Brand, and Editor permissions from the RBAC console; Admin access remains protected. Core booking, package, profile, edit-request, invoice, and message APIs enforce the matrix and record policy changes in the privileged audit log.
 - i18n-ready (English v1, Hindi/regional planned)
 - INR only v1, currency as a field not hardcoded
 - RBAC enforced server-side, not just UI
 - `status_history` append-only on Booking and EditRequest for dispute resolution
 
 ## 9. Payments/Compliance
-- Razorpay for all in-platform payments (brand→creator, creator→editor)
+- UniBee for subscription billing, recurring payments, invoices, collections, and payment events. Free plans must require no payment method or gateway call. Paid transactions still have external gateway/bank costs. Creator→editor payout/disbursal remains separate work.
 - GST/TDS invoice fields still required wherever platform facilitates payment (GSTIN, SAC code, CGST/SGST/IGST) — this is a payments-correctness requirement, not the dropped "legal-protection" feature
 - No escrow/fund-holding without payment aggregator license — confirm model (pass-through payment link vs. held funds) before building EditRequest payment-gate logic
 
@@ -99,8 +103,32 @@ See `UI_UX_RESEARCH.md` — patterns borrowed from CollabMarket (profile layout)
 ## 11. Open Decisions (need founder sign-off before build)
 1. "Influencing score" — exact formula
 2. Editor-suspension trigger — under-delivery vs. rejecting requested changes
-3. Escrow vs. pass-through payment — regulatory implications
+3. UniBee billing coverage — payment-gateway rollout is deferred to a later release as of 2026-08-20; confirm gateway coverage, self-hosting, recurring billing, webhook, reconciliation, and payout requirements before production cutover
 4. Whether GST/TDS invoicing stays in scope given ASCI/legal-protection framing dropped (recommend: keep — payments still need correct invoicing regardless of positioning)
 
 ## 12. Doc Sync Status
 `PRD.md`, `SCOPE.md`, `TRD.md`, `DESIGN.md`, `AGENT_CONTEXT.md` still reflect the earlier "not a marketplace" direction. **Not yet updated to match this pivot.** Update those files before handing to a dev/agent, or agent will get conflicting instructions.
+
+## 13. Payment Direction Update
+- UniBee is the target stack: free/open-source subscription billing and recurring payments.
+- UniBee is the primary provider, isolated behind the same payment adapter.
+- $0 user plans use internal zero-amount completion; no gateway charge.
+- Paid user transactions are not guaranteed free; external processor costs remain.
+- Invoice payment links use UniBee hosted checkout; live payment-gateway onboarding is deferred to a later release as of 2026-08-20.
+
+## 14. SaaS Starter Capability Goal
+
+Weave will use Makerkit-style SaaS capabilities as an implementation baseline, while preserving Weave workflows, UniBee billing, and open-source ownership:
+
+- Full authentication: password, magic link, social login, MFA, recovery, session revocation, and audit logging.
+- Multi-tenancy: personal accounts, organizations, switching, memberships, and strict tenant isolation.
+- Current implementation starts with personal organizations, memberships, active-organization switching, and an authenticated switcher. Resource-level tenant scoping remains open; bookings are cross-party collaboration records and must use participant authorization rather than a single-tenant assumption.
+- Super Admin: user and organization management, impersonation, disable/restore controls, and privileged-action audit logs.
+- Current admin surface includes a command center, user suspend/restore, organization member/status management, moderation, content, operations, impersonation, and durable privileged-action audit tools.
+- Creator, brand, and editor dashboards now have separate role-specific hierarchy and actions inside a shared responsive UI system, with interactive analytics and credited local Pexels dummy media for development.
+- Billing: UniBee self-hosted primary; recurring billing and customer portal through provider-neutral interfaces. `$0` plans require no gateway.
+- Frontend: Shadcn UI, Tailwind CSS v4, dark/light/system theme, accessible mobile-first layouts.
+- Product surfaces: SEO-ready blog, documentation/help center, realtime notifications, and plugin modules.
+- Engineering: strict TypeScript/ESLint, Playwright E2E, React.Email, unified SMTP/Resend mailers, serverful/serverless-safe boundaries, AI-agent rules, and MCP tooling.
+- Architecture rule: Weave owns domain logic and data. External providers stay replaceable adapters.
+- Creator→editor payout/disbursal still needs a separate design and implementation plan.
