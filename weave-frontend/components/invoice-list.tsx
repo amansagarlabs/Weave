@@ -59,6 +59,47 @@ const initialTax: TaxFields = {
   tdsApplicable: false,
 };
 
+function InvoicePreview({ bookingId, amount, tax, invoice, dueAt }: { bookingId: number; amount: number | string; tax: TaxFields; invoice?: Invoice; dueAt?: string }) {
+  const awaitingTax = tax.gstRegistered || tax.tdsApplicable;
+  return (
+    <section aria-label="Live invoice preview" className="mt-7 rounded-2xl bg-[#e9edeb] p-3 sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-3 px-1">
+        <p className="text-xs font-bold uppercase tracking-[.14em] text-[var(--muted)]">Live preview</p>
+        <span className="text-xs text-[var(--muted)]">Draft</span>
+      </div>
+      <div className="min-h-[520px] rounded-xl bg-white p-5 text-[#17221f] shadow-sm sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#65736e]">Weave</p><p className="mt-2 text-sm text-[#65736e]">Booking #{bookingId}</p></div>
+          <h3 className="text-right text-2xl font-black tracking-[-.04em]">INVOICE {invoice ? `#${invoice.id}` : ""}</h3>
+        </div>
+        <div className="mt-9 grid grid-cols-2 gap-4 text-sm">
+          <div><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#65736e]">From</p><p className="mt-2 font-bold">Creator</p>{tax.creatorGstin ? <p className="mt-1 break-all text-xs text-[#65736e]">GSTIN: {tax.creatorGstin}</p> : null}</div>
+          <div className="text-right"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#65736e]">Bill to</p><p className="mt-2 font-bold">Brand</p>{tax.brandGstin ? <p className="mt-1 break-all text-xs text-[#65736e]">GSTIN: {tax.brandGstin}</p> : null}</div>
+        </div>
+        <div className="mt-8 space-y-1 text-xs text-[#65736e]">
+          <p>Invoice #: {invoice ? invoice.id : "Assigned on creation"}</p>
+          <p>Invoice date: {invoice?.createdAt ? new Date(invoice.createdAt).toLocaleDateString("en-IN") : "Assigned on creation"}</p>
+          <p>Due date: {dueAt || "—"}</p>
+          {tax.placeOfSupply ? <p>Place of supply: {tax.placeOfSupply}</p> : null}
+        </div>
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full min-w-[360px] text-left text-xs">
+            <thead className="border-b border-[#cbd3cf] text-[10px] uppercase tracking-[.1em] text-[var(--forest)]"><tr><th className="pb-3">Item</th><th className="pb-3 text-center">Qty</th><th className="pb-3 text-right">Rate</th><th className="pb-3 text-right">Amount</th></tr></thead>
+            <tbody><tr className="border-b border-[#e5eae7]"><td className="py-4 font-bold">Booking #{bookingId}{tax.sacCode ? <span className="mt-1 block font-normal text-[#65736e]">SAC: {tax.sacCode}</span> : null}</td><td className="py-4 text-center">1</td><td className="py-4 text-right">{money(amount)}</td><td className="py-4 text-right font-bold">{money(amount)}</td></tr></tbody>
+          </table>
+        </div>
+        <div className="ml-auto mt-6 max-w-xs space-y-3 text-sm">
+          <div className="flex justify-between gap-4 text-[#65736e]"><span>Subtotal</span><span>{money(amount)}</span></div>
+          <div className="flex justify-between gap-4 text-[#65736e]"><span>GST</span><span>{tax.gstRegistered ? "Calculated on save" : money(0)}</span></div>
+          <div className="flex justify-between gap-4 text-[#65736e]"><span>TDS</span><span>{tax.tdsApplicable ? "Calculated on save" : money(0)}</span></div>
+          <div className="flex justify-between gap-4 border-t-2 border-[var(--forest)] pt-3 font-black"><span>Net payable</span><span>{awaitingTax ? "Calculated on save" : money(amount)}</span></div>
+        </div>
+        <p className="mt-12 text-xs leading-5 text-[#65736e]">This preview uses the agreed booking amount. Tax is calculated using the configured rules when the draft is saved.</p>
+      </div>
+    </section>
+  );
+}
+
 export function InvoiceList() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -311,6 +352,7 @@ export function InvoiceList() {
               <p className="mt-3 text-xs leading-5 text-[var(--muted)]">Tax rates come from backend configuration and can be changed without editing frontend code.</p>
             </div>
           </form>
+          <InvoicePreview bookingId={selectedBooking} amount={bookings.find((booking) => booking.id === selectedBooking)?.amount ?? 0} tax={tax} />
           </Card>
         </div>
       ) : null}
@@ -336,6 +378,7 @@ export function InvoiceList() {
             <label className="flex min-h-11 items-center gap-3 rounded-xl bg-[var(--paper)] px-3 text-sm font-bold"><input type="checkbox" checked={tax.tdsApplicable} onChange={(event) => setTax({ ...tax, tdsApplicable: event.target.checked })} /> Apply TDS rule</label>
             <div className="sm:col-span-2"><button type="submit" disabled={busy === editingInvoice.id} className="min-h-12 rounded-full bg-[var(--forest)] px-6 font-bold text-white disabled:opacity-60">{busy === editingInvoice.id ? "Saving..." : "Save draft changes"}</button></div>
           </form>
+          <InvoicePreview bookingId={editingInvoice.bookingId} amount={editingInvoice.amount} tax={tax} invoice={editingInvoice} dueAt={draftDueAt} />
           </Card>
         </div>
       ) : null}

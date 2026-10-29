@@ -319,7 +319,7 @@ function PricingCard({
   featured?: boolean;
 }) {
   return (
-    <article className={`rounded-[24px] p-7 ${featured ? "bg-[var(--dark-panel)] text-[var(--on-dark)] shadow-[7px_7px_0_var(--orange)]" : "bg-[var(--card)] text-[var(--ink)]"}`}>
+    <article className={`rounded-[24px] border-2 p-7 ${featured ? "border-[var(--dark-panel)] bg-[var(--dark-panel)] text-[var(--on-dark)] shadow-[7px_7px_0_var(--orange)]" : "border-[color-mix(in_srgb,var(--ink)_20%,transparent)] bg-[var(--card)] text-[var(--ink)] shadow-[7px_7px_0_color-mix(in_srgb,var(--orange)_20%,transparent)]"}`}>
       <div className="flex items-center justify-between">
         <p className={`text-xs font-bold uppercase tracking-[.15em] ${featured ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>{title}</p>
         {featured ? <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-[var(--on-bright)]">Most useful</span> : null}

@@ -135,6 +135,7 @@ public class S3StorageService {
     }
 
     public String deliveryUrl(String legacyUrl, String publicId, String resourceType, String format, Long version) {
+        if (legacyUrl == null && publicId == null && resourceType == null && format == null && version == null) return null;
         if (publicId == null || resourceType == null || format == null || version == null) {
             if ("cloudinary".equals(provider)) {
                 throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Asset signing metadata is unavailable");
