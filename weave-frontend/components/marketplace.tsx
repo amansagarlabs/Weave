@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../lib/api";
+import { api, chatApi } from "../lib/api";
 import { AppShell, ButtonLink, Card, Pill, StatusBadge } from "./ui";
 import { PublicNav } from "./public-nav";
 import { PublicCreatorStorefront } from "./public-creator-storefront";
@@ -361,7 +361,7 @@ function LegacyPublicCreatorProfile({ slug, variant = "brand" }: { slug: string;
     setActionBusy(true);
     setActionMessage("");
     try {
-      await api("/messages", { method: "POST", body: JSON.stringify({ threadId: `creator-${creator.userId}`, recipientId: creator.userId, body: "Hi! I found your profile on Weave and would love to share a brief." }) });
+      await chatApi("/messages", { method: "POST", body: JSON.stringify({ threadId: `creator-${creator.userId}`, recipientId: creator.userId, body: "Hi! I found your profile on Weave and would love to share a brief." }) });
       setActionMessage("Message sent. Open Messages to continue the conversation.");
     } catch (caught) {
       setActionMessage(caught instanceof Error ? `${caught.message}. Please sign in before messaging.` : "Please sign in before messaging.");

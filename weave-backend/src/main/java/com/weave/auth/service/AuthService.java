@@ -67,7 +67,7 @@ public class AuthService {
 
     public String realtimeToken(String accessToken) {
         var user = userFromAccessToken(accessToken);
-        return jwtService.issue(user.email(), user.role());
+        return jwtService.issueChallenge(user.email(), "REALTIME", java.time.Duration.ofMinutes(5));
     }
 
     private void createStarterCreatorProfile(User user) {
