@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "../lib/api";
+import { chatApi } from "../lib/api";
 import { ButtonLink, Card } from "./ui";
 
 type Conversation = {
@@ -21,7 +21,7 @@ export function MessageInbox({ role }: { role: "creator" | "brand" }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api<Conversation[]>("/messages")
+    chatApi<Conversation[]>("/messages")
       .then(setItems)
       .catch((caught) => setError(caught instanceof Error ? `${caught.message}. Sign in to load your inbox.` : "Could not load inbox."))
       .finally(() => setLoading(false));

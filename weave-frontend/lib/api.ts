@@ -1,3 +1,7 @@
+export function getChatApiUrl() {
+  return process.env.NEXT_PUBLIC_CHAT_API_URL || getApiUrl();
+}
+
 export function getApiUrl() {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== "undefined") return `http://${window.location.hostname}:8080`;
@@ -24,7 +28,7 @@ async function ensureCsrfCookie() {
   return csrfToken();
 }
 
-export async function api<T>(path: string, init?: RequestInit, retry = true): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit, retry = true, baseUrl = getApiUrl()): Promise<T> {
   const headers = new Headers(init?.headers);
   const method = (init?.method ?? "GET").toUpperCase();
   if (init?.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
@@ -34,7 +38,7 @@ export async function api<T>(path: string, init?: RequestInit, retry = true): Pr
   if (csrf && method !== "GET" && method !== "HEAD") headers.set("X-Weave-CSRF", csrf);
   let response: Response;
   try {
-    response = await fetch(`${getApiUrl()}${path}`, {
+    response = await fetch(`${baseUrl}${path}`, {
       ...init,
       credentials: "include",
       headers,
@@ -49,7 +53,7 @@ export async function api<T>(path: string, init?: RequestInit, retry = true): Pr
     } catch (error) {
       throw new Error("Your session could not be refreshed. Please try again.", { cause: error });
     }
-    if (refreshed.ok) return api<T>(path, init, false);
+    if (refreshed.ok) return api<T>(path, init, false, baseUrl);
   }
   if (response.status === 401 && typeof window !== "undefined") {
     const next = `${window.location.pathname}${window.location.search}`;
@@ -61,4 +65,8 @@ export async function api<T>(path: string, init?: RequestInit, retry = true): Pr
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+export function chatApi<T>(path: string, init?: RequestInit): Promise<T> {
+  return api<T>(path, init, true, getChatApiUrl());
 }

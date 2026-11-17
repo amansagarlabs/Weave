@@ -1,0 +1,24 @@
+name = "weave-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "weave"
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "weave-files"
+
+[[durable_objects.bindings]]
+name = "THREADS"
+class_name = "ThreadRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ThreadRoom"]
+
+[vars]
+FRONTEND_ORIGIN = "http://localhost:3000"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Globe, Instagram, Linkedin, Play, Music2, Twitter } from "lucide-react";
-import { api } from "../lib/api";
+import { api, chatApi } from "../lib/api";
 import { ButtonLink, Card, Pill, StatusBadge } from "./ui";
 import { PublicNav } from "./public-nav";
 
@@ -79,7 +79,7 @@ export function PublicCreatorStorefront({ slug, variant = "brand", embedded = fa
     api<Asset[]>(`/creator/public/${encodedSlug}/portfolio`).then(setAssets).catch(() => setAssets([]));
   }, [slug]);
 
-  async function contact() { if (!profile) return; setBusy(true); setMessage(""); try { await api("/messages", { method: "POST", body: JSON.stringify({ threadId: `creator-${profile.userId}`, recipientId: profile.userId, body: "Hi! I found your profile on Weave and would love to share a brief." }) }); setMessage("Message sent. Open Messages to continue."); } catch (caught) { setMessage(caught instanceof Error ? `${caught.message}. Sign in before messaging.` : "Sign in before messaging."); } finally { setBusy(false); } }
+  async function contact() { if (!profile) return; setBusy(true); setMessage(""); try { await chatApi("/messages", { method: "POST", body: JSON.stringify({ threadId: `creator-${profile.userId}`, recipientId: profile.userId, body: "Hi! I found your profile on Weave and would love to share a brief." }) }); setMessage("Message sent. Open Messages to continue."); } catch (caught) { setMessage(caught instanceof Error ? `${caught.message}. Sign in before messaging.` : "Sign in before messaging."); } finally { setBusy(false); } }
   async function request(pkg: Package) { if (!profile) return; setBusy(true); setMessage(""); try { await api("/bookings", { method: "POST", body: JSON.stringify({ creatorId: profile.userId, packageId: pkg.id, amount: pkg.price }) }); setMessage("Booking request sent. Track it from Bookings."); } catch (caught) { setMessage(caught instanceof Error ? `${caught.message}. Sign in as a brand to request a package.` : "Sign in as a brand to request a package."); } finally { setBusy(false); } }
 
   return <div className="min-h-screen bg-[var(--paper)]">{embedded ? null : <PublicNav />}<div className="mx-auto max-w-6xl px-6 pb-20 lg:px-8">{loading ? <Card className="mt-10"><p className="font-bold text-[var(--muted)]">Loading creator profile...</p></Card> : error || !profile ? <Card className="mt-10"><h1 className="text-2xl font-black">Creator profile unavailable.</h1><p className="mt-3 text-sm text-[var(--muted)]">{error || "This creator profile does not exist."}</p><div className="mt-5"><ButtonLink href={variant === "brand" ? "/brand/discover" : "/"} variant="outline">Go back</ButtonLink></div></Card> : <>
